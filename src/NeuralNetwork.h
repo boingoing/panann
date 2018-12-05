@@ -97,6 +97,8 @@ public:
     void AddHiddenLayer(size_t neuronCount);
     void Construct();
 
+    void InitializeWeightsRandom(double min = -1.0, double max = 1.0);
+
     void Train(TrainingData* trainingData, size_t epochCount);
     void RunForward(std::vector<double>* input);
 
@@ -114,4 +116,9 @@ protected:
 
     void ComputeNeuronValue(size_t neuronIndex);
     double ExecuteActivationFunction(ActivationFunctionType activationFunctionType, double field);
+
+    size_t GetOutputNeuronStartIndex();
+    size_t GetInputNeuronStartIndex();
+    size_t GetHiddenNeuronStartIndex();
+    size_t GetBiasNeuronStartIndex();
 };

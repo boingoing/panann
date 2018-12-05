@@ -25,19 +25,28 @@ size_t NeuralNetwork::GetOutputNeuronCount() {
     return this->_outputNeuronCount;
 }
 
+size_t NeuralNetwork::GetInputNeuronStartIndex() {
+    return 0;
+}
+
+size_t NeuralNetwork::GetOutputNeuronStartIndex() {
+    return this->_inputNeuronCount;
+}
+
+size_t NeuralNetwork::GetHiddenNeuronStartIndex() {
+    return this->_inputNeuronCount + this->_outputNeuronCount;
+}
+
+size_t NeuralNetwork::GetBiasNeuronStartIndex() {
+    return this->_inputNeuronCount + this->_outputNeuronCount + this->_hiddenNeuronCount;
+}
+
 void NeuralNetwork::AddHiddenLayer(size_t neuronCount) {
     Layer layer;
-
-    if (this->_hiddenLayers.empty()) {
-        layer._neuronStartIndex = this->_inputNeuronCount + 1 + this->_outputNeuronCount;
-    } else {
-        const Layer& lastLayer = this->_hiddenLayers.back();
-        layer._neuronStartIndex = lastLayer._neuronStartIndex + lastLayer._neuronCount + 1;
-    }
-
+    layer._neuronStartIndex = this->GetHiddenNeuronStartIndex() + this->_hiddenNeuronCount;
     layer._neuronCount = neuronCount;
-    this->_hiddenLayers.push_back(layer);
 
+    this->_hiddenLayers.push_back(layer);
     this->_hiddenNeuronCount += neuronCount;
 }
 
@@ -54,7 +63,7 @@ void NeuralNetwork::AllocateConnections() {
 
     this->_neurons.resize(neuronCount);
 
-    size_t neuronIndex = this->_inputNeuronCount + 1 + this->_outputNeuronCount;
+    size_t biasNeuronIndex = this->GetBiasNeuronStartIndex();
     size_t inputConnectionIndex = 0;
     size_t outputConnectionIndex = 0;
     size_t inputConnectionCount = 0;
@@ -73,14 +82,16 @@ void NeuralNetwork::AllocateConnections() {
 
     outputConnectionCount += currentLayerOutputConnectionCount * this->_inputNeuronCount;
 
+    size_t inputNeuronIndex = this->GetInputNeuronStartIndex();
     for (size_t i = 0; i < this->_inputNeuronCount; i++) {
-        Neuron& neuron = this->_neurons.at(i);
+        Neuron& neuron = this->_neurons[inputNeuronIndex + i];
         neuron._outputConnectionStartIndex = outputConnectionIndex;
 
         outputConnectionIndex += currentLayerOutputConnectionCount;
     }
 
-    Neuron& biasNeuron = this->_neurons.at(this->_inputNeuronCount);
+    // The first bias neuron is the one for the input layer.
+    Neuron& biasNeuron = this->_neurons[biasNeuronIndex++];
     biasNeuron._outputConnectionStartIndex = outputConnectionIndex;
     outputConnectionIndex = this->_hiddenLayers.front()._neuronCount;
 
@@ -95,14 +106,15 @@ void NeuralNetwork::AllocateConnections() {
 
     inputConnectionCount += currentLayerInputConnectionCount * this->_outputNeuronCount;
 
-    size_t firstOutputNeuronIndex = this->_inputNeuronCount + 1;
+    size_t firstOutputNeuronIndex = this->GetOutputNeuronStartIndex();
     for (size_t i = 0; i < this->_outputNeuronCount; i++) {
-        Neuron& neuron = this->_neurons.at(firstOutputNeuronIndex + i);
+        Neuron& neuron = this->_neurons[firstOutputNeuronIndex + i];
         neuron._inputConnectionStartIndex = inputConnectionIndex;
-        //neuron._inputConnectionCount = currentLayerInputConnectionCount;
 
         inputConnectionIndex += currentLayerInputConnectionCount;
     }
+
+    size_t neuronIndex = this->GetHiddenNeuronStartIndex();
 
     // Calculate the connections to and from all hidden layers.
     for (size_t layerIndex = 0; layerIndex < this->_hiddenLayers.size(); layerIndex++) {
@@ -115,7 +127,7 @@ void NeuralNetwork::AllocateConnections() {
 
             // Each neuron in this layer connects to the neurons in all previous hidden layers.
             for (size_t previousLayerIndex = 0; previousLayerIndex < layerIndex; previousLayerIndex++) {
-                currentLayerInputConnectionCount += this->_hiddenLayers.at(previousLayerIndex)._neuronCount + 1;
+                currentLayerInputConnectionCount += this->_hiddenLayers[previousLayerIndex]._neuronCount + 1;
             }
 
             // All hidden layers connect directly to the output layer when shortcuts are enabled.
@@ -123,7 +135,7 @@ void NeuralNetwork::AllocateConnections() {
 
             // This layer connects to all neurons in subsequent hidden layers.
             for (size_t nextLayerIndex = layerIndex + 1; nextLayerIndex < this->_hiddenLayers.size(); nextLayerIndex++) {
-                currentLayerOutputConnectionCount += this->_hiddenLayers.at(nextLayerIndex)._neuronCount;
+                currentLayerOutputConnectionCount += this->_hiddenLayers[nextLayerIndex]._neuronCount;
             }
         } else {
             if (layerIndex == 0) {
@@ -131,7 +143,7 @@ void NeuralNetwork::AllocateConnections() {
                 currentLayerInputConnectionCount += this->_inputNeuronCount + 1;
             } else {
                 // This hidden layer connects directly the previous one.
-                currentLayerInputConnectionCount += this->_hiddenLayers.at(layerIndex - 1)._neuronCount + 1;
+                currentLayerInputConnectionCount += this->_hiddenLayers[layerIndex - 1]._neuronCount + 1;
             }
 
             if (layerIndex == this->_hiddenLayers.size() - 1) {
@@ -141,18 +153,15 @@ void NeuralNetwork::AllocateConnections() {
                 assert(layerIndex + 1 < this->_hiddenLayers.size());
 
                 // This hidden layer connects directly to the next one.
-                currentLayerOutputConnectionCount += this->_hiddenLayers.at(layerIndex + 1)._neuronCount;
+                currentLayerOutputConnectionCount += this->_hiddenLayers[layerIndex + 1]._neuronCount;
             }
         }
 
-        const Layer& currentLayer = this->_hiddenLayers.at(layerIndex);
-
+        const Layer& currentLayer = this->_hiddenLayers[layerIndex];
         for (size_t i = 0; i < currentLayer._neuronCount; i++) {
-            Neuron& neuron = this->_neurons.at(neuronIndex++);
+            Neuron& neuron = this->_neurons[neuronIndex++];
             neuron._inputConnectionStartIndex = inputConnectionIndex;
-            //neuron._inputConnectionCount = currentLayerInputConnectionCount;
             neuron._outputConnectionStartIndex = outputConnectionIndex;
-            //neuron._outputConnectionCount = currentLayerOutputConnectionCount;
 
             inputConnectionIndex += currentLayerInputConnectionCount;
             outputConnectionIndex += currentLayerOutputConnectionCount;
@@ -165,11 +174,11 @@ void NeuralNetwork::AllocateConnections() {
             biasOutputConnections = this->_outputNeuronCount;
         } else {
             // Bias neuron in this hidden layer connects to the next hidden layer.
-            biasOutputConnections = this->_hiddenLayers.at(layerIndex + 1)._neuronCount;
+            biasOutputConnections = this->_hiddenLayers[layerIndex + 1]._neuronCount;
         }
 
         // Bias neurons do not have incoming connections.
-        Neuron& biasNeuron = this->_neurons.at(neuronIndex++);
+        Neuron& biasNeuron = this->_neurons[biasNeuronIndex++];
         biasNeuron._outputConnectionStartIndex = outputConnectionIndex;
         outputConnectionIndex += biasOutputConnections;
 
@@ -183,8 +192,8 @@ void NeuralNetwork::AllocateConnections() {
 }
 
 void NeuralNetwork::ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex) {
-    Neuron& fromNeuron = this->_neurons.at(fromNeuronIndex);
-    Neuron& toNeuron = this->_neurons.at(toNeuronIndex);
+    Neuron& fromNeuron = this->_neurons[fromNeuronIndex];
+    Neuron& toNeuron = this->_neurons[toNeuronIndex];
 
     size_t inputConnectionIndex = toNeuron._inputConnectionStartIndex + toNeuron._inputConnectionCount;
     size_t weightIndex = inputConnectionIndex;
@@ -219,74 +228,76 @@ void NeuralNetwork::ConnectBiasNeuron(size_t biasNeuronIndex, size_t toNeuronInd
 void NeuralNetwork::ConnectFully() {
     assert(!this->_hiddenLayers.empty());
 
+    size_t inputNeuronStartIndex = this->GetInputNeuronStartIndex();
+    size_t biasNeuronIndex = this->GetBiasNeuronStartIndex();
+
     for (size_t layerIndex = 0; layerIndex < this->_hiddenLayers.size(); layerIndex++) {
-        const Layer& currentLayer = this->_hiddenLayers.at(layerIndex);
+        const Layer& currentLayer = this->_hiddenLayers[layerIndex];
 
         if (this->_enableShortcutConnections) {
             // Connect to input layer.
-            ConnectLayers(0, this->_inputNeuronCount, currentLayer._neuronStartIndex, currentLayer._neuronCount);
+            ConnectLayers(inputNeuronStartIndex,
+                          this->_inputNeuronCount,
+                          currentLayer._neuronStartIndex,
+                          currentLayer._neuronCount);
 
             // Connect to all previous hidden layers.
             for (size_t previousLayerIndex = 0; previousLayerIndex < layerIndex; previousLayerIndex++) {
-                const Layer& previousLayer = this->_hiddenLayers.at(previousLayerIndex);
+                const Layer& previousLayer = this->_hiddenLayers[previousLayerIndex];
                 ConnectLayers(previousLayer._neuronStartIndex,
                               previousLayer._neuronCount,
                               currentLayer._neuronStartIndex,
                               currentLayer._neuronCount);
             }
-
-            // Connect to bias neuron.
-            if (layerIndex == 0) {
-                // Neurons in the first hidden layer connect to the bias neuron in the input layer.
-                ConnectBiasNeuron(this->_inputNeuronCount, currentLayer._neuronStartIndex, currentLayer._neuronCount);
-            } else {
-                // Neurons in other hidden layers connect to the bias neuron in the previous hidden layer.
-                const Layer& previousLayer = this->_hiddenLayers.at(layerIndex - 1);
-                ConnectBiasNeuron(previousLayer._neuronStartIndex + previousLayer._neuronCount,
-                                     currentLayer._neuronStartIndex,
-                                     currentLayer._neuronCount);
-            }
         } else {
             if (layerIndex == 0) {
-                // Connect to input layer and connect bias neuron.
-                ConnectLayers(0, 
-                              this->_inputNeuronCount + 1,
+                // Connect first hidden layer to input layer.
+                ConnectLayers(inputNeuronStartIndex,
+                              this->_inputNeuronCount,
                               currentLayer._neuronStartIndex,
                               currentLayer._neuronCount);
             } else {
-                // Connect to previous hidden layer and connect bias neuron.
-                const Layer& previousLayer = this->_hiddenLayers.at(layerIndex - 1);
+                // Connect to previous hidden layer.
+                const Layer& previousLayer = this->_hiddenLayers[layerIndex - 1];
                 ConnectLayers(previousLayer._neuronStartIndex,
-                              previousLayer._neuronCount + 1,
+                              previousLayer._neuronCount,
                               currentLayer._neuronStartIndex,
                               currentLayer._neuronCount);
             }
         }
+
+        // Bias neurons do not have shortcut connections.
+        // Just connect this layer to the bias neuron in the layer before it.
+        ConnectBiasNeuron(biasNeuronIndex++, currentLayer._neuronStartIndex, currentLayer._neuronCount);
     }
 
-    size_t outputLayerNeuronStartIndex = this->_inputNeuronCount + 1;
-    const Layer& previousLayer = this->_hiddenLayers.back();
+    size_t outputNeuronStartIndex = this->GetOutputNeuronStartIndex();
     if (this->_enableShortcutConnections) {
         // Connect input layer to output layer.
-        ConnectLayers(0, this->_inputNeuronCount, outputLayerNeuronStartIndex, this->_outputNeuronCount);
+        ConnectLayers(inputNeuronStartIndex,
+                      this->_inputNeuronCount,
+                      outputNeuronStartIndex,
+                      this->_outputNeuronCount);
 
         // Connect all hidden layers to output layer.
         for (size_t i = 0; i < this->_hiddenLayers.size(); i++) {
-            const Layer& layer = this->_hiddenLayers.at(i);
-            ConnectLayers(layer._neuronStartIndex, layer._neuronCount, outputLayerNeuronStartIndex, this->_outputNeuronCount);
-        }
-
-        // Connect output layer to the bias neuron in the last hidden layer.
-        ConnectBiasNeuron(previousLayer._neuronStartIndex + previousLayer._neuronCount,
-                          outputLayerNeuronStartIndex,
+            const Layer& layer = this->_hiddenLayers[i];
+            ConnectLayers(layer._neuronStartIndex,
+                          layer._neuronCount,
+                          outputNeuronStartIndex,
                           this->_outputNeuronCount);
+        }
     } else {
-        // Connect output layer to the last hidden layer including the bias neuron.
+        const Layer& previousLayer = this->_hiddenLayers.back();
+        // Connect output layer to the last hidden layer.
         ConnectLayers(previousLayer._neuronStartIndex,
-                      previousLayer._neuronCount + 1,
-                      outputLayerNeuronStartIndex,
+                      previousLayer._neuronCount,
+                      outputNeuronStartIndex,
                       this->_outputNeuronCount);
     }
+
+    // Connect output layer to the bias neuron in the last hidden layer.
+    ConnectBiasNeuron(biasNeuronIndex, outputNeuronStartIndex, this->_outputNeuronCount);
 }
 
 void NeuralNetwork::Construct() {
@@ -320,7 +331,7 @@ double NeuralNetwork::ExecuteActivationFunction(ActivationFunctionType activatio
 }
 
 void NeuralNetwork::ComputeNeuronValue(size_t neuronIndex) {
-    Neuron& neuron = this->_neurons.at(neuronIndex);
+    Neuron& neuron = this->_neurons[neuronIndex];
     neuron._field = 0.0;
 
     // Sum incoming values.
@@ -341,20 +352,26 @@ void NeuralNetwork::RunForward(std::vector<double>* input) {
     assert(input->size() == this->_inputNeuronCount);
 
     // Feed each input into the corresponding input neuron.
+    size_t inputNeuronStartIndex = GetInputNeuronStartIndex();
     for (size_t i = 0; i < this->_inputNeuronCount; i++) {
-        this->_neurons[i]._value = input->at(i);
+        this->_neurons[inputNeuronStartIndex + i]._value = input->at(i);
     }
 
     // Pull the values from the input layer through the hidden layer neurons.
-    for (size_t i = 0; i < this->_hiddenLayers.size(); i++) {
-        const Layer& layer = this->_hiddenLayers.at(i);
-        for (size_t j = 0; j < layer._neuronCount; j++) {
-            ComputeNeuronValue(layer._neuronStartIndex + i);
-        }
+    size_t hiddenNeuronStartIndex = GetHiddenNeuronStartIndex();
+    for (size_t i = 0; i < this->_hiddenNeuronCount; i++) {
+        ComputeNeuronValue(hiddenNeuronStartIndex + i);
     }
 
     // Pull values into the output layer.
+    size_t outputNeuronStartIndex = GetOutputNeuronStartIndex();
     for (size_t i = 0; i < this->_outputNeuronCount; i++) {
-        ComputeNeuronValue(this->_inputNeuronCount + 1 + i);
+        ComputeNeuronValue(outputNeuronStartIndex + i);
+    }
+}
+
+void NeuralNetwork::InitializeWeightsRandom(double min, double max) {
+    for (size_t i = 0; i < this->_weights.size(); i++) {
+        this->_weights[i] = this->_randomWrapper.RandomFloat(min, max);
     }
 }
