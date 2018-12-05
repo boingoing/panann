@@ -14,7 +14,8 @@ NeuralNetwork::NeuralNetwork() :
     _outputNeuronCount(0),
     _hiddenNeuronCount(0),
     _shouldShapeErrorCurve(true),
-    _enableShortcutConnections(true) {
+    _enableShortcutConnections(true),
+    _isConstructed(false) {
 }
 
 size_t NeuralNetwork::GetInputNeuronCount() {
@@ -22,6 +23,7 @@ size_t NeuralNetwork::GetInputNeuronCount() {
 }
 
 void NeuralNetwork::SetInputNeuronCount(size_t inputNeuronCount) {
+    assert(!this->_isConstructed);
     this->_inputNeuronCount = inputNeuronCount;
 }
 
@@ -30,6 +32,7 @@ size_t NeuralNetwork::GetOutputNeuronCount() {
 }
 
 void NeuralNetwork::SetOutputNeuronCount(size_t outputNeuronCount) {
+    assert(!this->_isConstructed);
     this->_outputNeuronCount = outputNeuronCount;
 }
 
@@ -53,6 +56,8 @@ size_t NeuralNetwork::GetBiasNeuronStartIndex() {
 }
 
 void NeuralNetwork::AddHiddenLayer(size_t neuronCount) {
+    assert(!this->_isConstructed);
+
     Layer layer;
     layer._neuronStartIndex = this->GetHiddenNeuronStartIndex() + this->_hiddenNeuronCount;
     layer._neuronCount = neuronCount;
@@ -61,7 +66,8 @@ void NeuralNetwork::AddHiddenLayer(size_t neuronCount) {
     this->_hiddenNeuronCount += neuronCount;
 }
 
-void NeuralNetwork::AllocateConnections() {
+void NeuralNetwork::Allocate() {
+    assert(!this->_isConstructed);
     // Do not support networks with no hidden layers.
     assert(!this->_hiddenLayers.empty());
 
@@ -239,6 +245,7 @@ void NeuralNetwork::ConnectBiasNeuron(size_t biasNeuronIndex, size_t toNeuronInd
 }
 
 void NeuralNetwork::ConnectFully() {
+    assert(!this->_isConstructed);
     assert(!this->_hiddenLayers.empty());
 
     size_t inputNeuronStartIndex = this->GetInputNeuronStartIndex();
@@ -314,8 +321,12 @@ void NeuralNetwork::ConnectFully() {
 }
 
 void NeuralNetwork::Construct() {
-    this->AllocateConnections();
+    assert(!this->_isConstructed);
+
+    this->Allocate();
     this->ConnectFully();
+
+    this->_isConstructed = true;
 }
 
 void NeuralNetwork::Train(TrainingData* trainingData, size_t epochCount) {
@@ -331,16 +342,12 @@ void NeuralNetwork::Train(TrainingData* trainingData, size_t epochCount) {
             this->RunForward(&trainingData->at(j)._input);
 
             // Run the network backward to propagate the error values
-            //neuralNetwork.RunBackward(*data.output.get(i));
+            this->RunBackward(&trainingData->at(j)._output);
 
             // Update weights online - no batching
             //this->UpdateWeights(neuralNetwork, data);
         }
     }
-}
-
-double NeuralNetwork::ExecuteActivationFunction(ActivationFunctionType activationFunctionType, double field) {
-    return ActivationFunction::ExecuteSigmoidSymmetric(field);
 }
 
 void NeuralNetwork::ComputeNeuronValue(size_t neuronIndex) {
@@ -358,7 +365,23 @@ void NeuralNetwork::ComputeNeuronValue(size_t neuronIndex) {
         assert(inputConnectionIndex == connection._weightIndex);
     }
 
-    neuron._value = ExecuteActivationFunction(neuron._activationFunctionType, neuron._field);
+    neuron._value = ExecuteActivationFunction(&neuron);
+}
+
+void NeuralNetwork::ComputeNeuronError(size_t neuronIndex) {
+    Neuron& neuron = this->_neurons[neuronIndex];
+    double sum = 0.0;
+
+    // Sum outgoing errors.
+    for (size_t i = 0; i < neuron._outputConnectionCount; i++) {
+        size_t outputConnectionIndex = neuron._outputConnectionStartIndex + i;
+        const Connection& connection = this->_outputConnections[outputConnectionIndex];
+        const Neuron& toNeuron = this->_neurons[connection._neuron];
+
+        sum += this->_weights[connection._weightIndex] * toNeuron._error;
+    }
+
+    neuron._error = ExecuteActivationFunctionDerivative(&neuron) * sum;
 }
 
 void NeuralNetwork::RunForward(std::vector<double>* input) {
@@ -383,8 +406,73 @@ void NeuralNetwork::RunForward(std::vector<double>* input) {
     }
 }
 
+double NeuralNetwork::ApplyErrorShaping(double value) {
+    // TODO: Should this be replaced by?
+    //return tanh(value);
+
+    if (value < -0.9999999) {
+        return -17.0;
+    } else if (value > 0.9999999) {
+        return 17.0;
+    } else {
+        return log((1.0 + value) / (1.0 - value));
+    }
+}
+
+void NeuralNetwork::RunBackward(std::vector<double>* output) {
+    assert(output->size() == this->_outputNeuronCount);
+
+    //this->ResetOutputLayerError();
+
+    // Calculate error at each output neuron.
+    size_t outputNeuronStartIndex = this->GetOutputNeuronStartIndex();
+    for (size_t i = 0; i < this->_outputNeuronCount; i++) {
+        Neuron& neuron = this->_neurons[outputNeuronStartIndex + i];
+        double delta = output->at(i) - neuron._value;
+
+        if (IsActivationFunctionSymmetric(neuron._activationFunctionType)) {
+            delta /= 2;
+        }
+
+        if (this->_shouldShapeErrorCurve) {
+            delta = ApplyErrorShaping(delta);
+        }
+
+        neuron._error = ExecuteActivationFunctionDerivative(&neuron) * delta;
+    }
+
+    size_t hiddenNeuronStartIndex = this->GetHiddenNeuronStartIndex();
+    for (size_t i = 0; i < this->_hiddenNeuronCount; i++) {
+        ComputeNeuronError(hiddenNeuronStartIndex + (this->_hiddenNeuronCount - 1 - i));
+    }
+
+    // TODO: bias neurons?
+}
+
 void NeuralNetwork::InitializeWeightsRandom(double min, double max) {
     for (size_t i = 0; i < this->_weights.size(); i++) {
         this->_weights[i] = this->_randomWrapper.RandomFloat(min, max);
     }
+}
+
+bool NeuralNetwork::IsActivationFunctionSymmetric(ActivationFunctionType activationFunctionType) {
+    switch (activationFunctionType) {
+    case ActivationFunctionType::CosineSymmetric:
+    case ActivationFunctionType::SineSymmetric:
+    case ActivationFunctionType::ElliotSymmetric:
+    case ActivationFunctionType::GaussianSymmetric:
+    case ActivationFunctionType::SigmoidSymmetric:
+    case ActivationFunctionType::ThresholdSymmetric:
+        return true;
+    default:
+        return false;
+    }
+}
+
+double NeuralNetwork::ExecuteActivationFunction(Neuron* neuron) {
+    return ActivationFunction::ExecuteSigmoidSymmetric(neuron->_field);
+}
+
+double NeuralNetwork::ExecuteActivationFunctionDerivative(Neuron* neuron) {
+    return ActivationFunction::ExecuteDerivativeSigmoidSymmetric(neuron->_value, neuron->_field);
 }

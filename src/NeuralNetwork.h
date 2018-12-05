@@ -75,6 +75,7 @@ protected:
 
     bool _shouldShapeErrorCurve;
     bool _enableShortcutConnections;
+    bool _isConstructed;
 
     RandomWrapper _randomWrapper;
 
@@ -100,11 +101,12 @@ public:
 
     void Train(TrainingData* trainingData, size_t epochCount);
     void RunForward(std::vector<double>* input);
+    void RunBackward(std::vector<double>* output);
 
 protected:
     NeuralNetwork(const NeuralNetwork&);
 
-    void AllocateConnections();
+    void Allocate();
     void ConnectFully();
 
     void ConnectLayerToNeuron(size_t fromNeuronIndex, size_t fromNeuronCount, size_t toNeuronIndex);
@@ -113,7 +115,11 @@ protected:
     void ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex);
 
     void ComputeNeuronValue(size_t neuronIndex);
-    double ExecuteActivationFunction(ActivationFunctionType activationFunctionType, double field);
+    void ComputeNeuronError(size_t neuronIndex);
+    static double ExecuteActivationFunction(Neuron* neuron);
+    static double ExecuteActivationFunctionDerivative(Neuron* neuron);
+    static bool IsActivationFunctionSymmetric(ActivationFunctionType activationFunctionType);
+    static double ApplyErrorShaping(double value);
 
     size_t GetOutputNeuronStartIndex();
     size_t GetInputNeuronStartIndex();
