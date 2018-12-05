@@ -9,9 +9,9 @@
 #include "TrainingData.h"
 #include "ActivationFunction.h"
 
-NeuralNetwork::NeuralNetwork(size_t inputNeuronCount, size_t outputNeuronCount) :
-    _inputNeuronCount(inputNeuronCount),
-    _outputNeuronCount(outputNeuronCount),
+NeuralNetwork::NeuralNetwork() :
+    _inputNeuronCount(0),
+    _outputNeuronCount(0),
     _hiddenNeuronCount(0),
     _shouldShapeErrorCurve(true),
     _enableShortcutConnections(true) {
@@ -21,8 +21,16 @@ size_t NeuralNetwork::GetInputNeuronCount() {
     return this->_inputNeuronCount;
 }
 
+void NeuralNetwork::SetInputNeuronCount(size_t inputNeuronCount) {
+    this->_inputNeuronCount = inputNeuronCount;
+}
+
 size_t NeuralNetwork::GetOutputNeuronCount() {
     return this->_outputNeuronCount;
+}
+
+void NeuralNetwork::SetOutputNeuronCount(size_t outputNeuronCount) {
+    this->_outputNeuronCount = outputNeuronCount;
 }
 
 /**

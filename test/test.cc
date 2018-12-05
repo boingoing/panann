@@ -24,9 +24,11 @@ int main(int argc, const char** argv) {
     trainingData[3]._input = { 0.0, 1.0 };
     trainingData[3]._output = { 1.0 };
 
-    NeuralNetwork nn(2, 1);
+    NeuralNetwork nn;
     nn.AddHiddenLayer(100);
     nn.AddHiddenLayer(200);
+    nn.SetInputNeuronCount(2);
+    nn.SetOutputNeuronCount(1);
     nn.Construct();
     nn.InitializeWeightsRandom();
     nn.Train(&trainingData, 100);

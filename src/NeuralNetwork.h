@@ -79,20 +79,19 @@ protected:
     RandomWrapper _randomWrapper;
 
 public:
-    /**
-     * Count of neurons in input and output layers must be known at creation time.
-     */
-    NeuralNetwork(size_t inputNeuronCount, size_t outputNeuronCount);
+    NeuralNetwork();
 
     /**
      * Get the number of neurons in the input layer.
      */
     size_t GetInputNeuronCount();
+    void SetInputNeuronCount(size_t inputNeuronCount);
 
     /**
      * Get the number of neurons in the output layer.
      */
     size_t GetOutputNeuronCount();
+    void SetOutputNeuronCount(size_t outputNeuronCount);
 
     void AddHiddenLayer(size_t neuronCount);
     void Construct();
@@ -103,7 +102,6 @@ public:
     void RunForward(std::vector<double>* input);
 
 protected:
-    NeuralNetwork();
     NeuralNetwork(const NeuralNetwork&);
 
     void AllocateConnections();
