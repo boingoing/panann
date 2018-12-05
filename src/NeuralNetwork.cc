@@ -25,16 +25,19 @@ size_t NeuralNetwork::GetOutputNeuronCount() {
     return this->_outputNeuronCount;
 }
 
+/**
+ * | hidden neurons | input neurons | output neurons | bias neurons |
+ */
 size_t NeuralNetwork::GetInputNeuronStartIndex() {
-    return 0;
+    return this->_hiddenNeuronCount;
 }
 
 size_t NeuralNetwork::GetOutputNeuronStartIndex() {
-    return this->_inputNeuronCount;
+    return this->_hiddenNeuronCount + this->_inputNeuronCount;
 }
 
 size_t NeuralNetwork::GetHiddenNeuronStartIndex() {
-    return this->_inputNeuronCount + this->_outputNeuronCount;
+    return 0;
 }
 
 size_t NeuralNetwork::GetBiasNeuronStartIndex() {
@@ -93,6 +96,7 @@ void NeuralNetwork::AllocateConnections() {
     // The first bias neuron is the one for the input layer.
     Neuron& biasNeuron = this->_neurons[biasNeuronIndex++];
     biasNeuron._outputConnectionStartIndex = outputConnectionIndex;
+    biasNeuron._value = 1.0;
     outputConnectionIndex = this->_hiddenLayers.front()._neuronCount;
 
     // Calculate the connections incoming to the output layer.
@@ -180,6 +184,7 @@ void NeuralNetwork::AllocateConnections() {
         // Bias neurons do not have incoming connections.
         Neuron& biasNeuron = this->_neurons[biasNeuronIndex++];
         biasNeuron._outputConnectionStartIndex = outputConnectionIndex;
+        biasNeuron._value = 1.0;
         outputConnectionIndex += biasOutputConnections;
 
         inputConnectionCount += currentLayer._neuronCount * currentLayerInputConnectionCount;
