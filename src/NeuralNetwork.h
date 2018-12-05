@@ -1,6 +1,15 @@
+//-------------------------------------------------------------------------------------------------------
+// Copyright (C) Taylor Woll and panga contributors. All rights reserved.
+// Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
+//-------------------------------------------------------------------------------------------------------
+
 #pragma once
 
 #include <vector>
+
+#include "RandomWrapper.h"
+
+class TrainingData;
 
 /**
  * Simple feed-forward, multi-layer perceptron.
@@ -67,6 +76,8 @@ protected:
     bool _shouldShapeErrorCurve;
     bool _enableShortcutConnections;
 
+    RandomWrapper _randomWrapper;
+
 public:
     /**
      * Count of neurons in input and output layers must be known at creation time.
@@ -86,6 +97,9 @@ public:
     void AddHiddenLayer(size_t neuronCount);
     void Construct();
 
+    void Train(TrainingData* trainingData, size_t epochCount);
+    void RunForward(std::vector<double>* input);
+
 protected:
     NeuralNetwork();
     NeuralNetwork(const NeuralNetwork&);
@@ -97,4 +111,7 @@ protected:
     void ConnectLayers(size_t fromNeuronIndex, size_t fromNeuronCount, size_t toNeuronIndex, size_t toNeuronCount);
     void ConnectBiasNeuron(size_t biasNeuronIndex, size_t toNeuronIndex, size_t toNeuronCount);
     void ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex);
+
+    void ComputeNeuronValue(size_t neuronIndex);
+    double ExecuteActivationFunction(ActivationFunctionType activationFunctionType, double field);
 };

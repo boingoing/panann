@@ -1,6 +1,13 @@
+//-------------------------------------------------------------------------------------------------------
+// Copyright (C) Taylor Woll and panga contributors. All rights reserved.
+// Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
+//-------------------------------------------------------------------------------------------------------
+
 #include <cassert>
 
 #include "NeuralNetwork.h"
+#include "TrainingData.h"
+#include "ActivationFunction.h"
 
 NeuralNetwork::NeuralNetwork(size_t inputNeuronCount, size_t outputNeuronCount) :
     _inputNeuronCount(inputNeuronCount),
@@ -285,4 +292,69 @@ void NeuralNetwork::ConnectFully() {
 void NeuralNetwork::Construct() {
     this->AllocateConnections();
     this->ConnectFully();
+}
+
+void NeuralNetwork::Train(TrainingData* trainingData, size_t epochCount) {
+    for (size_t i = 0; i < epochCount; i++) {
+        this->_randomWrapper.ShuffleVector(trainingData);
+
+        //this->ResetTrainingData(neuralNetwork);
+
+        // Train the network using online weight updates - no batching
+        for (size_t j = 0; j < trainingData->size(); j++)
+        {
+            // Run the network forward to get values in the output neurons.
+            this->RunForward(&trainingData->at(j)._input);
+
+            // Run the network backward to propagate the error values
+            //neuralNetwork.RunBackward(*data.output.get(i));
+
+            // Update weights online - no batching
+            //this->UpdateWeights(neuralNetwork, data);
+        }
+    }
+}
+
+double NeuralNetwork::ExecuteActivationFunction(ActivationFunctionType activationFunctionType, double field) {
+    return ActivationFunction::ExecuteSigmoidSymmetric(field);
+}
+
+void NeuralNetwork::ComputeNeuronValue(size_t neuronIndex) {
+    Neuron& neuron = this->_neurons.at(neuronIndex);
+    neuron._field = 0.0;
+
+    // Sum incoming values.
+    for (size_t i = 0; i < neuron._inputConnectionCount; i++) {
+        size_t inputConnectionIndex = neuron._inputConnectionStartIndex + i;
+        const Connection& connection = this->_inputConnections[inputConnectionIndex];
+        const Neuron& fromNeuron = this->_neurons[connection._neuron];
+
+        neuron._field += fromNeuron._value * this->_weights[connection._weightIndex];
+
+        assert(inputConnectionIndex == connection._weightIndex);
+    }
+
+    neuron._value = ExecuteActivationFunction(neuron._activationFunctionType, neuron._field);
+}
+
+void NeuralNetwork::RunForward(std::vector<double>* input) {
+    assert(input->size() == this->_inputNeuronCount);
+
+    // Feed each input into the corresponding input neuron.
+    for (size_t i = 0; i < this->_inputNeuronCount; i++) {
+        this->_neurons[i]._value = input->at(i);
+    }
+
+    // Pull the values from the input layer through the hidden layer neurons.
+    for (size_t i = 0; i < this->_hiddenLayers.size(); i++) {
+        const Layer& layer = this->_hiddenLayers.at(i);
+        for (size_t j = 0; j < layer._neuronCount; j++) {
+            ComputeNeuronValue(layer._neuronStartIndex + i);
+        }
+    }
+
+    // Pull values into the output layer.
+    for (size_t i = 0; i < this->_outputNeuronCount; i++) {
+        ComputeNeuronValue(this->_inputNeuronCount + 1 + i);
+    }
 }
