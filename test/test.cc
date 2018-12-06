@@ -25,16 +25,19 @@ int main(int argc, const char** argv) {
     trainingData[3]._output = { 1.0 };
 
     NeuralNetwork nn;
+    nn.SetTrainingAlgorithmType(NeuralNetwork::TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation);
     nn.SetInputNeuronCount(2);
     nn.SetOutputNeuronCount(1);
-    nn.AddHiddenLayer(100);
-    nn.AddHiddenLayer(200);
-    nn.AddHiddenLayer(200);
-    nn.AddHiddenLayer(200);
-    nn.AddHiddenLayer(200);
+    nn.AddHiddenLayer(5);
+    nn.AddHiddenLayer(5);
+    nn.AddHiddenLayer(5);
     nn.Construct();
     nn.InitializeWeightsRandom();
-    nn.Train(&trainingData, 100);
+
+    std::cout << "Before training error: " << nn.GetError(&trainingData) << std::endl;
+    nn.Train(&trainingData, 1000);
+
+    std::cout << "After training error: " << nn.GetError(&trainingData) << std::endl;
 
     return 0;
 }

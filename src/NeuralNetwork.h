@@ -18,18 +18,36 @@ class NeuralNetwork {
 public:
     enum class ActivationFunctionType : uint8_t {
         Linear = 1,
-        SigmoidSymmetric,
-        GaussianSymmetric,
         Sigmoid,
         Gaussian,
         Sine,
         Cosine,
+        Elliot,
+        Threshold,
+        SigmoidSymmetric,
+        GaussianSymmetric,
         SineSymmetric,
         CosineSymmetric,
-        Elliot,
         ElliotSymmetric,
-        Threshold,
-        ThresholdSymmetric
+        ThresholdSymmetric,
+
+        // The symmetric activation functions are grouped at the end so we would
+        // know that an activation function is symmetric if it's at least the
+        // first one in this group.
+        FirstSymmetric = SigmoidSymmetric
+    };
+
+    enum class ErrorCostFunction : uint8_t {
+        MeanSquareError = 1,
+        MeanAbsoluteError
+    };
+
+    enum class TrainingAlgorithmType : uint8_t {
+        Backpropagation = 1,
+        BatchingBackpropagation,
+        QuickBackpropagation,
+        ResilientBackpropagation,
+        SimulatedAnnealingResilientBackpropagation
     };
 
 protected:
@@ -49,29 +67,37 @@ protected:
         size_t _neuronCount;
     };
 
-    struct Connection {
-        /**
-         * Which neuron are we connected to?<br/>
-         * For an input connection, this is the from neuron.<br/>
-         * For an output connection, this is the to neuron.
-         */
-        size_t _neuron;
+    struct InputConnection {
+        size_t _fromNeuronIndex;
+        size_t _toNeuronIndex;
+    };
 
-        /**
-         * Index of the weight for this connection.
-         */
-        size_t _weightIndex;
+    struct OutputConnection {
+        size_t _inputConnectionIndex;
     };
 
     size_t _inputNeuronCount;
     size_t _outputNeuronCount;
     size_t _hiddenNeuronCount;
 
+    double _learningRate;
+    double _momentum;
+
+    double _errorSum;
+    double _errorCount;
+
     std::vector<Neuron> _neurons;
-    std::vector<double> _weights;
-    std::vector<Connection> _inputConnections;
-    std::vector<Connection> _outputConnections;
     std::vector<Layer> _hiddenLayers;
+    std::vector<InputConnection> _inputConnections;
+    std::vector<OutputConnection> _outputConnections;
+    std::vector<double> _weights;
+    std::vector<double> _previousWeightSteps;
+    std::vector<double> _slopes;
+    std::vector<double> _previousSlopes;
+
+    ActivationFunctionType _defaultActivationFunction;
+    ErrorCostFunction _errorCostFunction;
+    TrainingAlgorithmType _trainingAlgorithmType;
 
     bool _shouldShapeErrorCurve;
     bool _enableShortcutConnections;
@@ -94,14 +120,24 @@ public:
     size_t GetOutputNeuronCount();
     void SetOutputNeuronCount(size_t outputNeuronCount);
 
+    void SetTrainingAlgorithmType(TrainingAlgorithmType type);
+    TrainingAlgorithmType GetTrainingAlgorithmType();
+
     void AddHiddenLayer(size_t neuronCount);
     void Construct();
 
     void InitializeWeightsRandom(double min = -1.0, double max = 1.0);
 
+    /**
+     * Note: Shuffles the examples in trainingData.
+     */
     void Train(TrainingData* trainingData, size_t epochCount);
-    void RunForward(std::vector<double>* input);
-    void RunBackward(std::vector<double>* output);
+    void RunForward(const std::vector<double>* input);
+    void RunBackward(const std::vector<double>* output);
+
+    double GetError();
+    double GetError(const std::vector<double>* output);
+    double GetError(const TrainingData* trainingData);
 
 protected:
     NeuralNetwork(const NeuralNetwork&);
@@ -116,6 +152,14 @@ protected:
 
     void ComputeNeuronValue(size_t neuronIndex);
     void ComputeNeuronError(size_t neuronIndex);
+    void UpdateSlopes();
+    void UpdateWeightsOnline();
+    void UpdateWeightsOffline(size_t currentEpoch, size_t stepCount);
+    void UpdateWeightsBatchingBackpropagation(size_t stepCount);
+    void UpdateWeightsQuickBackpropagation(size_t stepCount);
+    void UpdateWeightsResilientBackpropagation();
+    void UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t currentEpoch);
+
     static double ExecuteActivationFunction(Neuron* neuron);
     static double ExecuteActivationFunctionDerivative(Neuron* neuron);
     static bool IsActivationFunctionSymmetric(ActivationFunctionType activationFunctionType);
@@ -125,4 +169,13 @@ protected:
     size_t GetInputNeuronStartIndex();
     size_t GetHiddenNeuronStartIndex();
     size_t GetBiasNeuronStartIndex();
+
+    void ResetWeightSteps();
+    void ResetSlopes();
+    void ResetPreviousSlopes();
+    void TrainOffline(TrainingData* trainingData, size_t epochCount);
+    void TrainOnline(TrainingData* trainingData, size_t epochCount);
+
+    void ResetOutputLayerError();
+    void CalculateOutputLayerError(const std::vector<double>* output);
 };
