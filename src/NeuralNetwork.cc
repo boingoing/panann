@@ -347,7 +347,9 @@ void NeuralNetwork::Construct() {
 }
 
 void NeuralNetwork::ResetWeightSteps() {
-    double initialWeightStep = this->_trainingAlgorithmType == TrainingAlgorithmType::ResilientBackpropagation ?
+    double initialWeightStep =
+        (this->_trainingAlgorithmType == TrainingAlgorithmType::ResilientBackpropagation ||
+         this->_trainingAlgorithmType == TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation) ?
         0.0125 :
         0;
 
@@ -448,6 +450,8 @@ void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t stepCount) {
 }
 
 void NeuralNetwork::UpdateWeightsResilientBackpropagation() {
+    // delta_zero
+    const double WeightChangeInitial = 0.01;
     // delta_max
     const double WeightChangeMax = 50.0;
     // delta_min
@@ -456,82 +460,74 @@ void NeuralNetwork::UpdateWeightsResilientBackpropagation() {
     const double IncreaseFactor = 1.2;
     // eta-
     const double DecreaseFactor = 0.5;
+    const double PreviousStepMin = 0.00001;
 
     for (size_t i = 0; i < this->_weights.size(); i++) {
         double previousSlope = this->_previousSlopes[i];
         double currentSlope = this->_slopes[i];
-
-        // delta_ij (t-1)
-        double previousWeightStep = this->_previousWeightSteps[i];
-
-        // delta_ij (t)
         double weightStep = 0.0;
-
         double previousSlopeTimesCurrentSlope = previousSlope * currentSlope;
-        if (previousSlopeTimesCurrentSlope > 0.0) {
+        double previousWeightStep = std::max(this->_previousWeightSteps[i], PreviousStepMin);
+
+        if (previousSlopeTimesCurrentSlope >= 0.0) {
             weightStep = std::min(previousWeightStep * IncreaseFactor, WeightChangeMax);
         } else if (previousSlopeTimesCurrentSlope < 0.0) {
             weightStep = std::max(previousWeightStep * DecreaseFactor, WeightChangeMin);
             currentSlope = 0.0;
-        } else {
-            // TODO: should this case be merged into the top conditional?
-            //       (we would change > to >= above)
-            weightStep = previousWeightStep;
         }
+
+        double weightDelta = std::signbit(currentSlope) ? -1 * weightStep : weightStep;
+        this->_weights[i] += weightDelta;
 
         this->_previousSlopes[i] = currentSlope;
         this->_previousWeightSteps[i] = weightStep;
-
-        if (currentSlope >= 0.0) {
-            this->_weights[i] += weightStep;
-        } else {
-            this->_weights[i] -= weightStep;
-        }
     }
 }
 
 void NeuralNetwork::UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t currentEpoch) {
+    // delta_zero
+    const double WeightChangeDefault = 0.1;
+    // delta_max
     const double WeightChangeMax = 50.0;
+    // delta_min
     const double WeightChangeMin = 0.000001;
-    const double WeightDecayShift = -6.644;
+    // eta+
     const double IncreaseFactor = 1.2;
+    // eta-
     const double DecreaseFactor = 0.5;
+    // k1
+    const double WeightDecayShift = 0.01;
+    // k2
     const double StepThresholdFactor = 0.1;
-    const double StepShift = 1.385;
+    // k3
+    const double StepShift = 3;
+    // T
     const double Temperature = 0.015;
-
-    double currentNetworkError = this->GetError();
-    double sqrtCurrentNetworkError = std::sqrt(currentNetworkError);
 
     for (size_t i = 0; i < this->_weights.size(); i++) {
         double previousSlope = this->_previousSlopes[i];
-        double currentSlope = -this->_slopes[i] - this->_weights[i] * std::exp2(-Temperature * currentEpoch + WeightDecayShift);
+        double currentSlope = this->_slopes[i] - WeightDecayShift * this->_weights[i] * std::exp2(-Temperature * currentEpoch);
         double previousSlopeTimesCurrentSlope = previousSlope * currentSlope;
         double previousWeightStep = std::max(this->_previousWeightSteps[i], WeightChangeMin);
         double weightStep = 0.0;
 
         if (previousSlopeTimesCurrentSlope > 0.0) {
             weightStep = std::min(previousWeightStep * IncreaseFactor, WeightChangeMax);
-
-            if (currentSlope < 0.0) {
-                this->_weights[i] += weightStep;
-            } else {
-                this->_weights[i] -= weightStep;
-            }
+            double weightDelta = std::signbit(currentSlope) ? -1 * weightStep : weightStep;
+            this->_weights[i] += weightDelta;
         } else if (previousSlopeTimesCurrentSlope < 0.0) {
-            if (previousWeightStep >= StepThresholdFactor * currentNetworkError) {
-                weightStep = std::max(previousWeightStep * DecreaseFactor, WeightChangeMin);
+            double rmsError = std::sqrt(this->GetError());
+
+            if (previousWeightStep < StepThresholdFactor * rmsError * rmsError) {
+                weightStep = previousWeightStep * DecreaseFactor + StepShift * this->_randomWrapper.RandomFloat(0.0, 1.0) * rmsError * std::exp2(-Temperature * currentEpoch);
             } else {
-                weightStep = previousWeightStep * DecreaseFactor + this->_randomWrapper.RandomFloat(0.0, 1.0) * sqrtCurrentNetworkError * std::exp2(-Temperature * currentEpoch + StepShift);
+                weightStep = std::max(previousWeightStep * DecreaseFactor, WeightChangeMin);
             }
 
             currentSlope = 0.0;
         } else {
-            if (currentSlope < 0.0) {
-                this->_weights[i] += previousWeightStep;
-            } else {
-                this->_weights[i] -= previousWeightStep;
-            }
+            double weightDelta = std::signbit(currentSlope) ? -1 * previousWeightStep : previousWeightStep;
+            this->_weights[i] += weightDelta;
         }
 
         this->_previousSlopes[i] = currentSlope;

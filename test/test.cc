@@ -35,7 +35,7 @@ int main(int argc, const char** argv) {
     nn.InitializeWeightsRandom();
 
     std::cout << "Before training error: " << nn.GetError(&trainingData) << std::endl;
-    nn.Train(&trainingData, 1000);
+    nn.Train(&trainingData, 10000);
 
     std::cout << "After training error: " << nn.GetError(&trainingData) << std::endl;
 
