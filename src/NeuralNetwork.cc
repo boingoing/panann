@@ -13,16 +13,16 @@ NeuralNetwork::NeuralNetwork() :
     _inputNeuronCount(0),
     _outputNeuronCount(0),
     _hiddenNeuronCount(0),
-    _shouldShapeErrorCurve(true),
-    _enableShortcutConnections(true),
-    _isConstructed(false),
-    _defaultActivationFunction(ActivationFunctionType::Sigmoid),
-    _errorCostFunction(ErrorCostFunction::MeanSquareError),
-    _trainingAlgorithmType(TrainingAlgorithmType::Backpropagation),
     _learningRate(0.7),
     _momentum(0.1),
     _errorSum(0.0),
-    _errorCount(0) {
+    _errorCount(0),
+    _defaultActivationFunction(ActivationFunctionType::Sigmoid),
+    _errorCostFunction(ErrorCostFunction::MeanSquareError),
+    _trainingAlgorithmType(TrainingAlgorithmType::Backpropagation),
+    _shouldShapeErrorCurve(true),
+    _enableShortcutConnections(true),
+    _isConstructed(false) {
 }
 
 size_t NeuralNetwork::GetInputNeuronCount() {
@@ -233,7 +233,6 @@ void NeuralNetwork::ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex)
     Neuron& toNeuron = this->_neurons[toNeuronIndex];
 
     size_t inputConnectionIndex = toNeuron._inputConnectionStartIndex + toNeuron._inputConnectionCount;
-    size_t weightIndex = inputConnectionIndex;
     InputConnection& inputConnection = this->_inputConnections.at(inputConnectionIndex);
     inputConnection._fromNeuronIndex = fromNeuronIndex;
     inputConnection._toNeuronIndex = toNeuronIndex;
@@ -450,8 +449,6 @@ void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t stepCount) {
 }
 
 void NeuralNetwork::UpdateWeightsResilientBackpropagation() {
-    // delta_zero
-    const double WeightChangeInitial = 0.01;
     // delta_max
     const double WeightChangeMax = 50.0;
     // delta_min
@@ -485,8 +482,6 @@ void NeuralNetwork::UpdateWeightsResilientBackpropagation() {
 }
 
 void NeuralNetwork::UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t currentEpoch) {
-    // delta_zero
-    const double WeightChangeDefault = 0.1;
     // delta_max
     const double WeightChangeMax = 50.0;
     // delta_min
