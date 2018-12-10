@@ -704,6 +704,28 @@ double NeuralNetwork::ExecuteActivationFunction(Neuron* neuron) {
         return ActivationFunction::ExecuteSigmoid(neuron->_field);
     case ActivationFunctionType::SigmoidSymmetric:
         return ActivationFunction::ExecuteSigmoidSymmetric(neuron->_field);
+    case ActivationFunctionType::Gaussian:
+        return ActivationFunction::ExecuteGaussian(neuron->_field);
+    case ActivationFunctionType::GaussianSymmetric:
+        return ActivationFunction::ExecuteGaussianSymmetric(neuron->_field);
+    case ActivationFunctionType::Cosine:
+        return ActivationFunction::ExecuteCosine(neuron->_field);
+    case ActivationFunctionType::CosineSymmetric:
+        return ActivationFunction::ExecuteCosineSymmetric(neuron->_field);
+    case ActivationFunctionType::Sine:
+        return ActivationFunction::ExecuteSine(neuron->_field);
+    case ActivationFunctionType::SineSymmetric:
+        return ActivationFunction::ExecuteSineSymmetric(neuron->_field);
+    case ActivationFunctionType::Elliot:
+        return ActivationFunction::ExecuteElliot(neuron->_field);
+    case ActivationFunctionType::ElliotSymmetric:
+        return ActivationFunction::ExecuteElliotSymmetric(neuron->_field);
+    case ActivationFunctionType::Linear:
+        return ActivationFunction::ExecuteLinear(neuron->_field);
+    case ActivationFunctionType::Threshold:
+        return ActivationFunction::ExecuteThreshold(neuron->_field);
+    case ActivationFunctionType::ThresholdSymmetric:
+        return ActivationFunction::ExecuteThresholdSymmetric(neuron->_field);
     default:
         assert(false);
     }
@@ -714,9 +736,27 @@ double NeuralNetwork::ExecuteActivationFunction(Neuron* neuron) {
 double NeuralNetwork::ExecuteActivationFunctionDerivative(Neuron* neuron) {
     switch (neuron->_activationFunctionType) {
     case ActivationFunctionType::Sigmoid:
-        return ActivationFunction::ExecuteDerivativeSigmoid(neuron->_field);
+        return ActivationFunction::ExecuteDerivativeSigmoid(neuron->_value);
     case ActivationFunctionType::SigmoidSymmetric:
-        return ActivationFunction::ExecuteDerivativeSigmoidSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteDerivativeSigmoidSymmetric(neuron->_value);
+    case ActivationFunctionType::Gaussian:
+        return ActivationFunction::ExecuteDerivativeGaussian(neuron->_value, neuron->_field);
+    case ActivationFunctionType::GaussianSymmetric:
+        return ActivationFunction::ExecuteDerivativeGaussianSymmetric(neuron->_value, neuron->_field);
+    case ActivationFunctionType::Cosine:
+        return ActivationFunction::ExecuteDerivativeCosine(neuron->_field);
+    case ActivationFunctionType::CosineSymmetric:
+        return ActivationFunction::ExecuteDerivativeCosineSymmetric(neuron->_field);
+    case ActivationFunctionType::Sine:
+        return ActivationFunction::ExecuteDerivativeSine(neuron->_field);
+    case ActivationFunctionType::SineSymmetric:
+        return ActivationFunction::ExecuteDerivativeSineSymmetric(neuron->_field);
+    case ActivationFunctionType::Elliot:
+        return ActivationFunction::ExecuteDerivativeElliot(neuron->_field);
+    case ActivationFunctionType::ElliotSymmetric:
+        return ActivationFunction::ExecuteDerivativeElliotSymmetric(neuron->_field);
+    case ActivationFunctionType::Linear:
+        return ActivationFunction::ExecuteDerivativeLinear(neuron->_value);
     default:
         assert(false);
     }
