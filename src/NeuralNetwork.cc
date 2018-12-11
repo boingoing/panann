@@ -15,6 +15,17 @@ NeuralNetwork::NeuralNetwork() :
     _hiddenNeuronCount(0),
     _learningRate(0.7),
     _momentum(0.1),
+    _qpropMu(1.75),
+    _qpropWeightDecay(-0.0001),
+    _rpropWeightStepInitial(0.0125),
+    _rpropWeightStepMin(0.000001),
+    _rpropWeightStepMax(50.0),
+    _rpropIncreaseFactor(1.2),
+    _rpropDecreaseFactor(0.5),
+    _sarpropWeightDecayShift(0.01),
+    _sarpropStepThresholdFactor(0.1),
+    _sarpropStepShift(3),
+    _sarpropTemperature(0.015),
     _errorSum(0.0),
     _errorCount(0),
     _defaultActivationFunction(ActivationFunctionType::Sigmoid),
@@ -41,6 +52,110 @@ size_t NeuralNetwork::GetOutputNeuronCount() {
 void NeuralNetwork::SetOutputNeuronCount(size_t outputNeuronCount) {
     assert(!this->_isConstructed);
     this->_outputNeuronCount = outputNeuronCount;
+}
+
+void NeuralNetwork::SetLearningRate(double learningRate) {
+    this->_learningRate = learningRate;
+}
+
+double NeuralNetwork::GetLearningRate() {
+    return this->_learningRate;
+}
+
+void NeuralNetwork::SetMomentum(double momentum) {
+    this->_momentum = momentum;
+}
+
+double NeuralNetwork::GetMomentum() {
+    return this->_momentum;
+}
+
+void NeuralNetwork::SetQpropMu(double mu) {
+    this->_qpropMu = mu;
+}
+
+double NeuralNetwork::GetQpropMu() {
+    return this->_qpropMu;
+}
+
+void NeuralNetwork::SetQpropWeightDecay(double weightDecay) {
+    this->_qpropWeightDecay = weightDecay;
+}
+
+double NeuralNetwork::GetQpropWeightDecay() {
+    return this->_qpropWeightDecay;
+}
+
+void NeuralNetwork::SetRpropWeightStepInitial(double weightStep) {
+    this->_rpropWeightStepInitial = weightStep;
+}
+
+double NeuralNetwork::GetRpropWeightStepInitial() {
+    return this->_rpropWeightStepInitial;
+}
+
+void NeuralNetwork::SetRpropWeightStepMin(double weightStep) {
+    this->_rpropWeightStepMin = weightStep;
+}
+
+double NeuralNetwork::GetRpropWeightStepMin() {
+    return this->_rpropWeightStepMin;
+}
+
+void NeuralNetwork::SetRpropWeightStepMax(double weightStep) {
+    this->_rpropWeightStepMax = weightStep;
+}
+
+double NeuralNetwork::SetRpropWeightStepMax() {
+    return this->_rpropWeightStepMax;
+}
+
+void NeuralNetwork::SetRpropIncreaseFactor(double factor) {
+    this->_rpropIncreaseFactor = factor;
+}
+
+double NeuralNetwork::GetRpropIncreaseFactor() {
+    return this->_rpropIncreaseFactor;
+}
+
+void NeuralNetwork::SetRpropDecreaseFactor(double factor) {
+    this->_rpropDecreaseFactor = factor;
+}
+
+double NeuralNetwork::GetRpropDecreaseFactor() {
+    return this->_rpropDecreaseFactor;
+}
+
+void NeuralNetwork::SetSarpropWeightDecayShift(double k1) {
+    this->_sarpropWeightDecayShift = k1;
+}
+
+double NeuralNetwork::GetSarpropWeightDecayShift() {
+    return this->_sarpropWeightDecayShift;
+}
+
+void NeuralNetwork::SetSarpropStepThresholdFactor(double k2) {
+    this->_sarpropStepThresholdFactor = k2;
+}
+
+double NeuralNetwork::GetSarpropStepThresholdFactor() {
+    return this->_sarpropStepThresholdFactor;
+}
+
+void NeuralNetwork::SetSarpropStepShift(double k3) {
+    this->_sarpropStepShift = k3;
+}
+
+double NeuralNetwork::GetSarpropStepShift() {
+    return this->_sarpropStepShift;
+}
+
+void NeuralNetwork::SetSarpropTemperature(double t) {
+    this->_sarpropTemperature = t;
+}
+
+double NeuralNetwork::GetSarpropTemperature() {
+    return this->_sarpropTemperature;
 }
 
 void NeuralNetwork::SetTrainingAlgorithmType(TrainingAlgorithmType type) {
@@ -349,7 +464,7 @@ void NeuralNetwork::ResetWeightSteps() {
     double initialWeightStep =
         (this->_trainingAlgorithmType == TrainingAlgorithmType::ResilientBackpropagation ||
          this->_trainingAlgorithmType == TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation) ?
-        0.0125 :
+        this->_rpropWeightStepInitial :
         0;
 
     this->_previousWeightSteps.resize(this->_weights.size());
@@ -408,15 +523,13 @@ void NeuralNetwork::UpdateWeightsBatchingBackpropagation(size_t stepCount) {
 }
 
 void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t stepCount) {
-    const double Mu = 1.75;
-    const double Decay = -0.0001;
     double epsilon = this->_learningRate / stepCount;
-    double shrinkFactor = Mu / (1.0 + Mu);
+    double shrinkFactor = this->_qpropMu / (1.0 + this->_qpropMu);
 
     for (size_t i = 0; i < this->_weights.size(); i++) {
         double previousSlope = this->_previousSlopes[i];
         double previousWeightStep = this->_previousWeightSteps[i];
-        double currentSlope = this->_slopes[i] + Decay * this->_weights[i];
+        double currentSlope = this->_slopes[i] + this->_qpropWeightDecay * this->_weights[i];
         double weightStep = epsilon * currentSlope;
 
         if (previousWeightStep > 0.001) {
@@ -425,7 +538,7 @@ void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t stepCount) {
             }
 
             if (currentSlope > (shrinkFactor * previousSlope)) {
-                weightStep += Mu * previousWeightStep;
+                weightStep += this->_qpropMu * previousWeightStep;
             } else {
                 weightStep += previousWeightStep * currentSlope / (previousSlope - currentSlope);
             }
@@ -435,7 +548,7 @@ void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t stepCount) {
             }
 
             if (currentSlope < (shrinkFactor * previousSlope)) {
-                weightStep += Mu * previousWeightStep;
+                weightStep += this->_qpropMu * previousWeightStep;
             } else {
                 weightStep += previousWeightStep * currentSlope / (previousSlope - currentSlope);
             }
@@ -449,27 +562,17 @@ void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t stepCount) {
 }
 
 void NeuralNetwork::UpdateWeightsResilientBackpropagation() {
-    // delta_max
-    const double WeightChangeMax = 50.0;
-    // delta_min
-    const double WeightChangeMin = 0.0;
-    // eta+
-    const double IncreaseFactor = 1.2;
-    // eta-
-    const double DecreaseFactor = 0.5;
-    const double PreviousStepMin = 0.00001;
-
     for (size_t i = 0; i < this->_weights.size(); i++) {
         double previousSlope = this->_previousSlopes[i];
         double currentSlope = this->_slopes[i];
         double weightStep = 0.0;
         double previousSlopeTimesCurrentSlope = previousSlope * currentSlope;
-        double previousWeightStep = std::max(this->_previousWeightSteps[i], PreviousStepMin);
+        double previousWeightStep = std::max(this->_previousWeightSteps[i], this->_rpropWeightStepMin);
 
         if (previousSlopeTimesCurrentSlope >= 0.0) {
-            weightStep = std::min(previousWeightStep * IncreaseFactor, WeightChangeMax);
+            weightStep = std::min(previousWeightStep * this->_rpropIncreaseFactor, this->_rpropWeightStepMax);
         } else if (previousSlopeTimesCurrentSlope < 0.0) {
-            weightStep = std::max(previousWeightStep * DecreaseFactor, WeightChangeMin);
+            weightStep = std::max(previousWeightStep * this->_rpropDecreaseFactor, this->_rpropWeightStepMin);
             currentSlope = 0.0;
         }
 
@@ -482,41 +585,24 @@ void NeuralNetwork::UpdateWeightsResilientBackpropagation() {
 }
 
 void NeuralNetwork::UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t currentEpoch) {
-    // delta_max
-    const double WeightChangeMax = 50.0;
-    // delta_min
-    const double WeightChangeMin = 0.000001;
-    // eta+
-    const double IncreaseFactor = 1.2;
-    // eta-
-    const double DecreaseFactor = 0.5;
-    // k1
-    const double WeightDecayShift = 0.01;
-    // k2
-    const double StepThresholdFactor = 0.1;
-    // k3
-    const double StepShift = 3;
-    // T
-    const double Temperature = 0.015;
-
     for (size_t i = 0; i < this->_weights.size(); i++) {
         double previousSlope = this->_previousSlopes[i];
-        double currentSlope = this->_slopes[i] - WeightDecayShift * this->_weights[i] * std::exp2(-Temperature * currentEpoch);
+        double currentSlope = this->_slopes[i] - this->_sarpropWeightDecayShift * this->_weights[i] * std::exp2(-this->_sarpropTemperature * currentEpoch);
         double previousSlopeTimesCurrentSlope = previousSlope * currentSlope;
-        double previousWeightStep = std::max(this->_previousWeightSteps[i], WeightChangeMin);
+        double previousWeightStep = std::max(this->_previousWeightSteps[i], this->_rpropWeightStepMin);
         double weightStep = 0.0;
 
         if (previousSlopeTimesCurrentSlope > 0.0) {
-            weightStep = std::min(previousWeightStep * IncreaseFactor, WeightChangeMax);
+            weightStep = std::min(previousWeightStep * this->_rpropIncreaseFactor, this->_rpropWeightStepMax);
             double weightDelta = std::signbit(currentSlope) ? -1 * weightStep : weightStep;
             this->_weights[i] += weightDelta;
         } else if (previousSlopeTimesCurrentSlope < 0.0) {
             double rmsError = std::sqrt(this->GetError());
 
-            if (previousWeightStep < StepThresholdFactor * rmsError * rmsError) {
-                weightStep = previousWeightStep * DecreaseFactor + StepShift * this->_randomWrapper.RandomFloat(0.0, 1.0) * rmsError * std::exp2(-Temperature * currentEpoch);
+            if (previousWeightStep < this->_sarpropStepThresholdFactor * rmsError * rmsError) {
+                weightStep = previousWeightStep * this->_rpropDecreaseFactor + this->_sarpropStepShift * this->_randomWrapper.RandomFloat(0.0, 1.0) * rmsError * std::exp2(-this->_sarpropTemperature * currentEpoch);
             } else {
-                weightStep = std::max(previousWeightStep * DecreaseFactor, WeightChangeMin);
+                weightStep = std::max(previousWeightStep * this->_rpropDecreaseFactor, this->_rpropWeightStepMin);
             }
 
             currentSlope = 0.0;
