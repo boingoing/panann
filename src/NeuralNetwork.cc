@@ -1,13 +1,14 @@
 //-------------------------------------------------------------------------------------------------------
-// Copyright (C) Taylor Woll and panga contributors. All rights reserved.
+// Copyright (C) Taylor Woll and panann contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
 //-------------------------------------------------------------------------------------------------------
 
 #include <cassert>
 
 #include "NeuralNetwork.h"
-#include "TrainingData.h"
 #include "ActivationFunction.h"
+
+using namespace panann;
 
 NeuralNetwork::NeuralNetwork() :
     _inputNeuronCount(0),
@@ -32,7 +33,7 @@ NeuralNetwork::NeuralNetwork() :
     _errorCostFunction(ErrorCostFunction::MeanSquareError),
     _trainingAlgorithmType(TrainingAlgorithmType::Backpropagation),
     _shouldShapeErrorCurve(true),
-    _enableShortcutConnections(true),
+    _enableShortcutConnections(false),
     _isConstructed(false) {
 }
 
@@ -164,6 +165,14 @@ void NeuralNetwork::SetTrainingAlgorithmType(TrainingAlgorithmType type) {
 
 NeuralNetwork::TrainingAlgorithmType NeuralNetwork::GetTrainingAlgorithmType() {
     return this->_trainingAlgorithmType;
+}
+
+void NeuralNetwork::EnableShortcutConnections() {
+    this->_enableShortcutConnections = true;
+}
+
+void NeuralNetwork::DisableShortcutConnections() {
+    this->_enableShortcutConnections = false;
 }
 
 /**

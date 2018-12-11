@@ -1,4 +1,11 @@
+//-------------------------------------------------------------------------------------------------------
+// Copyright (C) Taylor Woll and panann contributors. All rights reserved.
+// Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
+//-------------------------------------------------------------------------------------------------------
+
 #pragma once
+
+namespace panann {
 
 class ActivationFunction
 {
@@ -40,3 +47,5 @@ public:
 
     static double ExecuteThresholdSymmetric(double value);
 };
+
+} // namespace panann

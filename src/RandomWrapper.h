@@ -1,5 +1,5 @@
 //-------------------------------------------------------------------------------------------------------
-// Copyright (C) Taylor Woll and panga contributors. All rights reserved.
+// Copyright (C) Taylor Woll and panann contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
 //-------------------------------------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@
 #include <vector>
 #include <algorithm>
 
-//namespace panga {
+namespace panann {
 
 class RandomWrapper {
 private:
@@ -56,4 +56,4 @@ public:
     }
 };
 
-//} // namespace panga
+} // namespace panann

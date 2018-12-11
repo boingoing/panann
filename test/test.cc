@@ -1,5 +1,5 @@
 //-------------------------------------------------------------------------------------------------------
-// Copyright (C) Taylor Woll and panga contributors. All rights reserved.
+// Copyright (C) Taylor Woll and panann contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
 //-------------------------------------------------------------------------------------------------------
 
@@ -10,9 +10,10 @@
 #include <sstream>
 
 #include "NeuralNetwork.h"
-#include "TrainingData.h"
 
-void MakeXorTwoBitTrainingData(TrainingData* trainingData) {
+using namespace panann;
+
+void MakeXorTwoBitTrainingData(NeuralNetwork::TrainingData* trainingData) {
     trainingData->resize(4);
     trainingData->at(0)._input = { 0.0, 0.0 };
     trainingData->at(0)._output = { 0.0 };
@@ -24,7 +25,8 @@ void MakeXorTwoBitTrainingData(TrainingData* trainingData) {
     trainingData->at(3)._output = { 1.0 };
 }
 
-void MakeTestNetwork(NeuralNetwork* nn, TrainingData* trainingData) {
+void MakeTestNetwork(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingData) {
+    nn->DisableShortcutConnections();
     nn->SetInputNeuronCount(trainingData->at(0)._input.size());
     nn->SetOutputNeuronCount(trainingData->at(0)._output.size());
     nn->AddHiddenLayer(5);
@@ -33,7 +35,7 @@ void MakeTestNetwork(NeuralNetwork* nn, TrainingData* trainingData) {
     nn->Construct();
 }
 
-void TrainAndTestNetwork(NeuralNetwork* nn, TrainingData* trainingData, NeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
+void TrainAndTestNetwork(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingData, NeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
     nn->InitializeWeightsRandom();
     nn->SetTrainingAlgorithmType(algorithm);
     std::cout << "Before training error: " << nn->GetError(trainingData) << std::endl;
@@ -42,7 +44,7 @@ void TrainAndTestNetwork(NeuralNetwork* nn, TrainingData* trainingData, NeuralNe
 }
 
 int main(int argc, const char** argv) {
-    TrainingData trainingData;
+    NeuralNetwork::TrainingData trainingData;
     MakeXorTwoBitTrainingData(&trainingData);
 
     NeuralNetwork nn;

@@ -1,7 +1,14 @@
+//-------------------------------------------------------------------------------------------------------
+// Copyright (C) Taylor Woll and panann contributors. All rights reserved.
+// Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
+//-------------------------------------------------------------------------------------------------------
+
 #include <algorithm>
 #include <cmath>
 
 #include "ActivationFunction.h"
+
+using namespace panann;
 
 double ActivationFunction::ExecuteSigmoidSymmetric(double value) {
     return std::tanh(value);

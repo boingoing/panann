@@ -1,5 +1,5 @@
 //-------------------------------------------------------------------------------------------------------
-// Copyright (C) Taylor Woll and panga contributors. All rights reserved.
+// Copyright (C) Taylor Woll and panann contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
 //-------------------------------------------------------------------------------------------------------
 
@@ -9,7 +9,7 @@
 
 #include "RandomWrapper.h"
 
-class TrainingData;
+namespace panann {
 
 /**
  * Simple feed-forward, multi-layer perceptron.
@@ -75,6 +75,13 @@ public:
         ResilientBackpropagation,
         SimulatedAnnealingResilientBackpropagation
     };
+
+    struct Example {
+        std::vector<double> _input;
+        std::vector<double> _output;
+    };
+
+    typedef std::vector<Example> TrainingData;
 
 protected:
     struct Neuron {
@@ -275,6 +282,16 @@ public:
     void SetTrainingAlgorithmType(TrainingAlgorithmType type);
     TrainingAlgorithmType GetTrainingAlgorithmType();
 
+    /**
+     * Shortcut connections are feed-forward connections between two
+     * non-adjacent layers.<br/>
+     * Note: Changing this setting after the network has been constructed
+     * will have no impact on the network topology.<br/>
+     * Default: disabled
+     */
+    void EnableShortcutConnections();
+    void DisableShortcutConnections();
+
     void AddHiddenLayer(size_t neuronCount);
     void Construct();
 
@@ -331,3 +348,5 @@ protected:
     void ResetOutputLayerError();
     void CalculateOutputLayerError(const std::vector<double>* output);
 };
+
+} // namespace panann
