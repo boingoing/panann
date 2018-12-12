@@ -71,8 +71,28 @@ public:
          * Resilient backprop is a very fast training algorithm designed to move quickly
          * down the error curve when the derivative of the partial error doesn't change.<br/>
          * The implementation here is of iRPROP-. It is an offline learning algorithm.
+         * @see SetRpropWeightStepInitial
+         * @see SetRpropWeightStepMin
+         * @see SetRpropWeightStepMax
+         * @see SetRpropIncreaseFactor
+         * @see SetRpropDecreaseFactor
          */
         ResilientBackpropagation,
+        /**
+         * Simulated annealing and weight decay are added to resilient backprop.<br/>
+         * Attempts to avoid getting stuck in local minima on the error surface
+         * while training the network.<br/>
+         * Uses all of the rprop parameters plus some specific to sarprop.
+         * @see SetRpropWeightStepInitial
+         * @see SetRpropWeightStepMin
+         * @see SetRpropWeightStepMax
+         * @see SetRpropIncreaseFactor
+         * @see SetRpropDecreaseFactor
+         * @see SetSarpropWeightDecayShift
+         * @see SetSarpropStepThresholdFactor
+         * @see SetSarpropStepShift
+         * @see SetSarpropTemperature
+         */
         SimulatedAnnealingResilientBackpropagation
     };
 
@@ -139,7 +159,8 @@ protected:
     std::vector<double> _slopes;
     std::vector<double> _previousSlopes;
 
-    ActivationFunctionType _defaultActivationFunction;
+    ActivationFunctionType _hiddenNeuronActivationFunctionType;
+    ActivationFunctionType _outputNeuronActivationFunctionType;
     ErrorCostFunction _errorCostFunction;
     TrainingAlgorithmType _trainingAlgorithmType;
 
@@ -154,15 +175,25 @@ public:
 
     /**
      * Set the number of neurons in the input layer.
+     * This count may not be changed once the network topology has been constructed.
      */
     void SetInputNeuronCount(size_t inputNeuronCount);
     size_t GetInputNeuronCount();
 
     /**
      * Set the number of neurons in the output layer.
+     * This count may not be changed once the network topology has been constructed.
      */
     void SetOutputNeuronCount(size_t outputNeuronCount);
     size_t GetOutputNeuronCount();
+
+    /**
+     * Append a hidden layer to the end of the list of existing hidden layers.<br/>
+     * Hidden layers are located after the input layer and before the output layer.<br/>
+     * Once added, hidden layers may not be removed.<br/>
+     * Hidden layers may not be added after the network has been constructed.
+     */
+    void AddHiddenLayer(size_t neuronCount);
 
     /**
      * Set the learning rate parameter used by backprop, batch, and qprop.<br/>
@@ -279,8 +310,23 @@ public:
     void SetSarpropTemperature(double t);
     double GetSarpropTemperature();
 
+    /**
+     * Set the training algorithm this network will use during training.<br/>
+     * Default: ResilientBackpropagation
+     * @see TrainingAlgorithmType
+     */
     void SetTrainingAlgorithmType(TrainingAlgorithmType type);
     TrainingAlgorithmType GetTrainingAlgorithmType();
+
+    /**
+     * Set the cost function we will use to calculate the total network
+     * error.<br/>
+     * Default: MeanSquareError
+     * @see GetError
+     * @see ErrorCostFunction
+     */
+    void SetErrorCostFunction(ErrorCostFunction mode);
+    ErrorCostFunction GetErrorCostFunction();
 
     /**
      * Shortcut connections are feed-forward connections between two
@@ -292,20 +338,100 @@ public:
     void EnableShortcutConnections();
     void DisableShortcutConnections();
 
-    void AddHiddenLayer(size_t neuronCount);
+    /**
+     * Set the default activation function we will use for hidden layer neurons.<br/>
+     * Default: Sigmoid
+     */
+    void SetHiddenNeuronActivationFunctionType(ActivationFunctionType type);
+    ActivationFunctionType GetHiddenNeuronActivationFunctionType();
+
+    /**
+     * Set the default activation function we will use for output layer neurons.<br/>
+     * Default: Sigmoid
+     */
+    void SetOutputNeuronActivationFunctionType(ActivationFunctionType type);
+    ActivationFunctionType GetOutputNeuronActivationFunctionType();
+
+    /**
+     * Build the network topology.<br/>
+     * After construction, the number of input and output neurons, number of
+     * hidden layers, use of shortcut connections, and some other settings may
+     * not be modified.
+     */
     void Construct();
 
+    /**
+     * Reset every weight in the network to a random value between min and max.
+     */
     void InitializeWeightsRandom(double min = -1.0, double max = 1.0);
 
     /**
-     * Note: Shuffles the examples in trainingData.
+     * Use the training algorithm to train the network.<br/>
+     * Training follows these steps:<br/>
+     *   - For each example in the training data<br/>
+     *   - Run the network forward on the example input<br/>
+     *   - Calculate the total error by comparing output neuron values against the example output<br/>
+     *   - Calculate the partial error contributed by each weight in the network<br/>
+     *   - Update all the weights in the network to reduce the total error<br/>
+     * Execute the above once for each epoch.<br/>
+     * The actual method by which we will update the weights depends on the
+     * training algorithm chosen.
+     * @param trainingData Examples on which we will train the network.<br/>
+     * Note: Shuffles the order of examples in trainingData.
+     * @param epochCount The number of epochs we should execute to train the
+     * network. One epoch is one full step through all of the training examples.
+     * @see SetTrainingAlgorithmType
+     * @see TrainingAlgorithmType
+     * @see TrainingData
      */
     void Train(TrainingData* trainingData, size_t epochCount);
+
+    /**
+     * Run the network forward on a set of inputs.<br/>
+     * The values computed by running the network will be stored in the output neurons.<br/>
+     * Works by assigning the values in the input parameter into each input neuron
+     * and pulling those values through the hidden layers, calculating the output of
+     * each neuron as the result of executing the activation function on the sum of the
+     * incoming values multiplied by their connection weights.
+     * @param input Must have the same number of elements as this network has input
+     * neurons.
+     */
     void RunForward(const std::vector<double>* input);
+
+    /**
+     * Compute the error attributed to each neuron in the network.<br/>
+     * Begins by calculating the difference between each output neuron value and each
+     * element in the output parameter.<br/>
+     * Next we pull that neuron error backwards through the network, computing the
+     * partial error contributed by each neuron in the network.
+     * @param output Must have the same number of elements as this network has output
+     * neurons.
+     */
     void RunBackward(const std::vector<double>* output);
 
-    double GetError();
+    /**
+     * Get the total network error by calculating the average of the difference between each
+     * output neuron value and each value in the output parameter.<br/>
+     * The difference between the expected value and the output neuron value will be
+     * modified according to the error cost function.
+     * @param output Expected output values. Difference between this and the value of
+     * each output neuron is our total network error. The number of values in output must be
+     * the same as the number of output neurons in this network.
+     * @see ErrorCostFunction
+     * @see SetErrorCostFunction
+     */
     double GetError(const std::vector<double>* output);
+
+    /**
+     * Get the total network error against a set of examples.<br/>
+     * For each example, we run the network forward on the input and compute the difference
+     * between the output and the values stored in each output neuron.<br/>
+     * The total network error is computed as the average of all of those computed differences.<br/.
+     * The difference between the expected value and the output neuron value will be
+     * modified according to the error cost function.
+     * @see ErrorCostFunction
+     * @see SetErrorCostFunction
+     */
     double GetError(const TrainingData* trainingData);
 
 protected:
@@ -347,6 +473,8 @@ protected:
 
     void ResetOutputLayerError();
     void CalculateOutputLayerError(const std::vector<double>* output);
+
+    double GetError();
 };
 
 } // namespace panann

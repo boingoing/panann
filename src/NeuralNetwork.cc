@@ -29,9 +29,10 @@ NeuralNetwork::NeuralNetwork() :
     _sarpropTemperature(0.015),
     _errorSum(0.0),
     _errorCount(0),
-    _defaultActivationFunction(ActivationFunctionType::Sigmoid),
+    _hiddenNeuronActivationFunctionType(ActivationFunctionType::Sigmoid),
+    _outputNeuronActivationFunctionType(ActivationFunctionType::Sigmoid),
     _errorCostFunction(ErrorCostFunction::MeanSquareError),
-    _trainingAlgorithmType(TrainingAlgorithmType::Backpropagation),
+    _trainingAlgorithmType(TrainingAlgorithmType::ResilientBackpropagation),
     _shouldShapeErrorCurve(true),
     _enableShortcutConnections(false),
     _isConstructed(false) {
@@ -175,6 +176,22 @@ void NeuralNetwork::DisableShortcutConnections() {
     this->_enableShortcutConnections = false;
 }
 
+void NeuralNetwork::SetHiddenNeuronActivationFunctionType(ActivationFunctionType type) {
+    this->_hiddenNeuronActivationFunctionType = type;
+}
+
+NeuralNetwork::ActivationFunctionType NeuralNetwork::GetHiddenNeuronActivationFunctionType() {
+    return this->_hiddenNeuronActivationFunctionType;
+}
+
+void NeuralNetwork::SetOutputNeuronActivationFunctionType(ActivationFunctionType type) {
+    this->_outputNeuronActivationFunctionType = type;
+}
+
+NeuralNetwork::ActivationFunctionType NeuralNetwork::GetOutputNeuronActivationFunctionType() {
+    return this->_outputNeuronActivationFunctionType;
+}
+
 /**
  * | hidden neurons | input neurons | output neurons | bias neurons |
  */
@@ -242,15 +259,13 @@ void NeuralNetwork::Allocate() {
     for (size_t i = 0; i < this->_inputNeuronCount; i++) {
         Neuron& neuron = this->_neurons[inputNeuronIndex + i];
         neuron._outputConnectionStartIndex = outputConnectionIndex;
-        neuron._activationFunctionType = this->_defaultActivationFunction;
         outputConnectionIndex += currentLayerOutputConnectionCount;
     }
 
     // The first bias neuron is the one for the input layer.
-    Neuron& biasNeuron = this->_neurons[biasNeuronIndex++];
-    biasNeuron._outputConnectionStartIndex = outputConnectionIndex;
-    biasNeuron._value = 1.0;
-    biasNeuron._activationFunctionType = this->_defaultActivationFunction;
+    Neuron& biasNeuronInput = this->_neurons[biasNeuronIndex++];
+    biasNeuronInput._outputConnectionStartIndex = outputConnectionIndex;
+    biasNeuronInput._value = 1.0;
     outputConnectionIndex = this->_hiddenLayers.front()._neuronCount;
 
     // Calculate the connections incoming to the output layer.
@@ -268,7 +283,7 @@ void NeuralNetwork::Allocate() {
     for (size_t i = 0; i < this->_outputNeuronCount; i++) {
         Neuron& neuron = this->_neurons[firstOutputNeuronIndex + i];
         neuron._inputConnectionStartIndex = inputConnectionIndex;
-        neuron._activationFunctionType = this->_defaultActivationFunction;
+        neuron._activationFunctionType = this->_outputNeuronActivationFunctionType;
         inputConnectionIndex += currentLayerInputConnectionCount;
     }
 
@@ -320,7 +335,7 @@ void NeuralNetwork::Allocate() {
             Neuron& neuron = this->_neurons[neuronIndex++];
             neuron._inputConnectionStartIndex = inputConnectionIndex;
             neuron._outputConnectionStartIndex = outputConnectionIndex;
-            neuron._activationFunctionType = this->_defaultActivationFunction;
+            neuron._activationFunctionType = this->_hiddenNeuronActivationFunctionType;
 
             inputConnectionIndex += currentLayerInputConnectionCount;
             outputConnectionIndex += currentLayerOutputConnectionCount;
@@ -340,7 +355,6 @@ void NeuralNetwork::Allocate() {
         Neuron& biasNeuron = this->_neurons[biasNeuronIndex++];
         biasNeuron._outputConnectionStartIndex = outputConnectionIndex;
         biasNeuron._value = 1.0;
-        biasNeuron._activationFunctionType = this->_defaultActivationFunction;
         outputConnectionIndex += biasOutputConnections;
 
         inputConnectionCount += currentLayer._neuronCount * currentLayerInputConnectionCount;

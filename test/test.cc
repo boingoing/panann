@@ -31,7 +31,6 @@ void MakeTestNetwork(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingDat
     nn->SetOutputNeuronCount(trainingData->at(0)._output.size());
     nn->AddHiddenLayer(5);
     nn->AddHiddenLayer(5);
-    nn->AddHiddenLayer(5);
     nn->Construct();
 }
 
@@ -50,11 +49,11 @@ int main(int argc, const char** argv) {
     NeuralNetwork nn;
     MakeTestNetwork(&nn, &trainingData);
 
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::Backpropagation, 1000);
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::BatchingBackpropagation, 1000);
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::QuickBackpropagation, 1000);
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::ResilientBackpropagation, 1000);
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation, 1000);
+    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::Backpropagation, 100000);
+    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::BatchingBackpropagation, 100000);
+    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::QuickBackpropagation, 100000);
+    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::ResilientBackpropagation, 100000);
+    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation, 100000);
 
     return 0;
 }
