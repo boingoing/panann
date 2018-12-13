@@ -192,6 +192,14 @@ NeuralNetwork::ActivationFunctionType NeuralNetwork::GetOutputNeuronActivationFu
     return this->_outputNeuronActivationFunctionType;
 }
 
+void NeuralNetwork::SetErrorCostFunction(ErrorCostFunction mode) {
+    this->_errorCostFunction = mode;
+}
+
+NeuralNetwork::ErrorCostFunction NeuralNetwork::GetErrorCostFunction() {
+    return this->_errorCostFunction;
+}
+
 /**
  * | hidden neurons | input neurons | output neurons | bias neurons |
  */
@@ -660,10 +668,10 @@ void NeuralNetwork::TrainOffline(TrainingData* trainingData, size_t epochCount) 
         // Train the network using offline weight updates - batching
         for (size_t j = 0; j < trainingData->size(); j++) {
             // Run the network forward to get values in the output neurons.
-            this->RunForward(&trainingData->at(j)._input);
+            this->RunForward(&trainingData->operator[](j)._input);
 
             // Run the network backward to propagate the error values
-            this->RunBackward(&trainingData->at(j)._output);
+            this->RunBackward(&trainingData->operator[](j)._output);
 
             // Update slopes, but not weights - this is a batching algorithm
             this->UpdateSlopes();
@@ -683,10 +691,10 @@ void NeuralNetwork::TrainOnline(TrainingData* trainingData, size_t epochCount) {
         // Train the network using online weight updates - no batching
         for (size_t j = 0; j < trainingData->size(); j++) {
             // Run the network forward to get values in the output neurons.
-            this->RunForward(&trainingData->at(j)._input);
+            this->RunForward(&trainingData->operator[](j)._input);
 
             // Run the network backward to propagate the error values
-            this->RunBackward(&trainingData->at(j)._output);
+            this->RunBackward(&trainingData->operator[](j)._output);
 
             // Update weights online - no batching
             this->UpdateWeightsOnline();
@@ -749,7 +757,7 @@ void NeuralNetwork::RunForward(const std::vector<double>* input) {
     // Feed each input into the corresponding input neuron.
     size_t inputNeuronStartIndex = GetInputNeuronStartIndex();
     for (size_t i = 0; i < this->_inputNeuronCount; i++) {
-        this->_neurons[inputNeuronStartIndex + i]._value = input->at(i);
+        this->_neurons[inputNeuronStartIndex + i]._value = input->operator[](i);
     }
 
     // Pull the values from the input layer through the hidden layer neurons.
@@ -884,8 +892,8 @@ double NeuralNetwork::GetError(const TrainingData* trainingData) {
     this->ResetOutputLayerError();
 
     for (size_t i = 0; i < trainingData->size(); i++) {
-        this->RunForward(&trainingData->at(i)._input);
-        this->CalculateOutputLayerError(&trainingData->at(i)._output);
+        this->RunForward(&trainingData->operator[](i)._input);
+        this->CalculateOutputLayerError(&trainingData->operator[](i)._output);
     }
 
     return this->GetError();
@@ -901,7 +909,7 @@ void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>* output)
     size_t outputNeuronStartIndex = this->GetOutputNeuronStartIndex();
     for (size_t i = 0; i < this->_outputNeuronCount; i++) {
         Neuron& neuron = this->_neurons[outputNeuronStartIndex + i];
-        double delta = neuron._value - output->at(i);
+        double delta = neuron._value - output->operator[](i);
 
         switch (this->_errorCostFunction) {
         case ErrorCostFunction::MeanSquareError:
@@ -924,5 +932,23 @@ void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>* output)
         */
 
         neuron._error = ExecuteActivationFunctionDerivative(&neuron) * delta;
+    }
+}
+
+std::vector<double>* NeuralNetwork::GetWeights() {
+    return &this->_weights;
+}
+
+void NeuralNetwork::SetWeights(std::vector<double>* weights) {
+    assert(this->_weights.size() == weights->size());
+
+    this->_weights.assign(weights->begin(), weights->end());
+}
+
+void NeuralNetwork::GetOutput(std::vector<double>* output) {
+    output->resize(this->_outputNeuronCount);
+    size_t firstOutputNeuron = this->GetOutputNeuronStartIndex();
+    for (size_t i = 0; i < this->_outputNeuronCount; i++) {
+        output->operator[](i) = this->_neurons[firstOutputNeuron + i]._value;
     }
 }

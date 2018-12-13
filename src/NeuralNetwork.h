@@ -426,13 +426,31 @@ public:
      * Get the total network error against a set of examples.<br/>
      * For each example, we run the network forward on the input and compute the difference
      * between the output and the values stored in each output neuron.<br/>
-     * The total network error is computed as the average of all of those computed differences.<br/.
+     * The total network error is computed as the average of all of those computed differences.<br/>
      * The difference between the expected value and the output neuron value will be
      * modified according to the error cost function.
      * @see ErrorCostFunction
      * @see SetErrorCostFunction
      */
     double GetError(const TrainingData* trainingData);
+
+    /**
+     * Get a writable vector containing all the weight values for the network.
+     */
+    std::vector<double>* GetWeights();
+
+    /**
+     * Set the weight values for the network.<br/>
+     * The weight values will be copied from the provided vector which must contain exactly the number
+     * of values for which this network has weights.
+     */
+    void SetWeights(std::vector<double>* weights);
+
+    /**
+     * Writes all of the output neuron values into a vector.<br/>
+     * Existing values in the output parameter will be discarded.
+     */
+    void GetOutput(std::vector<double>* output);
 
 protected:
     NeuralNetwork(const NeuralNetwork&);
