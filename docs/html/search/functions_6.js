@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['seterrorcostfunction',['SetErrorCostFunction',['../classpanann_1_1NeuralNetwork.html#af90965c0bc3dc5d4645b6535bab3c784',1,'panann::NeuralNetwork']]],
+  ['seterrorcostfunction',['SetErrorCostFunction',['../classpanann_1_1NeuralNetwork.html#a00389e9280c606262d2d0f29c117a684',1,'panann::NeuralNetwork']]],
   ['sethiddenneuronactivationfunctiontype',['SetHiddenNeuronActivationFunctionType',['../classpanann_1_1NeuralNetwork.html#a390f70165619561ef222a74010b6f094',1,'panann::NeuralNetwork']]],
   ['setinputneuroncount',['SetInputNeuronCount',['../classpanann_1_1NeuralNetwork.html#adb8cce890082404fb3d09562abf66492',1,'panann::NeuralNetwork']]],
   ['setlearningrate',['SetLearningRate',['../classpanann_1_1NeuralNetwork.html#a3e0b2f9a24682f71d8f1070d9ac8b80f',1,'panann::NeuralNetwork']]],
@@ -18,5 +18,6 @@ var searchData=
   ['setsarpropstepthresholdfactor',['SetSarpropStepThresholdFactor',['../classpanann_1_1NeuralNetwork.html#a8940f843758b8ad6d6392055b61bed4a',1,'panann::NeuralNetwork']]],
   ['setsarproptemperature',['SetSarpropTemperature',['../classpanann_1_1NeuralNetwork.html#a6344e33df7225529eced740627f7d9b8',1,'panann::NeuralNetwork']]],
   ['setsarpropweightdecayshift',['SetSarpropWeightDecayShift',['../classpanann_1_1NeuralNetwork.html#aa56b68b7814c8ea6e4e7f1b3bdd45c74',1,'panann::NeuralNetwork']]],
-  ['settrainingalgorithmtype',['SetTrainingAlgorithmType',['../classpanann_1_1NeuralNetwork.html#a3b75e4cd2e929105830223164f6de7d6',1,'panann::NeuralNetwork']]]
+  ['settrainingalgorithmtype',['SetTrainingAlgorithmType',['../classpanann_1_1NeuralNetwork.html#a3b75e4cd2e929105830223164f6de7d6',1,'panann::NeuralNetwork']]],
+  ['setweights',['SetWeights',['../classpanann_1_1NeuralNetwork.html#af4c5e4d9792578123f0db6349efb6798',1,'panann::NeuralNetwork']]]
 ];
