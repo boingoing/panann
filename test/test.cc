@@ -13,6 +13,14 @@
 
 using namespace panann;
 
+const char* TrainingAlgorithmNames[] = {
+    "Backpropagation",
+    "BatchingBackpropagation",
+    "QuickBackpropagation",
+    "ResilientBackpropagation",
+    "SimulatedAnnealingResilientBackpropagation"
+};
+
 void MakeXorTwoBitTrainingData(NeuralNetwork::TrainingData* trainingData) {
     trainingData->resize(4);
     trainingData->at(0)._input = { 0.0, 0.0 };
@@ -35,11 +43,28 @@ void MakeTestNetwork(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingDat
 }
 
 void TrainAndTestNetwork(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingData, NeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
-    nn->InitializeWeightsRandom();
+    std::cout << "Testing training with " << TrainingAlgorithmNames[(int)algorithm] << "..." << std::endl;
     nn->SetTrainingAlgorithmType(algorithm);
-    std::cout << "Before training error: " << nn->GetError(trainingData) << std::endl;
+
+    std::cout << "\tInitializing weight values to random (-1, 1)..." << std::endl;
+    nn->InitializeWeightsRandom();
+    std::cout << "\t\tError before training: " << nn->GetError(trainingData) << std::endl;
     nn->Train(trainingData, epochs);
-    std::cout << "After training error: " << nn->GetError(trainingData) << std::endl;
+    std::cout << "\t\tError after training for " << epochs << " epochs: " << nn->GetError(trainingData) << std::endl;
+
+    std::cout << "\tInitializing weight values via Widrow-Nguyen..." << std::endl;
+    nn->InitializeWeights(trainingData);
+    std::cout << "\t\tError before training: " << nn->GetError(trainingData) << std::endl;
+    nn->Train(trainingData, epochs);
+    std::cout << "\t\tError after training for " << epochs << " epochs: " << nn->GetError(trainingData) << std::endl;
+}
+
+void TrainAndTest(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingData, size_t epochs) {
+    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::Backpropagation, epochs);
+    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::BatchingBackpropagation, epochs);
+    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::QuickBackpropagation, epochs);
+    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::ResilientBackpropagation, epochs);
+    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation, epochs);
 }
 
 int main(int argc, const char** argv) {
@@ -49,11 +74,7 @@ int main(int argc, const char** argv) {
     NeuralNetwork nn;
     MakeTestNetwork(&nn, &trainingData);
 
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::Backpropagation, 100000);
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::BatchingBackpropagation, 100000);
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::QuickBackpropagation, 100000);
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::ResilientBackpropagation, 100000);
-    TrainAndTestNetwork(&nn, &trainingData, NeuralNetwork::TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation, 100000);
+    TrainAndTest(&nn, &trainingData, 100000);
 
     return 0;
 }

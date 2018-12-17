@@ -4,6 +4,7 @@
 //-------------------------------------------------------------------------------------------------------
 
 #include <cassert>
+#include <algorithm>
 
 #include "NeuralNetwork.h"
 #include "ActivationFunction.h"
@@ -752,6 +753,7 @@ void NeuralNetwork::ComputeNeuronError(size_t neuronIndex) {
 }
 
 void NeuralNetwork::RunForward(const std::vector<double>* input) {
+    assert(this->_isConstructed);
     assert(input->size() == this->_inputNeuronCount);
 
     // Feed each input into the corresponding input neuron.
@@ -787,6 +789,7 @@ double NeuralNetwork::ApplyErrorShaping(double value) {
 }
 
 void NeuralNetwork::RunBackward(const std::vector<double>* output) {
+    assert(this->_isConstructed);
     assert(output->size() == this->_outputNeuronCount);
 
     this->ResetOutputLayerError();
@@ -801,9 +804,30 @@ void NeuralNetwork::RunBackward(const std::vector<double>* output) {
 }
 
 void NeuralNetwork::InitializeWeightsRandom(double min, double max) {
+    assert(this->_isConstructed);
+
     for (size_t i = 0; i < this->_weights.size(); i++) {
         this->_weights[i] = this->_randomWrapper.RandomFloat(min, max);
     }
+}
+
+void NeuralNetwork::InitializeWeights(const TrainingData* trainingData) {
+    assert(this->_isConstructed);
+    assert(!trainingData->empty());
+
+    double minInput = std::numeric_limits<double>::max();
+    double maxInput = std::numeric_limits<double>::min();
+
+    std::for_each(trainingData->begin(), trainingData->end(), [&](const Example& ex) {
+        assert(this->GetInputNeuronCount() == ex._input.size());
+        auto minmax = std::minmax_element(ex._input.begin(), ex._input.end());
+        minInput = std::min(minInput, *minmax.first);
+        maxInput = std::max(maxInput, *minmax.second);
+    });
+
+    double factor = pow(0.7 * this->_hiddenNeuronCount, 1.0 / this->_hiddenNeuronCount) / (maxInput - minInput);
+
+    this->InitializeWeightsRandom(-factor, factor);
 }
 
 bool NeuralNetwork::IsActivationFunctionSymmetric(ActivationFunctionType activationFunctionType) {

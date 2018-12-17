@@ -50,7 +50,7 @@ public:
          * @see SetLearningRate
          * @see SetMomentum
          */
-        Backpropagation = 1,
+        Backpropagation = 0,
         /**
          * Batching backpropagation with learning rate parameter.<br/>
          * This is an offline learning algorithm. It batches together weight updates
@@ -364,6 +364,11 @@ public:
      * Reset every weight in the network to a random value between min and max.
      */
     void InitializeWeightsRandom(double min = -1.0, double max = 1.0);
+
+    /**
+     * Initialize the weight of each connection via Widrow-Nguyen's algorithm.
+     */
+    void InitializeWeights(const TrainingData* trainingData);
 
     /**
      * Use the training algorithm to train the network.<br/>
