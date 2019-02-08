@@ -248,8 +248,6 @@ void NeuralNetwork::Allocate() {
     size_t biasNeuronIndex = this->GetBiasNeuronStartIndex();
     size_t inputConnectionIndex = 0;
     size_t outputConnectionIndex = 0;
-    size_t inputConnectionCount = 0;
-    size_t outputConnectionCount = 0;
     size_t currentLayerInputConnectionCount = 0;
     size_t currentLayerOutputConnectionCount = 0;
 
@@ -262,8 +260,6 @@ void NeuralNetwork::Allocate() {
         currentLayerOutputConnectionCount = this->_hiddenLayers.front()._neuronCount;
     }
 
-    outputConnectionCount += currentLayerOutputConnectionCount * this->_inputNeuronCount;
-
     size_t inputNeuronIndex = this->GetInputNeuronStartIndex();
     for (size_t i = 0; i < this->_inputNeuronCount; i++) {
         Neuron& neuron = this->_neurons[inputNeuronIndex + i];
@@ -275,7 +271,7 @@ void NeuralNetwork::Allocate() {
     Neuron& biasNeuronInput = this->_neurons[biasNeuronIndex++];
     biasNeuronInput._outputConnectionStartIndex = outputConnectionIndex;
     biasNeuronInput._value = 1.0;
-    outputConnectionIndex = this->_hiddenLayers.front()._neuronCount;
+    outputConnectionIndex += this->_hiddenLayers.front()._neuronCount;
 
     // Calculate the connections incoming to the output layer.
     if (this->_enableShortcutConnections) {
@@ -285,8 +281,6 @@ void NeuralNetwork::Allocate() {
         // Output neurons are connected only to the last hidden layer.
         currentLayerInputConnectionCount = this->_hiddenLayers.back()._neuronCount + 1;
     }
-
-    inputConnectionCount += currentLayerInputConnectionCount * this->_outputNeuronCount;
 
     size_t firstOutputNeuronIndex = this->GetOutputNeuronStartIndex();
     for (size_t i = 0; i < this->_outputNeuronCount; i++) {
@@ -365,14 +359,11 @@ void NeuralNetwork::Allocate() {
         biasNeuron._outputConnectionStartIndex = outputConnectionIndex;
         biasNeuron._value = 1.0;
         outputConnectionIndex += biasOutputConnections;
-
-        inputConnectionCount += currentLayer._neuronCount * currentLayerInputConnectionCount;
-        outputConnectionCount += currentLayer._neuronCount * currentLayerOutputConnectionCount + biasOutputConnections;
     }
 
-    this->_inputConnections.resize(inputConnectionCount);
-    this->_outputConnections.resize(outputConnectionCount);
-    this->_weights.resize(inputConnectionCount);
+    this->_inputConnections.resize(inputConnectionIndex);
+    this->_outputConnections.resize(outputConnectionIndex);
+    this->_weights.resize(inputConnectionIndex);
 }
 
 void NeuralNetwork::ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex) {
