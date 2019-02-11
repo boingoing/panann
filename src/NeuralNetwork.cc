@@ -109,7 +109,7 @@ void NeuralNetwork::SetRpropWeightStepMax(double weightStep) {
     this->_rpropWeightStepMax = weightStep;
 }
 
-double NeuralNetwork::SetRpropWeightStepMax() {
+double NeuralNetwork::GetRpropWeightStepMax() {
     return this->_rpropWeightStepMax;
 }
 

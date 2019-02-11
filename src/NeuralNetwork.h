@@ -250,7 +250,7 @@ public:
      * Default: 50
      */
     void SetRpropWeightStepMax(double weightStep);
-    double SetRpropWeightStepMax();
+    double GetRpropWeightStepMax();
 
     /**
      * Set the factor by which the weight step will be increased each
