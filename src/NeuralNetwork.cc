@@ -170,14 +170,17 @@ NeuralNetwork::TrainingAlgorithmType NeuralNetwork::GetTrainingAlgorithmType() {
 }
 
 void NeuralNetwork::EnableShortcutConnections() {
+    assert(!this->_isConstructed);
     this->_enableShortcutConnections = true;
 }
 
 void NeuralNetwork::DisableShortcutConnections() {
+    assert(!this->_isConstructed);
     this->_enableShortcutConnections = false;
 }
 
 void NeuralNetwork::SetHiddenNeuronActivationFunctionType(ActivationFunctionType type) {
+    assert(!this->_isConstructed);
     this->_hiddenNeuronActivationFunctionType = type;
 }
 
@@ -186,6 +189,7 @@ NeuralNetwork::ActivationFunctionType NeuralNetwork::GetHiddenNeuronActivationFu
 }
 
 void NeuralNetwork::SetOutputNeuronActivationFunctionType(ActivationFunctionType type) {
+    assert(!this->_isConstructed);
     this->_outputNeuronActivationFunctionType = type;
 }
 
