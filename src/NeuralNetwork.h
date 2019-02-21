@@ -11,6 +11,8 @@
 
 namespace panann {
 
+class TrainingData;
+
 /**
  * Simple feed-forward, multi-layer perceptron.
  */
@@ -96,13 +98,6 @@ public:
         SimulatedAnnealingResilientBackpropagation
     };
 
-    struct Example {
-        std::vector<double> _input;
-        std::vector<double> _output;
-    };
-
-    typedef std::vector<Example> TrainingData;
-
 protected:
     struct Neuron {
         size_t _inputConnectionStartIndex;
@@ -179,6 +174,7 @@ public:
      */
     void SetInputNeuronCount(size_t inputNeuronCount);
     size_t GetInputNeuronCount();
+    size_t GetInputNeuronStartIndex();
 
     /**
      * Set the number of neurons in the output layer.
@@ -186,6 +182,7 @@ public:
      */
     void SetOutputNeuronCount(size_t outputNeuronCount);
     size_t GetOutputNeuronCount();
+    size_t GetOutputNeuronStartIndex();
 
     /**
      * Append a hidden layer to the end of the list of existing hidden layers.<br/>
@@ -194,6 +191,8 @@ public:
      * Hidden layers may not be added after the network has been constructed.
      */
     void AddHiddenLayer(size_t neuronCount);
+    size_t GetHiddenNeuronCount();
+    size_t GetHiddenNeuronStartIndex();
 
     /**
      * Set the learning rate parameter used by backprop, batch, and qprop.<br/>
@@ -352,6 +351,8 @@ public:
     void SetOutputNeuronActivationFunctionType(ActivationFunctionType type);
     ActivationFunctionType GetOutputNeuronActivationFunctionType();
 
+    void SetNeuronActivationFunction(size_t neuronIndex, ActivationFunctionType type);
+
     /**
      * Build the network topology.<br/>
      * After construction, the number of input and output neurons, number of
@@ -483,9 +484,6 @@ protected:
     static bool IsActivationFunctionSymmetric(ActivationFunctionType activationFunctionType);
     static double ApplyErrorShaping(double value);
 
-    size_t GetOutputNeuronStartIndex();
-    size_t GetInputNeuronStartIndex();
-    size_t GetHiddenNeuronStartIndex();
     size_t GetBiasNeuronStartIndex();
 
     void ResetWeightSteps();
