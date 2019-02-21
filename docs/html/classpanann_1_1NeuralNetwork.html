@@ -87,8 +87,6 @@ Collaboration diagram for panann::NeuralNetwork:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpanann_1_1NeuralNetwork_1_1Example.html">Example</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpanann_1_1NeuralNetwork_1_1InputConnection.html">InputConnection</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpanann_1_1NeuralNetwork_1_1Layer.html">Layer</a></td></tr>
@@ -126,7 +124,7 @@ Public Types</h2></td></tr>
  }</td></tr>
 <tr class="separator:a50bf0a0876153b3db9f86e5e5e7513d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf9657a06c4d2e4916e5497e1560cd5d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#acf9657a06c4d2e4916e5497e1560cd5d">TrainingAlgorithmType</a> : uint8_t { <br />
-&#160;&#160;<a class="el" href="classpanann_1_1NeuralNetwork.html#acf9657a06c4d2e4916e5497e1560cd5dab30409b72131c049f87156c6ac836905">TrainingAlgorithmType::Backpropagation</a> = 1, 
+&#160;&#160;<a class="el" href="classpanann_1_1NeuralNetwork.html#acf9657a06c4d2e4916e5497e1560cd5dab30409b72131c049f87156c6ac836905">TrainingAlgorithmType::Backpropagation</a> = 0, 
 <a class="el" href="classpanann_1_1NeuralNetwork.html#acf9657a06c4d2e4916e5497e1560cd5da8afb362e0403181bb06a741783acedf7">TrainingAlgorithmType::BatchingBackpropagation</a>, 
 <a class="el" href="classpanann_1_1NeuralNetwork.html#acf9657a06c4d2e4916e5497e1560cd5da4c698525fd46523e37fe9644807492cb">TrainingAlgorithmType::QuickBackpropagation</a>, 
 <a class="el" href="classpanann_1_1NeuralNetwork.html#acf9657a06c4d2e4916e5497e1560cd5da36ae044f0e29339bfed750154b7afbb1">TrainingAlgorithmType::ResilientBackpropagation</a>, 
@@ -135,9 +133,6 @@ Public Types</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:acf9657a06c4d2e4916e5497e1560cd5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc9a25be7b1386c311081e2e6ffd1b4e"><td class="memItemLeft" align="right" valign="top"><a id="afc9a25be7b1386c311081e2e6ffd1b4e"></a>
-typedef std::vector&lt; <a class="el" href="structpanann_1_1NeuralNetwork_1_1Example.html">Example</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>TrainingData</b></td></tr>
-<tr class="separator:afc9a25be7b1386c311081e2e6ffd1b4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -146,13 +141,24 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a05f28d47e0963036e58f8b0498364306"><td class="memItemLeft" align="right" valign="top"><a id="a05f28d47e0963036e58f8b0498364306"></a>
 size_t&#160;</td><td class="memItemRight" valign="bottom"><b>GetInputNeuronCount</b> ()</td></tr>
 <tr class="separator:a05f28d47e0963036e58f8b0498364306"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada4a98e39bc35cddbd54be425cfc4439"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#ada4a98e39bc35cddbd54be425cfc4439">GetInputNeuronStartIndex</a> ()</td></tr>
+<tr class="separator:ada4a98e39bc35cddbd54be425cfc4439"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aefb8a5aff74e3e90c9a49f41b43c79d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#aefb8a5aff74e3e90c9a49f41b43c79d0">SetOutputNeuronCount</a> (size_t outputNeuronCount)</td></tr>
 <tr class="separator:aefb8a5aff74e3e90c9a49f41b43c79d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75a3cf9ad4605551e11827c261e40d25"><td class="memItemLeft" align="right" valign="top"><a id="a75a3cf9ad4605551e11827c261e40d25"></a>
 size_t&#160;</td><td class="memItemRight" valign="bottom"><b>GetOutputNeuronCount</b> ()</td></tr>
 <tr class="separator:a75a3cf9ad4605551e11827c261e40d25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a285d01780f7ecc5d90796b964fab86ec"><td class="memItemLeft" align="right" valign="top"><a id="a285d01780f7ecc5d90796b964fab86ec"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>GetOutputNeuronStartIndex</b> ()</td></tr>
+<tr class="separator:a285d01780f7ecc5d90796b964fab86ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c23b97ab08421efd3e6a8c2f8d00cc6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a1c23b97ab08421efd3e6a8c2f8d00cc6">AddHiddenLayer</a> (size_t neuronCount)</td></tr>
 <tr class="separator:a1c23b97ab08421efd3e6a8c2f8d00cc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa82c694abbfa45dbeea994132728cdb7"><td class="memItemLeft" align="right" valign="top"><a id="aa82c694abbfa45dbeea994132728cdb7"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>GetHiddenNeuronCount</b> ()</td></tr>
+<tr class="separator:aa82c694abbfa45dbeea994132728cdb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5db057511d1447a29c8611f0c803adbe"><td class="memItemLeft" align="right" valign="top"><a id="a5db057511d1447a29c8611f0c803adbe"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>GetHiddenNeuronStartIndex</b> ()</td></tr>
+<tr class="separator:a5db057511d1447a29c8611f0c803adbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e0b2f9a24682f71d8f1070d9ac8b80f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a3e0b2f9a24682f71d8f1070d9ac8b80f">SetLearningRate</a> (double learningRate)</td></tr>
 <tr class="separator:a3e0b2f9a24682f71d8f1070d9ac8b80f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6718c4fbf5f0935335da2e3425f79a6"><td class="memItemLeft" align="right" valign="top"><a id="aa6718c4fbf5f0935335da2e3425f79a6"></a>
@@ -185,9 +191,9 @@ double&#160;</td><td class="memItemRight" valign="bottom"><b>GetRpropWeightStepM
 <tr class="separator:aa9cf70688dfe4edac715d69c660ad956"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ae60e2d4728f36b8f397aaed27ea510"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a8ae60e2d4728f36b8f397aaed27ea510">SetRpropWeightStepMax</a> (double weightStep)</td></tr>
 <tr class="separator:a8ae60e2d4728f36b8f397aaed27ea510"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7398e9cdfd709214d1e9c99ec3e56b67"><td class="memItemLeft" align="right" valign="top"><a id="a7398e9cdfd709214d1e9c99ec3e56b67"></a>
-double&#160;</td><td class="memItemRight" valign="bottom"><b>SetRpropWeightStepMax</b> ()</td></tr>
-<tr class="separator:a7398e9cdfd709214d1e9c99ec3e56b67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78acb3f09c1887b44f9437c9f21a95af"><td class="memItemLeft" align="right" valign="top"><a id="a78acb3f09c1887b44f9437c9f21a95af"></a>
+double&#160;</td><td class="memItemRight" valign="bottom"><b>GetRpropWeightStepMax</b> ()</td></tr>
+<tr class="separator:a78acb3f09c1887b44f9437c9f21a95af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc4ce3f72237f76af8bc563a94a79eab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#afc4ce3f72237f76af8bc563a94a79eab">SetRpropIncreaseFactor</a> (double factor)</td></tr>
 <tr class="separator:afc4ce3f72237f76af8bc563a94a79eab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac054c530b2621f4e49dcc4a0eecd781f"><td class="memItemLeft" align="right" valign="top"><a id="ac054c530b2621f4e49dcc4a0eecd781f"></a>
@@ -243,11 +249,16 @@ ActivationFunctionType&#160;</td><td class="memItemRight" valign="bottom"><b>Get
 <tr class="memitem:a65d4f862b20ac7fda8257b107767528c"><td class="memItemLeft" align="right" valign="top"><a id="a65d4f862b20ac7fda8257b107767528c"></a>
 ActivationFunctionType&#160;</td><td class="memItemRight" valign="bottom"><b>GetOutputNeuronActivationFunctionType</b> ()</td></tr>
 <tr class="separator:a65d4f862b20ac7fda8257b107767528c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35325c5e119ed85ce0d8185e672c6a93"><td class="memItemLeft" align="right" valign="top"><a id="a35325c5e119ed85ce0d8185e672c6a93"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetNeuronActivationFunction</b> (size_t neuronIndex, ActivationFunctionType type)</td></tr>
+<tr class="separator:a35325c5e119ed85ce0d8185e672c6a93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe4a43c6129dc3a26c11164584194d51"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#abe4a43c6129dc3a26c11164584194d51">Construct</a> ()</td></tr>
 <tr class="separator:abe4a43c6129dc3a26c11164584194d51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e724e1b39f29d709e3ea712d5a99bf1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a2e724e1b39f29d709e3ea712d5a99bf1">InitializeWeightsRandom</a> (double min=-1.0, double max=1.0)</td></tr>
 <tr class="separator:a2e724e1b39f29d709e3ea712d5a99bf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae948fafa25f0b42e1417fb2c6b08030a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#ae948fafa25f0b42e1417fb2c6b08030a">Train</a> (TrainingData *trainingData, size_t epochCount)</td></tr>
+<tr class="memitem:a8482fdae173c31baa0135c28f7688e4a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a8482fdae173c31baa0135c28f7688e4a">InitializeWeights</a> (const <a class="el" href="classpanann_1_1TrainingData.html">TrainingData</a> *trainingData)</td></tr>
+<tr class="separator:a8482fdae173c31baa0135c28f7688e4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae948fafa25f0b42e1417fb2c6b08030a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#ae948fafa25f0b42e1417fb2c6b08030a">Train</a> (<a class="el" href="classpanann_1_1TrainingData.html">TrainingData</a> *trainingData, size_t epochCount)</td></tr>
 <tr class="separator:ae948fafa25f0b42e1417fb2c6b08030a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00fc95c9e54b52bbfcdaeb879adc85c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a00fc95c9e54b52bbfcdaeb879adc85c6">RunForward</a> (const std::vector&lt; double &gt; *input)</td></tr>
 <tr class="separator:a00fc95c9e54b52bbfcdaeb879adc85c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -255,7 +266,7 @@ ActivationFunctionType&#160;</td><td class="memItemRight" valign="bottom"><b>Get
 <tr class="separator:aef9ad4baebd5f14226981fadb07cdf2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a5fdbd3d28125e7fdbac048b9859675"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a8a5fdbd3d28125e7fdbac048b9859675">GetError</a> (const std::vector&lt; double &gt; *output)</td></tr>
 <tr class="separator:a8a5fdbd3d28125e7fdbac048b9859675"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c6c6baea8ed5f8f46c1808a995e9440"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a3c6c6baea8ed5f8f46c1808a995e9440">GetError</a> (const TrainingData *trainingData)</td></tr>
+<tr class="memitem:a3c6c6baea8ed5f8f46c1808a995e9440"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a3c6c6baea8ed5f8f46c1808a995e9440">GetError</a> (const <a class="el" href="classpanann_1_1TrainingData.html">TrainingData</a> *trainingData)</td></tr>
 <tr class="separator:a3c6c6baea8ed5f8f46c1808a995e9440"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50b292a0bf733321fa85e2816394cd1a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#a50b292a0bf733321fa85e2816394cd1a">GetWeights</a> ()</td></tr>
 <tr class="separator:a50b292a0bf733321fa85e2816394cd1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -314,14 +325,6 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateWeightsResilien
 <tr class="memitem:ab99b5884ce2e9f50c649c8099f8041c3"><td class="memItemLeft" align="right" valign="top"><a id="ab99b5884ce2e9f50c649c8099f8041c3"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateWeightsSimulatedAnnealingResilientBackpropagation</b> (size_t currentEpoch)</td></tr>
 <tr class="separator:ab99b5884ce2e9f50c649c8099f8041c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a285d01780f7ecc5d90796b964fab86ec"><td class="memItemLeft" align="right" valign="top"><a id="a285d01780f7ecc5d90796b964fab86ec"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>GetOutputNeuronStartIndex</b> ()</td></tr>
-<tr class="separator:a285d01780f7ecc5d90796b964fab86ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada4a98e39bc35cddbd54be425cfc4439"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanann_1_1NeuralNetwork.html#ada4a98e39bc35cddbd54be425cfc4439">GetInputNeuronStartIndex</a> ()</td></tr>
-<tr class="separator:ada4a98e39bc35cddbd54be425cfc4439"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5db057511d1447a29c8611f0c803adbe"><td class="memItemLeft" align="right" valign="top"><a id="a5db057511d1447a29c8611f0c803adbe"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>GetHiddenNeuronStartIndex</b> ()</td></tr>
-<tr class="separator:a5db057511d1447a29c8611f0c803adbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d8903a9682afa7c6f989b1fc25d907e"><td class="memItemLeft" align="right" valign="top"><a id="a7d8903a9682afa7c6f989b1fc25d907e"></a>
 size_t&#160;</td><td class="memItemRight" valign="bottom"><b>GetBiasNeuronStartIndex</b> ()</td></tr>
 <tr class="separator:a7d8903a9682afa7c6f989b1fc25d907e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -335,10 +338,10 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>ResetSlopes</b> ()</t
 void&#160;</td><td class="memItemRight" valign="bottom"><b>ResetPreviousSlopes</b> ()</td></tr>
 <tr class="separator:a9e86b0f0cbdab00f61a5612d95994941"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16270dde2428f2288b3d11c8a3e17a52"><td class="memItemLeft" align="right" valign="top"><a id="a16270dde2428f2288b3d11c8a3e17a52"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>TrainOffline</b> (TrainingData *trainingData, size_t epochCount)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>TrainOffline</b> (<a class="el" href="classpanann_1_1TrainingData.html">TrainingData</a> *trainingData, size_t epochCount)</td></tr>
 <tr class="separator:a16270dde2428f2288b3d11c8a3e17a52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02e0d6e6aed0fc45d7b0721e75af6335"><td class="memItemLeft" align="right" valign="top"><a id="a02e0d6e6aed0fc45d7b0721e75af6335"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>TrainOnline</b> (TrainingData *trainingData, size_t epochCount)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>TrainOnline</b> (<a class="el" href="classpanann_1_1TrainingData.html">TrainingData</a> *trainingData, size_t epochCount)</td></tr>
 <tr class="separator:a02e0d6e6aed0fc45d7b0721e75af6335"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a33aaf8c0f837ab59e5a775b5c4ac41b8"><td class="memItemLeft" align="right" valign="top"><a id="a33aaf8c0f837ab59e5a775b5c4ac41b8"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>ResetOutputLayerError</b> ()</td></tr>
@@ -643,7 +646,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>_isConstructed</b></t
         <tr>
           <td class="memname">double NeuralNetwork::GetError </td>
           <td>(</td>
-          <td class="paramtype">const TrainingData *&#160;</td>
+          <td class="paramtype">const <a class="el" href="classpanann_1_1TrainingData.html">TrainingData</a> *&#160;</td>
           <td class="paramname"><em>trainingData</em></td><td>)</td>
           <td></td>
         </tr>
@@ -663,9 +666,6 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>_isConstructed</b></t
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">size_t NeuralNetwork::GetInputNeuronStartIndex </td>
@@ -674,11 +674,6 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>_isConstructed</b></t
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>| hidden neurons | input neurons | output neurons | bias neurons | </p>
 
@@ -719,6 +714,25 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>_isConstructed</b></t
       </table>
 </div><div class="memdoc">
 <p>Get a writable vector containing all the weight values for the network. </p>
+
+</div>
+</div>
+<a id="a8482fdae173c31baa0135c28f7688e4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8482fdae173c31baa0135c28f7688e4a">&#9670;&nbsp;</a></span>InitializeWeights()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNetwork::InitializeWeights </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classpanann_1_1TrainingData.html">TrainingData</a> *&#160;</td>
+          <td class="paramname"><em>trainingData</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Initialize the weight of each connection via Widrow-Nguyen's algorithm. </p>
 
 </div>
 </div>
@@ -1228,7 +1242,7 @@ ErrorCostFunction </dd></dl>
         <tr>
           <td class="memname">void NeuralNetwork::Train </td>
           <td>(</td>
-          <td class="paramtype">TrainingData *&#160;</td>
+          <td class="paramtype"><a class="el" href="classpanann_1_1TrainingData.html">TrainingData</a> *&#160;</td>
           <td class="paramname"><em>trainingData</em>, </td>
         </tr>
         <tr>
@@ -1269,7 +1283,7 @@ ErrorCostFunction </dd></dl>
 <dd>
 <a class="el" href="classpanann_1_1NeuralNetwork.html#acf9657a06c4d2e4916e5497e1560cd5d">TrainingAlgorithmType</a> </dd>
 <dd>
-TrainingData </dd></dl>
+<a class="el" href="classpanann_1_1TrainingData.html">TrainingData</a> </dd></dl>
 </li>
 </ul>
 
