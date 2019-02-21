@@ -6,6 +6,7 @@
 #pragma once
 
 #include <vector>
+#include <cstdint>
 
 namespace panann {
 
@@ -24,7 +25,7 @@ struct Example {
  */
 class TrainingData : public std::vector<Example> {
 public:
-    enum ScalingAlgorithm : uint8_t {
+    enum class ScalingAlgorithm : uint8_t {
         /**
          * Perform no scaling of the Examples.
          */

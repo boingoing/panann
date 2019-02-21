@@ -10,6 +10,7 @@
 #include <sstream>
 
 #include "NeuralNetwork.h"
+#include "TrainingData.h"
 
 using namespace panann;
 
@@ -21,7 +22,7 @@ const char* TrainingAlgorithmNames[] = {
     "SimulatedAnnealingResilientBackpropagation"
 };
 
-void MakeXorTwoBitTrainingData(NeuralNetwork::TrainingData* trainingData) {
+void MakeXorTwoBitTrainingData(TrainingData* trainingData) {
     trainingData->resize(4);
     trainingData->at(0)._input = { 0.0, 0.0 };
     trainingData->at(0)._output = { 0.0 };
@@ -33,7 +34,7 @@ void MakeXorTwoBitTrainingData(NeuralNetwork::TrainingData* trainingData) {
     trainingData->at(3)._output = { 1.0 };
 }
 
-void MakeTestNetwork(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingData) {
+void MakeTestNetwork(NeuralNetwork* nn, TrainingData* trainingData) {
     nn->DisableShortcutConnections();
     nn->SetInputNeuronCount(trainingData->at(0)._input.size());
     nn->SetOutputNeuronCount(trainingData->at(0)._output.size());
@@ -42,7 +43,7 @@ void MakeTestNetwork(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingDat
     nn->Construct();
 }
 
-void TrainAndTestNetwork(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingData, NeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
+void TrainAndTestNetwork(NeuralNetwork* nn, TrainingData* trainingData, NeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
     std::cout << "Testing training with " << TrainingAlgorithmNames[(int)algorithm] << "..." << std::endl;
     nn->SetTrainingAlgorithmType(algorithm);
 
@@ -59,7 +60,7 @@ void TrainAndTestNetwork(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainin
     std::cout << "\t\tError after training for " << epochs << " epochs: " << nn->GetError(trainingData) << std::endl;
 }
 
-void TrainAndTest(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingData, size_t epochs) {
+void TrainAndTest(NeuralNetwork* nn, TrainingData* trainingData, size_t epochs) {
     TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::Backpropagation, epochs);
     TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::BatchingBackpropagation, epochs);
     TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::QuickBackpropagation, epochs);
@@ -68,7 +69,7 @@ void TrainAndTest(NeuralNetwork* nn, NeuralNetwork::TrainingData* trainingData, 
 }
 
 int main(int argc, const char** argv) {
-    NeuralNetwork::TrainingData trainingData;
+    TrainingData trainingData;
     MakeXorTwoBitTrainingData(&trainingData);
 
     NeuralNetwork nn;
