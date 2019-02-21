@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['layer',['Layer',['../structpanann_1_1NeuralNetwork_1_1Layer.html',1,'panann::NeuralNetwork']]]
+  ['initializeweights',['InitializeWeights',['../classpanann_1_1NeuralNetwork.html#a8482fdae173c31baa0135c28f7688e4a',1,'panann::NeuralNetwork']]],
+  ['initializeweightsrandom',['InitializeWeightsRandom',['../classpanann_1_1NeuralNetwork.html#a2e724e1b39f29d709e3ea712d5a99bf1',1,'panann::NeuralNetwork']]],
+  ['inputconnection',['InputConnection',['../structpanann_1_1NeuralNetwork_1_1InputConnection.html',1,'panann::NeuralNetwork']]]
 ];

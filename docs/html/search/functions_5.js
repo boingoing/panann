@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['runbackward',['RunBackward',['../classpanann_1_1NeuralNetwork.html#aef9ad4baebd5f14226981fadb07cdf2b',1,'panann::NeuralNetwork']]],
-  ['runforward',['RunForward',['../classpanann_1_1NeuralNetwork.html#a00fc95c9e54b52bbfcdaeb879adc85c6',1,'panann::NeuralNetwork']]]
+  ['initializeweights',['InitializeWeights',['../classpanann_1_1NeuralNetwork.html#a8482fdae173c31baa0135c28f7688e4a',1,'panann::NeuralNetwork']]],
+  ['initializeweightsrandom',['InitializeWeightsRandom',['../classpanann_1_1NeuralNetwork.html#a2e724e1b39f29d709e3ea712d5a99bf1',1,'panann::NeuralNetwork']]]
 ];

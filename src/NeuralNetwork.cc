@@ -8,6 +8,7 @@
 
 #include "NeuralNetwork.h"
 #include "ActivationFunction.h"
+#include "TrainingData.h"
 
 using namespace panann;
 
@@ -197,6 +198,12 @@ NeuralNetwork::ActivationFunctionType NeuralNetwork::GetOutputNeuronActivationFu
     return this->_outputNeuronActivationFunctionType;
 }
 
+void NeuralNetwork::SetNeuronActivationFunction(size_t neuronIndex, ActivationFunctionType type) {
+    assert(this->_isConstructed);
+    assert(neuronIndex < this->_neurons.size());
+    this->_neurons[neuronIndex]._activationFunctionType = type;
+}
+
 void NeuralNetwork::SetErrorCostFunction(ErrorCostFunction mode) {
     this->_errorCostFunction = mode;
 }
@@ -218,6 +225,10 @@ size_t NeuralNetwork::GetOutputNeuronStartIndex() {
 
 size_t NeuralNetwork::GetHiddenNeuronStartIndex() {
     return 0;
+}
+
+size_t NeuralNetwork::GetHiddenNeuronCount() {
+    return this->_hiddenNeuronCount;
 }
 
 size_t NeuralNetwork::GetBiasNeuronStartIndex() {
