@@ -23,9 +23,11 @@ protected:
     size_t _cellMemorySize;
 
 public:
-    void SetCellMemorySize(size_t doubleCount);
+    void SetCellMemorySize(size_t memorySize);
     size_t GetCellMemorySize();
 
+    void Allocate();
+    void ConnectFully();
     void Construct();
 
     void UpdateCellState(LongShortTermMemoryCell* cell);

@@ -11,6 +11,7 @@
 
 #include "NeuralNetwork.h"
 #include "TrainingData.h"
+#include "RecurrentNeuralNetwork.h"
 
 using namespace panann;
 
@@ -69,6 +70,13 @@ void TrainAndTest(NeuralNetwork* nn, TrainingData* trainingData, size_t epochs) 
 }
 
 int main(int argc, const char** argv) {
+    RecurrentNeuralNetwork rnn;
+    rnn.SetInputNeuronCount(2);
+    rnn.SetOutputNeuronCount(1);
+    rnn.AddHiddenLayer(1);
+    rnn.SetCellMemorySize(5);
+    rnn.Construct();
+
     TrainingData trainingData;
     MakeXorTwoBitTrainingData(&trainingData);
 
