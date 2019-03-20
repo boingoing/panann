@@ -275,16 +275,10 @@ void RecurrentNeuralNetwork::UpdateCellState(size_t cellIndex) {
     size_t outputGateNeuronStart = candidateCellStateGateNeuronStart + cellMemorySize;
     size_t cellOutputNeuronStart = outputGateNeuronStart + cellMemorySize;
 
-    auto ComputeGate = [&](size_t neuronStartIndex, size_t neuronCount) {
-        for (size_t i = 0; i < neuronCount; i++) {
-            this->ComputeNeuronValue(neuronStartIndex + i);
-        }
-    };
-
-    ComputeGate(forgetGateNeuronStart, cellMemorySize);
-    ComputeGate(inputGateNeuronStart, cellMemorySize);
-    ComputeGate(candidateCellStateGateNeuronStart, cellMemorySize);
-    ComputeGate(outputGateNeuronStart, cellMemorySize);
+    this->ComputeNeuronValueRange(forgetGateNeuronStart, cellMemorySize);
+    this->ComputeNeuronValueRange(inputGateNeuronStart, cellMemorySize);
+    this->ComputeNeuronValueRange(candidateCellStateGateNeuronStart, cellMemorySize);
+    this->ComputeNeuronValueRange(outputGateNeuronStart, cellMemorySize);
 
     for (size_t i = 0; i < cellMemorySize; i++) {
         const Neuron& forgetNeuron = this->_neurons[forgetGateNeuronStart + i];
@@ -319,7 +313,5 @@ void RecurrentNeuralNetwork::RunForward(const std::vector<double>* input) {
 
     // Pull values into the output layer.
     size_t outputNeuronStartIndex = GetOutputNeuronStartIndex();
-    for (size_t i = 0; i < this->_outputNeuronCount; i++) {
-        ComputeNeuronValue(outputNeuronStartIndex + i);
-    }
+    this->ComputeNeuronValueRange(outputNeuronStartIndex, this->_outputNeuronCount);
 }

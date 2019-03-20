@@ -470,6 +470,8 @@ protected:
     void ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex);
 
     void ComputeNeuronValue(size_t neuronIndex);
+    void ComputeNeuronValueRange(size_t neuronStartIndex, size_t neuronCount);
+
     void ComputeNeuronError(size_t neuronIndex);
     void UpdateSlopes();
     void UpdateWeightsOnline();

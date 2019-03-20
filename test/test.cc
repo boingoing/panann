@@ -73,8 +73,9 @@ int main(int argc, const char** argv) {
     RecurrentNeuralNetwork rnn;
     rnn.SetInputNeuronCount(2);
     rnn.SetOutputNeuronCount(1);
-    rnn.AddHiddenLayer(1);
-    rnn.SetCellMemorySize(5);
+    rnn.AddHiddenLayer(5);
+    rnn.AddHiddenLayer(5);
+    rnn.SetCellMemorySize(200);
     rnn.Construct();
 
     TrainingData trainingData;

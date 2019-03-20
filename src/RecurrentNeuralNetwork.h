@@ -32,6 +32,8 @@ public:
     void RunForward(const std::vector<double>* input);
 
 protected:
+    RecurrentNeuralNetwork(const RecurrentNeuralNetwork&);
+
     void Allocate();
     void ConnectFully();
 

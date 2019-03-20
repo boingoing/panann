@@ -725,6 +725,12 @@ void NeuralNetwork::Train(TrainingData* trainingData, size_t epochCount) {
     }
 }
 
+void NeuralNetwork::ComputeNeuronValueRange(size_t neuronStartIndex, size_t neuronCount) {
+    for (size_t i = 0; i < neuronCount; i++) {
+        this->ComputeNeuronValue(neuronStartIndex + i);
+    }
+}
+
 void NeuralNetwork::ComputeNeuronValue(size_t neuronIndex) {
     Neuron& neuron = this->_neurons[neuronIndex];
     neuron._field = 0.0;
@@ -770,15 +776,11 @@ void NeuralNetwork::RunForward(const std::vector<double>* input) {
 
     // Pull the values from the input layer through the hidden layer neurons.
     size_t hiddenNeuronStartIndex = GetHiddenNeuronStartIndex();
-    for (size_t i = 0; i < this->_hiddenNeuronCount; i++) {
-        ComputeNeuronValue(hiddenNeuronStartIndex + i);
-    }
+    this->ComputeNeuronValueRange(hiddenNeuronStartIndex, this->_hiddenNeuronCount);
 
     // Pull values into the output layer.
     size_t outputNeuronStartIndex = GetOutputNeuronStartIndex();
-    for (size_t i = 0; i < this->_outputNeuronCount; i++) {
-        ComputeNeuronValue(outputNeuronStartIndex + i);
-    }
+    this->ComputeNeuronValueRange(outputNeuronStartIndex, this->_outputNeuronCount);
 }
 
 double NeuralNetwork::ApplyErrorShaping(double value) {
