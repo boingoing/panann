@@ -35,6 +35,20 @@ void MakeXorTwoBitTrainingData(TrainingData* trainingData) {
     trainingData->at(3)._output = { 1.0 };
 }
 
+void MakeSineTrainingData(TrainingData* trainingData, size_t steps) {
+    size_t sineSampleCount = steps * 2;
+    double stepSize = 1.0 / sineSampleCount;
+    constexpr double pi = 3.14159265358979323846;
+    std::vector<double> sineData;
+    sineData.resize(sineSampleCount);
+
+    for (size_t i = 0; i < sineSampleCount; i++) {
+        sineData[i] = std::sin(stepSize * i * 2.0 * pi);
+    }
+
+    trainingData->FromSequentialData(&sineData, steps);
+}
+
 void MakeTestNetwork(NeuralNetwork* nn, TrainingData* trainingData) {
     nn->DisableShortcutConnections();
     nn->SetInputNeuronCount(trainingData->at(0)._input.size());
@@ -42,6 +56,14 @@ void MakeTestNetwork(NeuralNetwork* nn, TrainingData* trainingData) {
     nn->AddHiddenLayer(5);
     nn->AddHiddenLayer(5);
     nn->Construct();
+}
+
+void MakeTestNetwork(RecurrentNeuralNetwork* rnn, TrainingData* trainingData) {
+    rnn->SetInputNeuronCount(trainingData->at(0)._input.size());
+    rnn->SetOutputNeuronCount(trainingData->at(0)._output.size());
+    rnn->AddHiddenLayer(5);
+    rnn->SetCellMemorySize(5);
+    rnn->Construct();
 }
 
 void TrainAndTestNetwork(NeuralNetwork* nn, TrainingData* trainingData, NeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
@@ -70,21 +92,30 @@ void TrainAndTest(NeuralNetwork* nn, TrainingData* trainingData, size_t epochs) 
 }
 
 int main(int argc, const char** argv) {
-    RecurrentNeuralNetwork rnn;
-    rnn.SetInputNeuronCount(2);
-    rnn.SetOutputNeuronCount(1);
-    rnn.AddHiddenLayer(5);
-    rnn.AddHiddenLayer(5);
-    rnn.SetCellMemorySize(200);
-    rnn.Construct();
-
     TrainingData trainingData;
+    MakeSineTrainingData(&trainingData, 200);
+
+    RecurrentNeuralNetwork rnn;
+    MakeTestNetwork(&rnn, &trainingData);
+    rnn.InitializeWeightsRandom(-1.0, 1.0);
+
+    rnn.RunForward(&trainingData[0]._input);
+    double e1 = rnn.GetError(&trainingData[0]._output);
+    rnn.RunForward(&trainingData[0]._input);
+    double e2 = rnn.GetError(&trainingData[0]._output);
+    rnn.RunForward(&trainingData[0]._input);
+    double e3 = rnn.GetError(&trainingData[0]._output);
+    rnn.RunForward(&trainingData[0]._input);
+    double e4 = rnn.GetError(&trainingData[0]._output);
+    rnn.RunForward(&trainingData[0]._input);
+    double e5 = rnn.GetError(&trainingData[0]._output);
+
     MakeXorTwoBitTrainingData(&trainingData);
 
     NeuralNetwork nn;
     MakeTestNetwork(&nn, &trainingData);
 
-    TrainAndTest(&nn, &trainingData, 100000);
+    TrainAndTest(&nn, &trainingData, 1000);
 
     return 0;
 }

@@ -338,3 +338,21 @@ void TrainingData::DescaleOutput(std::vector<double>* vec) {
         assert(false);
     }
 }
+
+void TrainingData::FromSequentialData(std::vector<double>* data, size_t inputLength) {
+    assert(data);
+    assert(data->size() > inputLength);
+
+    size_t numExamples = data->size() - inputLength;
+
+    this->resize(numExamples);
+
+    for (size_t i = 0; i < numExamples; i++) {
+        auto begin = data->cbegin() + i;
+        auto end = begin + (inputLength - 1);
+
+        Example& example = this->operator[](i);
+        example._input.assign(begin, end);
+        example._output = { data->operator[](i + inputLength - 1) };
+    }
+}
