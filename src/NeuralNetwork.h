@@ -167,6 +167,7 @@ protected:
 
 public:
     NeuralNetwork();
+    virtual ~NeuralNetwork();
 
     /**
      * Set the number of neurons in the input layer.
@@ -359,7 +360,7 @@ public:
      * hidden layers, use of shortcut connections, and some other settings may
      * not be modified.
      */
-    void Construct();
+    virtual void Construct();
 
     /**
      * Reset every weight in the network to a random value between min and max.
@@ -402,7 +403,7 @@ public:
      * @param input Must have the same number of elements as this network has input
      * neurons.
      */
-    void RunForward(const std::vector<double>* input);
+    virtual void RunForward(const std::vector<double>* input);
 
     /**
      * Compute the error attributed to each neuron in the network.<br/>

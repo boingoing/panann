@@ -40,6 +40,8 @@ NeuralNetwork::NeuralNetwork() :
     _isConstructed(false) {
 }
 
+NeuralNetwork::~NeuralNetwork() {}
+
 size_t NeuralNetwork::GetInputNeuronCount() {
     return this->_inputNeuronCount;
 }

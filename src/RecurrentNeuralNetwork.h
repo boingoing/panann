@@ -14,11 +14,11 @@ protected:
     struct LongShortTermMemoryCell {
         size_t _neuronStartIndex;
         size_t _neuronCount;
-
-        std::vector<double> _cellState;
+        size_t _cellStateStartIndex;
     };
 
     std::vector<LongShortTermMemoryCell> _cells;
+    std::vector<double> _cellStates;
     size_t _cellMemorySize;
 
 public:
@@ -30,6 +30,11 @@ public:
     void Construct();
 
     void RunForward(const std::vector<double>* input);
+
+    /**
+     * Get a writable vector of memory state for all cells in the network.
+     */
+    std::vector<double>* GetCellStates();
 
 protected:
     RecurrentNeuralNetwork(const RecurrentNeuralNetwork&);

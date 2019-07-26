@@ -51,6 +51,7 @@ void RecurrentNeuralNetwork::Allocate() {
 
     this->_neurons.resize(neuronCount);
     this->_cells.resize(cellCount);
+    this->_cellStates.resize(cellCount * this->_cellMemorySize);
 
     // Count all connections and save the starting connection index into the neurons / cells.
 
@@ -73,16 +74,19 @@ void RecurrentNeuralNetwork::Allocate() {
         outputConnectionIndex += currentLayerOutputConnectionCount;
     }
 
+    // Save the starting index for each cell's state memory.
+    size_t cellStateStartIndex = 0;
     // Count all the connections outgoing from the hidden layer bias neurons.
     size_t biasNeuronIndex = this->GetBiasNeuronStartIndex();
     // Each cell has a bias neuron which is connected to all neurons in the cell.
     for (size_t i = 0; i < cellCount; i++) {
-        this->_cells[i]._cellState.resize(this->_cellMemorySize);
+        this->_cells[i]._cellStateStartIndex = cellStateStartIndex;
 
         Neuron& biasNeuron = this->_neurons[biasNeuronIndex++];
         biasNeuron._outputConnectionStartIndex = outputConnectionIndex;
         biasNeuron._value = 1.0;
         outputConnectionIndex += neuronsPerCell;
+        cellStateStartIndex += this->_cellMemorySize;
     }
 
     // The output layer is also connected to a bias neuron.
@@ -267,6 +271,7 @@ void RecurrentNeuralNetwork::Construct() {
 void RecurrentNeuralNetwork::UpdateCellState(size_t cellIndex) {
     LongShortTermMemoryCell& cell = this->_cells[cellIndex];
 
+    size_t cellStateStartIndex = cell._cellStateStartIndex;
     size_t cellNeuronStartIndex = cell._neuronStartIndex;
     size_t cellMemorySize = this->_cellMemorySize;
     size_t forgetGateNeuronStart = cellNeuronStartIndex;
@@ -286,14 +291,16 @@ void RecurrentNeuralNetwork::UpdateCellState(size_t cellIndex) {
         const Neuron& candidateStateNeuron = this->_neurons[candidateCellStateGateNeuronStart + i];
         const Neuron& outputGateNeuron = this->_neurons[outputGateNeuronStart + i];
         Neuron& cellOutputNeuron = this->_neurons[cellOutputNeuronStart + i];
+        size_t cellStateIndex = cellStateStartIndex + i;
 
         // Modify cell state based on the gate and existing cell state values
         // Ct = ft * Ct-1 + it * C't
-        cell._cellState[i] = forgetNeuron._value * cell._cellState[i] + inputNeuron._value * candidateStateNeuron._value;
+
+        this->_cellStates[cellStateIndex] = forgetNeuron._value * this->_cellStates[cellStateIndex] + inputNeuron._value * candidateStateNeuron._value;
 
         // Set the cell output values based on the output gate and cell state
         // ht = ot * tanh(Ct)
-        cellOutputNeuron._value = outputGateNeuron._value * ActivationFunction::ExecuteSigmoidSymmetric(cell._cellState[i]);
+        cellOutputNeuron._value = outputGateNeuron._value * ActivationFunction::ExecuteSigmoidSymmetric(this->_cellStates[cellStateIndex]);
     }
 }
 
@@ -314,4 +321,10 @@ void RecurrentNeuralNetwork::RunForward(const std::vector<double>* input) {
     // Pull values into the output layer.
     size_t outputNeuronStartIndex = GetOutputNeuronStartIndex();
     this->ComputeNeuronValueRange(outputNeuronStartIndex, this->_outputNeuronCount);
+}
+
+std::vector<double>* RecurrentNeuralNetwork::GetCellStates() {
+    assert(this->_isConstructed);
+
+    return &this->_cellStates;
 }
