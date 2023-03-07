@@ -151,6 +151,17 @@ public:
      */
     void DescaleOutput(std::vector<double>* vec);
 
+    /**
+     * Convert sequential data into examples.<br/>
+     * Use this to create examples from time series data or other sets of sequential data.<br/>
+     * Each example will have inputLength input samples and one output sample - which will be the
+     * value from data immediately following those input samples.<br/>
+     * We will create as many examples as possible from the data.
+     * @param inputLength The number of input samples to put into each example.
+     * @param data An ordered set of samples. Must have at least inputLength elements.
+     */
+    void FromSequentialData(std::vector<double>* data, size_t inputLength);
+
 protected:
     TrainingData(const TrainingData&);
 
