@@ -181,8 +181,13 @@ protected:
     void DescaleUniformNorm();
 
 private:
-    double simple_scaling_new_min_ = -1.0;
-    double simple_scaling_new_max_ = 1.0;
+static constexpr double DefaultSimpleScalingNewMin = -1.0;
+static constexpr double DefaultSimpleScalingNewMax = 1.0;
+    static constexpr double DefaultStandardDeviationMultiplier = 2.5;
+    static constexpr double DefaultUniformNormMultiplier = 1.0;
+
+    double simple_scaling_new_min_ = DefaultSimpleScalingNewMin;
+    double simple_scaling_new_max_ = DefaultSimpleScalingNewMax;
     double input_old_min_ = 0;
     double input_old_max_ = 0;
     double output_old_min_ = 0;
@@ -193,10 +198,10 @@ private:
     double input_standard_deviation_ = 0;
     double output_mean_ = 0;
     double output_standard_deviation_ = 0;
-    double standard_deviation_multiplier_ = 2.5;
+    double standard_deviation_multiplier_ = DefaultStandardDeviationMultiplier;
     double input_uniform_norm_ = 0;
     double output_uniform_norm_ = 0;
-    double uniform_norm_multiplier_ = 1.0;
+    double uniform_norm_multiplier_ = DefaultUniformNormMultiplier;
     ScalingAlgorithm scaling_algorithm_ = ScalingAlgorithm::Simple;
 };
 

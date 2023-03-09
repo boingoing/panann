@@ -14,6 +14,7 @@ include_directories (${PROJECT_SOURCE_DIR}/src)
 set (LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/src/ActivationFunction.cc
   ${PROJECT_SOURCE_DIR}/src/NeuralNetwork.cc
+  ${PROJECT_SOURCE_DIR}/src/RandomWrapper.cc
   ${PROJECT_SOURCE_DIR}/src/RecurrentNeuralNetwork.cc
   ${PROJECT_SOURCE_DIR}/src/TrainingData.cc)
 add_library (panann STATIC ${LIB_SOURCES})

@@ -4,10 +4,10 @@
 //-------------------------------------------------------------------------------------------------------
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <limits>
 #include <numeric>
-#include <cassert>
 
 #include "TrainingData.h"
 
