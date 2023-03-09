@@ -8,31 +8,35 @@
 
 #include "ActivationFunction.h"
 
-using namespace panann;
+namespace panann {
 
 double ActivationFunction::ExecuteSigmoidSymmetric(double value) {
     return std::tanh(value);
 }
 
 double ActivationFunction::ExecuteDerivativeSigmoidSymmetric(double value) {
-    value = std::clamp(value, -0.98, 0.98);
+    static constexpr double clamp_min = -0.98;
+    static constexpr double clamp_max = 0.98;
+    value = std::clamp(value, clamp_min, clamp_max);
     return 1.0 - (value * value);
 }
 
 double ActivationFunction::ExecuteSigmoid(double value) {
-    return 1.0 / (1.0 + std::exp(-2.0 * value));
+    return 1.0 / (1.0 + std::exp(-2 * value));
 }
 
 double ActivationFunction::ExecuteDerivativeSigmoid(double value) {
-    value = std::clamp(value, 0.01, 0.99);
-    return 2.0 * value * (1.0 - value);
+    static constexpr double clamp_min = 0.01;
+    static constexpr double clamp_max = 0.99;
+    value = std::clamp(value, clamp_min, clamp_max);
+    return 2 * value * (1.0 - value);
 }
 
 double ActivationFunction::ExecuteLinear(double value) {
     return value;
 }
 
-double ActivationFunction::ExecuteDerivativeLinear(double) {
+double ActivationFunction::ExecuteDerivativeLinear(double /*unused*/) {
     return 1;
 }
 
@@ -41,41 +45,46 @@ double ActivationFunction::ExecuteGaussian(double value) {
 }
 
 double ActivationFunction::ExecuteDerivativeGaussian(double value, double field) {
-    return -2.0 * field * value;
+    return -2 * field * value;
 }
 
 double ActivationFunction::ExecuteGaussianSymmetric(double value) {
-    return (2.0 * std::exp(-value * value)) - 1.0f;
+    return (2 * std::exp(-value * value)) - 1.0;
 }
 
 double ActivationFunction::ExecuteDerivativeGaussianSymmetric(double value, double field) {
-    return -2.0 * field * (value + 1.0);
+    return -2 * field * (value + 1.0);
 }
 
 double ActivationFunction::ExecuteSine(double value) {
-    return std::sin(value) / 2.0 + 0.5;
+    static constexpr double shift = 0.5;
+    return std::sin(value) / 2 + shift;
 }
 
 double ActivationFunction::ExecuteDerivativeSine(double value) {
-    return std::cos(value) / 2.0;
+    return std::cos(value) / 2;
 }
 
 double ActivationFunction::ExecuteCosine(double value) {
-    return std::cos(value) / 2.0 + 0.5;
+    static constexpr double shift = 0.5;
+    return std::cos(value) / 2 + shift;
 }
 
 double ActivationFunction::ExecuteDerivativeCosine(double value) {
-    return -std::sin(value) / 2.0;
+    return -std::sin(value) / 2;
 }
 
 double ActivationFunction::ExecuteElliot(double value) {
-    return (value / 2.0) / (1.0 + std::fabs(value)) + 0.5;
+    static constexpr double shift = 0.5;
+    return (value / 2) / (1.0 + std::fabs(value)) + shift;
 }
 
 double ActivationFunction::ExecuteDerivativeElliot(double field) {
-    field = std::clamp(field, 0.01, 0.99);
-    double absPlusOne = std::fabs(field) + 1.0;
-    return 1.0 / (2.0 * absPlusOne * absPlusOne);
+    static constexpr double clamp_min = 0.01;
+    static constexpr double clamp_max = 0.99;
+    field = std::clamp(field, clamp_min, clamp_max);
+    double abs_plus_one = std::fabs(field) + 1.0;
+    return 1.0 / (2 * abs_plus_one * abs_plus_one);
 }
 
 double ActivationFunction::ExecuteElliotSymmetric(double value) {
@@ -83,9 +92,11 @@ double ActivationFunction::ExecuteElliotSymmetric(double value) {
 }
 
 double ActivationFunction::ExecuteDerivativeElliotSymmetric(double field) {
-    field = std::clamp(field, -0.98, 0.98);
-    double absPlusOne = std::fabs(field) + 1.0;
-    return 1.0 / (absPlusOne * absPlusOne);
+    static constexpr double clamp_min = -0.98;
+    static constexpr double clamp_max = 0.98;
+    field = std::clamp(field, clamp_min, clamp_max);
+    double abs_plus_one = std::fabs(field) + 1.0;
+    return 1.0 / (abs_plus_one * abs_plus_one);
 }
 
 double ActivationFunction::ExecuteSineSymmetric(double value) {
@@ -113,3 +124,5 @@ double ActivationFunction::ExecuteThresholdSymmetric(double value) {
     double threshold = 0.0;
     return value < threshold ? -1 : 1;
 }
+
+}  // namespace panann

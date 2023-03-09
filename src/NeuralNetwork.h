@@ -3,7 +3,8 @@
 // Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
 //-------------------------------------------------------------------------------------------------------
 
-#pragma once
+#ifndef NEURALNETWORK_H__
+#define NEURALNETWORK_H__
 
 #include <vector>
 
@@ -41,7 +42,7 @@ public:
 
     enum class ErrorCostFunction : uint8_t {
         MeanSquareError = 1,
-        MeanAbsoluteError
+        MeanAbsoluteError,
     };
 
     enum class TrainingAlgorithmType : uint8_t {
@@ -125,24 +126,26 @@ protected:
     };
 
 public:
-    NeuralNetwork();
-    virtual ~NeuralNetwork();
+    NeuralNetwork() = default;
+    NeuralNetwork(const NeuralNetwork&) = delete;
+    NeuralNetwork& operator=(const NeuralNetwork&) = delete;
+    virtual ~NeuralNetwork() = default;
 
     /**
      * Set the number of neurons in the input layer.
      * This count may not be changed once the network topology has been constructed.
      */
     void SetInputNeuronCount(size_t inputNeuronCount);
-    size_t GetInputNeuronCount();
-    size_t GetInputNeuronStartIndex();
+    size_t GetInputNeuronCount() const;
+    size_t GetInputNeuronStartIndex() const;
 
     /**
      * Set the number of neurons in the output layer.
      * This count may not be changed once the network topology has been constructed.
      */
     void SetOutputNeuronCount(size_t outputNeuronCount);
-    size_t GetOutputNeuronCount();
-    size_t GetOutputNeuronStartIndex();
+    size_t GetOutputNeuronCount() const;
+    size_t GetOutputNeuronStartIndex() const;
 
     /**
      * Append a hidden layer to the end of the list of existing hidden layers.<br/>
@@ -151,36 +154,36 @@ public:
      * Hidden layers may not be added after the network has been constructed.
      */
     void AddHiddenLayer(size_t neuronCount);
-    size_t GetHiddenNeuronCount();
-    size_t GetHiddenNeuronStartIndex();
+    size_t GetHiddenNeuronCount() const;
+    size_t GetHiddenNeuronStartIndex() const;
 
     /**
      * Set the learning rate parameter used by backprop, batch, and qprop.<br/>
      * Default: 0.7
      */
     void SetLearningRate(double learningRate);
-    double GetLearningRate();
+    double GetLearningRate() const;
 
     /**
      * Set the momentum parameter used by backprop.<br/>
      * Default: 0.1
      */
     void SetMomentum(double momentum);
-    double GetMomentum();
+    double GetMomentum() const;
 
     /**
      * Set the Mu parameter for qprop.<br/>
      * Default: 1.75
      */
     void SetQpropMu(double mu);
-    double GetQpropMu();
+    double GetQpropMu() const;
 
     /**
      * Set the weight decay parameter for qprop.<br/>
      * Default: -0.0001
      */
     void SetQpropWeightDecay(double weightDecay);
-    double GetQpropWeightDecay();
+    double GetQpropWeightDecay() const;
 
     /**
      * Set the initial weight step value for rprop and sarprop.<br/>
@@ -188,7 +191,7 @@ public:
      * Default: 0.0125
      */
     void SetRpropWeightStepInitial(double weightStep);
-    double GetRpropWeightStepInitial();
+    double GetRpropWeightStepInitial() const;
 
     /**
      * Set the minimum weight step value for rprop and sarprop.<br/>
@@ -198,7 +201,7 @@ public:
      * Default: 0.000001
      */
     void SetRpropWeightStepMin(double weightStep);
-    double GetRpropWeightStepMin();
+    double GetRpropWeightStepMin() const;
 
     /**
      * Set the maximum weight step value for rprop and sarprop.<br/>
@@ -209,7 +212,7 @@ public:
      * Default: 50
      */
     void SetRpropWeightStepMax(double weightStep);
-    double GetRpropWeightStepMax();
+    double GetRpropWeightStepMax() const;
 
     /**
      * Set the factor by which the weight step will be increased each
@@ -222,7 +225,7 @@ public:
      * Default: 1.2
      */
     void SetRpropIncreaseFactor(double factor);
-    double GetRpropIncreaseFactor();
+    double GetRpropIncreaseFactor() const;
 
     /**
      * Set the factor by which the weight step will be decreased when the
@@ -234,7 +237,7 @@ public:
      * Default: 0.5
      */
     void SetRpropDecreaseFactor(double factor);
-    double GetRpropDecreaseFactor();
+    double GetRpropDecreaseFactor() const;
 
     /**
      * Set the weight decay shift parameter used by sarprop.<br/>
@@ -243,7 +246,7 @@ public:
      * Default: 0.01
      */
     void SetSarpropWeightDecayShift(double k1);
-    double GetSarpropWeightDecayShift();
+    double GetSarpropWeightDecayShift() const;
 
     /**
      * Set the weight step threshold factor parameter used by sarprop.<br/>
@@ -251,7 +254,7 @@ public:
      * Default: 0.1
      */
     void SetSarpropStepThresholdFactor(double k2);
-    double GetSarpropStepThresholdFactor();
+    double GetSarpropStepThresholdFactor() const;
 
     /**
      * Set the step shift parameter used by sarprop.<br/>
@@ -259,7 +262,7 @@ public:
      * Default: 3
      */
     void SetSarpropStepShift(double k3);
-    double GetSarpropStepShift();
+    double GetSarpropStepShift() const;
 
     /**
      * Set the temperature parameter used by sarprop.<br/>
@@ -267,7 +270,7 @@ public:
      * Default: 0.015
      */
     void SetSarpropTemperature(double t);
-    double GetSarpropTemperature();
+    double GetSarpropTemperature() const;
 
     /**
      * Set the training algorithm this network will use during training.<br/>
@@ -275,7 +278,7 @@ public:
      * @see TrainingAlgorithmType
      */
     void SetTrainingAlgorithmType(TrainingAlgorithmType type);
-    TrainingAlgorithmType GetTrainingAlgorithmType();
+    TrainingAlgorithmType GetTrainingAlgorithmType() const;
 
     /**
      * Set the cost function we will use to calculate the total network
@@ -285,7 +288,7 @@ public:
      * @see ErrorCostFunction
      */
     void SetErrorCostFunction(ErrorCostFunction mode);
-    ErrorCostFunction GetErrorCostFunction();
+    ErrorCostFunction GetErrorCostFunction() const;
 
     /**
      * Shortcut connections are feed-forward connections between two
@@ -302,14 +305,14 @@ public:
      * Default: Sigmoid
      */
     void SetHiddenNeuronActivationFunctionType(ActivationFunctionType type);
-    ActivationFunctionType GetHiddenNeuronActivationFunctionType();
+    ActivationFunctionType GetHiddenNeuronActivationFunctionType() const;
 
     /**
      * Set the default activation function we will use for output layer neurons.<br/>
      * Default: Sigmoid
      */
     void SetOutputNeuronActivationFunctionType(ActivationFunctionType type);
-    ActivationFunctionType GetOutputNeuronActivationFunctionType();
+    ActivationFunctionType GetOutputNeuronActivationFunctionType() const;
 
     void SetNeuronActivationFunction(size_t neuronIndex, ActivationFunctionType type);
 
@@ -329,7 +332,7 @@ public:
     /**
      * Initialize the weight of each connection via Widrow-Nguyen's algorithm.
      */
-    void InitializeWeights(const TrainingData* trainingData);
+    void InitializeWeights(const TrainingData& training_data);
 
     /**
      * Use the training algorithm to train the network.<br/>
@@ -403,24 +406,22 @@ public:
     /**
      * Get a writable vector containing all the weight values for the network.
      */
-    std::vector<double>* GetWeights();
+    std::vector<double>& GetWeights();
 
     /**
-     * Set the weight values for the network.<br/>
+     * Set the weight values for the network based on an input vector |weights|.<br/>
      * The weight values will be copied from the provided vector which must contain exactly the number
      * of values for which this network has weights.
      */
-    void SetWeights(std::vector<double>* weights);
+    void SetWeights(std::vector<double>& weights);
 
     /**
-     * Writes all of the output neuron values into a vector.<br/>
-     * Existing values in the output parameter will be discarded.
+     * Writes all of the output neuron values into |output|.<br/>
+     * Existing values in |output| will be discarded.
      */
-    void GetOutput(std::vector<double>* output);
+    void GetOutput(std::vector<double>* output) const;
 
 protected:
-    NeuralNetwork(const NeuralNetwork&);
-
     void Allocate();
     void ConnectFully();
 
@@ -446,7 +447,7 @@ protected:
     static bool IsActivationFunctionSymmetric(ActivationFunctionType activationFunctionType);
     static double ApplyErrorShaping(double value);
 
-    size_t GetBiasNeuronStartIndex();
+    size_t GetBiasNeuronStartIndex() const;
 
     void ResetWeightSteps();
     void ResetSlopes();
@@ -457,49 +458,65 @@ protected:
     void ResetOutputLayerError();
     void CalculateOutputLayerError(const std::vector<double>* output);
 
-    double GetError();
+    double GetError() const;
 
 private:
+  static constexpr double DefaultLearningRate = 0.7;
+  static constexpr double DefaultMomentum = 0.1;
+  static constexpr double DefaultQpropMu = 1.75;
+  static constexpr double DefaultQpropWeightDecay = -0.0001;
+  static constexpr double DefaultRpropWeightStepInitial = 0.0125;
+  static constexpr double DefaultRpropWeightStepMin = 0.000001;
+  static constexpr double DefaultRpropWeightStepMax = 50;
+  static constexpr double DefaultRpropIncreaseFactor = 1.2;
+  static constexpr double DefaultRpropDecreaseFactor = 0.5;
+  static constexpr double DefaultSarpropWeightDecayShift = 0.01;
+  static constexpr double DefaultSarpropStepThresholdFactor = 0.1;
+  static constexpr double DefaultSarpropStepShift = 3;
+  static constexpr double DefaultSarpropTemperature = 0.015;
+
+    std::vector<Neuron> neurons_;
+    std::vector<Layer> hidden_layers_;
+    std::vector<InputConnection> input_connections_;
+    std::vector<OutputConnection> output_connections_;
+    std::vector<double> weights_;
+    std::vector<double> previous_weight_steps_;
+    std::vector<double> slopes_;
+    std::vector<double> previous_slopes_;
+
+    RandomWrapper random_;
+
     size_t input_neuron_count_ = 0;
     size_t output_neuron_count_ = 0;
     size_t hidden_neuron_count_ = 0;
 
-    double _learningRate = 0.7;
-    double _momentum = 0.1;
-    double _qpropMu = 1.75;
-    double _qpropWeightDecay = -0.0001;
-    double _rpropWeightStepInitial = 0.0125;
-    double _rpropWeightStepMin = 0.000001;
-    double _rpropWeightStepMax = 50;
-    double _rpropIncreaseFactor = 1.2;
-    double _rpropDecreaseFactor = 0.5;
-    double _sarpropWeightDecayShift = 0.01;
-    double _sarpropStepThresholdFactor = 0.1;
-    double _sarpropStepShift = 3;
-    double _sarpropTemperature = 0.015;
+    double error_sum_ = 0;
+    double error_count_ = 0;
 
-    double _errorSum = 0;
-    double _errorCount = 0;
+    double learning_rate_ = DefaultLearningRate;
+    double momentum_ = DefaultMomentum;
+    double qprop_mu_ = DefaultQpropMu;
+    double qprop_weight_decay_ = DefaultQpropWeightDecay;
+    double rprop_weight_step_initial_ = DefaultRpropWeightStepInitial;
+    double rprop_weight_step_min_ = DefaultRpropWeightStepMin;
+    double rprop_weight_step_max_ = DefaultRpropWeightStepMax;
+    double rprop_increase_factor_ = DefaultRpropIncreaseFactor;
+    double rprop_decrease_factor_ = DefaultRpropDecreaseFactor;
+    double sarprop_weight_decay_shift_ = DefaultSarpropWeightDecayShift;
+    double sarprop_step_threshold_factor_ = DefaultSarpropStepThresholdFactor;
+    double sarprop_step_shift_ = DefaultSarpropStepShift;
+    double sarprop_temperature_ = DefaultSarpropTemperature;
 
-    std::vector<Neuron> _neurons;
-    std::vector<Layer> _hiddenLayers;
-    std::vector<InputConnection> _inputConnections;
-    std::vector<OutputConnection> _outputConnections;
-    std::vector<double> _weights;
-    std::vector<double> _previousWeightSteps;
-    std::vector<double> _slopes;
-    std::vector<double> _previousSlopes;
+    ActivationFunctionType hidden_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
+    ActivationFunctionType output_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
+    ErrorCostFunction error_cost_function_ = ErrorCostFunction::MeanSquareError;
+    TrainingAlgorithmType training_algorithm_type_ = TrainingAlgorithmType::ResilientBackpropagation;
 
-    ActivationFunctionType _hiddenNeuronActivationFunctionType = ActivationFunctionType::Sigmoid;
-    ActivationFunctionType _outputNeuronActivationFunctionType = ActivationFunctionType::Sigmoid;
-    ErrorCostFunction _errorCostFunction = ErrorCostFunction::MeanSquareError;
-    TrainingAlgorithmType _trainingAlgorithmType = TrainingAlgorithmType::ResilientBackpropagation;
-
-    bool _shouldShapeErrorCurve = true;
-    bool _enableShortcutConnections = false;
-    bool _isConstructed = false;
-
-    RandomWrapper random_;
+    bool should_shape_error_curve_ = true;
+    bool enable_shortcut_connections_ = false;
+    bool is_constructed_ = false;
 };
 
 } // namespace panann
+
+#endif  // NEURALNETWORK_H__

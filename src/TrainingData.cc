@@ -11,13 +11,60 @@
 
 #include "TrainingData.h"
 
-using namespace panann;
+namespace {
+
+void SimpleScale(std::vector<double>* vec, double old_min, double factor, double new_min) {
+    for (auto& val : *vec) {
+        val = (val - old_min) * factor + new_min;
+    }
+}
+
+void SimpleDescale(std::vector<double>* vec, double old_min, double factor, double new_min) {
+    for (auto& val : *vec) {
+        val = (val - new_min) / factor + old_min;
+    }
+}
+
+void StdevScale(std::vector<double>* vec, double mean, double stdev, double multiplier) {
+    for (auto& val : *vec) {
+        val = (val - mean) / (stdev * multiplier);
+    }
+}
+
+void StdevDescale(std::vector<double>* vec, double mean, double stdev, double multiplier) {
+    for (auto& val : *vec) {
+        val = (val * stdev * multiplier) + mean;
+    }
+}
+
+void UniformNormScale(std::vector<double>* vec, double mean, double uniform_norm, double multiplier) {
+    for (auto& val : *vec) {
+        val = (val - mean) / (uniform_norm * multiplier);
+    }
+}
+
+void UniformNormDescale(std::vector<double>* vec, double mean, double uniform_norm, double multiplier) {
+    for (auto& val : *vec) {
+        val = (val * uniform_norm * multiplier) + mean;
+    }
+}
+
+double UniformNorm(const std::vector<double>& vec, double mean) {
+    const double& val = *std::max_element(vec.cbegin(), vec.cend(), [&](const double& left, const double& right) {
+        return std::fabs(left - mean) < std::fabs(right - mean);
+    });
+    return std::fabs(val - mean);
+}
+
+}  // namespace
+
+namespace panann {
 
 void TrainingData::SetScalingAlgorithm(ScalingAlgorithm algorithm) {
     this->scaling_algorithm_ = algorithm;
 }
 
-TrainingData::ScalingAlgorithm TrainingData::GetScalingAlgorithm() {
+TrainingData::ScalingAlgorithm TrainingData::GetScalingAlgorithm() const {
     return this->scaling_algorithm_;
 }
 
@@ -25,7 +72,7 @@ void TrainingData::SetSimpleScalingNewMin(double val) {
     this->simple_scaling_new_min_ = val;
 }
 
-double TrainingData::GetSimpleScalingNewMin() {
+double TrainingData::GetSimpleScalingNewMin() const {
     return this->simple_scaling_new_min_;
 }
 
@@ -33,7 +80,7 @@ void TrainingData::SetSimpleScalingNewMax(double val) {
     this->simple_scaling_new_max_ = val;
 }
 
-double TrainingData::GetSimpleScalingNewMax() {
+double TrainingData::GetSimpleScalingNewMax() const {
     return this->simple_scaling_new_max_;
 }
 
@@ -41,7 +88,7 @@ void TrainingData::SetStandardDeviationMultiplier(double val) {
     this->standard_deviation_multiplier_ = val;
 }
 
-double TrainingData::GetStandardDeviationMultiplier() {
+double TrainingData::GetStandardDeviationMultiplier() const {
     return this->standard_deviation_multiplier_;
 }
 
@@ -49,290 +96,239 @@ void TrainingData::SetUniformNormMultiplier(double val) {
     this->uniform_norm_multiplier_ = val;
 }
 
-double TrainingData::GetUniformNormMultiplier() {
+double TrainingData::GetUniformNormMultiplier() const {
     return this->uniform_norm_multiplier_;
 }
 
-void SimpleScale(std::vector<double>* vec, double oldMin, double factor, double newMin) {
-    for (auto it = vec->begin(); it != vec->end(); it++) {
-        *it = (*it - oldMin) * factor + newMin;
-    }
-}
-
-void SimpleDescale(std::vector<double>* vec, double oldMin, double factor, double newMin) {
-    for (auto it = vec->begin(); it != vec->end(); it++) {
-        *it = (*it - newMin) / factor + oldMin;
-    }
-}
-
-void StdevScale(std::vector<double>* vec, double mean, double stdev, double multiplier) {
-    for (auto it = vec->begin(); it != vec->end(); it++) {
-        *it = (*it - mean) / (stdev * multiplier);
-    }
-}
-
-void StdevDescale(std::vector<double>* vec, double mean, double stdev, double multiplier) {
-    for (auto it = vec->begin(); it != vec->end(); it++) {
-        *it = (*it * stdev * multiplier) + mean;
-    }
-}
-
-void UniformNormScale(std::vector<double>* vec, double mean, double uniformNorm, double multiplier) {
-    for (auto it = vec->begin(); it != vec->end(); it++) {
-        *it = (*it - mean) / (uniformNorm * multiplier);
-    }
-}
-
-void UniformNormDescale(std::vector<double>* vec, double mean, double uniformNorm, double multiplier) {
-    for (auto it = vec->begin(); it != vec->end(); it++) {
-        *it = (*it * uniformNorm * multiplier) + mean;
-    }
-}
-
 void TrainingData::CalculateMean() {
-    double sumInput = 0.0;
-    double sumOutput = 0.0;
-    size_t countInput = 0;
-    size_t countOutput = 0;
-    std::for_each(this->begin(), this->end(), [&](const Example& example) {
-        const std::vector<double>& input = example.input;
-        sumInput = std::accumulate(input.begin(), input.end(), sumInput);
-        countInput += input.size();
+    double sum_input = 0.0;
+    double sum_output = 0.0;
+    size_t count_input = 0;
+    size_t count_output = 0;
 
-        const std::vector<double>& output = example.input;
-        sumOutput = std::accumulate(output.begin(), output.end(), sumOutput);
-        countOutput += output.size();
-    });
+    for (const auto& example : *this) {
+        sum_input = std::accumulate(example.input.cbegin(), example.input.cend(), sum_input);
+        sum_output = std::accumulate(example.output.cbegin(), example.output.cend(), sum_output);
+        count_input += example.input.size();
+        count_output += example.output.size();
+    }
 
-    assert(countInput > 0);
-    this->input_mean_ = sumInput / countInput;
-    assert(countOutput > 0);
-    this->output_mean_ = sumOutput / countOutput;
-}
-
-double UniformNorm(const std::vector<double>* vec, double mean) {
-    const double& val = *std::max_element(vec->begin(), vec->end(), [&](const double& left, const double& right) {
-        return std::fabs(left - mean) < std::fabs(right - mean);
-    });
-    return std::fabs(val - mean);
+    assert(count_input > 0);
+    input_mean_ = sum_input / count_input;
+    assert(count_output > 0);
+    output_mean_ = sum_output / count_output;
 }
 
 void TrainingData::CalculateUniformNorm() {
-    this->input_uniform_norm_ = std::numeric_limits<double>::min();
-    this->output_uniform_norm_ = std::numeric_limits<double>::min();
+    input_uniform_norm_ = std::numeric_limits<double>::min();
+    output_uniform_norm_ = std::numeric_limits<double>::min();
 
-    std::for_each(this->begin(), this->end(), [&](const Example& example) {
-        this->input_uniform_norm_ = std::max(this->input_uniform_norm_, ::UniformNorm(&example.input, this->input_mean_));
-        this->output_uniform_norm_ = std::max(this->output_uniform_norm_, ::UniformNorm(&example.output, this->output_mean_));
-    });
+    for (const auto& example : *this) {
+        input_uniform_norm_ = std::max(input_uniform_norm_, UniformNorm(example.input, input_mean_));
+        output_uniform_norm_ = std::max(output_uniform_norm_, UniformNorm(example.output, output_mean_));
+    }
 }
 
 void TrainingData::CalculateStdev() {
-    double sumInput = 0.0;
-    double sumOutput = 0.0;
-    size_t countInput = 0;
-    size_t countOutput = 0;
-    std::for_each(this->begin(), this->end(), [&](const Example& example) {
-        const std::vector<double>& input = example.input;
-        std::for_each(input.begin(), input.end(), [&](const double& val) {
-            sumInput += (val - this->input_mean_) * (val - this->input_mean_);
-        });
-        countInput += input.size();
+    double sum_input = 0.0;
+    double sum_output = 0.0;
+    size_t count_input = 0;
+    size_t count_output = 0;
 
-        const std::vector<double>& output = example.input;
-        std::for_each(output.begin(), output.end(), [&](const double& val) {
-            sumOutput += (val - this->output_mean_) * (val - this->output_mean_);
-        });
-        countOutput += output.size();
-    });
+    for (const auto& example : *this) {
+        for (const auto& val : example.input) {
+            sum_input += (val - input_mean_) * (val - input_mean_);
+        }
+        count_input += example.input.size();
 
-    assert(countInput > 1);
-    this->input_standard_deviation_ = std::sqrt(sumInput / (countInput - 1));
-    assert(countOutput > 1);
-    this->output_standard_deviation_ = std::sqrt(sumOutput / (countOutput - 1));
+        for (const auto& val : example.output) {
+            sum_output += (val - output_mean_) * (val - output_mean_);
+        }
+        count_output += example.output.size();
+    }
+
+    assert(count_input > 1);
+    input_standard_deviation_ = std::sqrt(sum_input / (count_input - 1));
+    assert(count_output > 1);
+    output_standard_deviation_ = std::sqrt(sum_output / (count_output - 1));
 }
 
 void TrainingData::CalculateMinMax() {
-    this->output_old_min_ = this->input_old_min_ = std::numeric_limits<double>::max();
-    this->output_old_max_ = this->input_old_max_ = std::numeric_limits<double>::min();
+    output_old_min_ = input_old_min_ = std::numeric_limits<double>::max();
+    output_old_max_ = input_old_max_ = std::numeric_limits<double>::min();
 
-    std::for_each(this->begin(), this->end(), [&](const Example& example) {
-        {
-            const std::vector<double>& input = example.input;
-            auto [min, max] = std::minmax_element(input.begin(), input.end());
-            this->input_old_min_ = std::min(this->input_old_min_, *min);
-            this->input_old_max_ = std::max(this->input_old_max_, *max);
-        }
-        {
-            const std::vector<double>& output = example.output;
-            auto [min, max] = std::minmax_element(output.begin(), output.end());
-            this->output_old_min_ = std::min(this->output_old_min_, *min);
-            this->output_old_max_ = std::max(this->output_old_max_, *max);
-        }
-    });
+    for (const auto& example : *this) {
+            auto [input_min, input_max] = std::minmax_element(example.input.cbegin(), example.input.cend());
+            input_old_min_ = std::min(input_old_min_, *input_min);
+            input_old_max_ = std::max(input_old_max_, *input_max);
 
-    double newSpan = this->simple_scaling_new_max_ - this->simple_scaling_new_min_;
-    double oldSpan = this->input_old_max_ - this->input_old_min_;
-    this->input_factor_ = newSpan / oldSpan;
+            auto [output_min, output_max] = std::minmax_element(example.output.cbegin(), example.output.cend());
+            output_old_min_ = std::min(output_old_min_, *output_min);
+            output_old_max_ = std::max(output_old_max_, *output_max);
+    }
 
-    oldSpan = this->output_old_max_ - this->output_old_min_;
-    this->output_factor_ = newSpan / oldSpan;
+    const double new_span = simple_scaling_new_max_ - simple_scaling_new_min_;
+    const double input_old_span = input_old_max_ - input_old_min_;
+    input_factor_ = new_span / input_old_span;
+
+    const double output_old_span = output_old_max_ - output_old_min_;
+    output_factor_ = new_span / output_old_span;
 }
 
 void TrainingData::ScaleSimple() {
-    this->CalculateMinMax();
+    CalculateMinMax();
 
-    std::for_each(this->begin(), this->end(), [&](Example& example) {
-        SimpleScale(&example.input, this->input_old_min_, this->input_factor_, this->simple_scaling_new_min_);
-        SimpleScale(&example.output, this->output_old_min_, this->output_factor_, this->simple_scaling_new_min_);
-    });
+    for (auto& example : *this) {
+        SimpleScale(&example.input, input_old_min_, input_factor_, simple_scaling_new_min_);
+        SimpleScale(&example.output, output_old_min_, output_factor_, simple_scaling_new_min_);
+    }
 }
 
 void TrainingData::ScaleStandardDeviation() {
-    this->CalculateMean();
-    this->CalculateStdev();
+    CalculateMean();
+    CalculateStdev();
 
-    std::for_each(this->begin(), this->end(), [&](Example& example) {
-        StdevScale(&example.input, this->input_mean_, this->input_standard_deviation_, this->standard_deviation_multiplier_);
-        StdevScale(&example.output, this->output_mean_, this->output_standard_deviation_, this->standard_deviation_multiplier_);
-    });
+    for (auto& example : *this) {
+        StdevScale(&example.input, input_mean_, input_standard_deviation_, standard_deviation_multiplier_);
+        StdevScale(&example.output, output_mean_, output_standard_deviation_, standard_deviation_multiplier_);
+    }
 }
 
 void TrainingData::ScaleUniformNorm() {
-    this->CalculateMean();
-    this->CalculateUniformNorm();
+    CalculateMean();
+    CalculateUniformNorm();
 
-    std::for_each(this->begin(), this->end(), [&](Example& example) {
-        UniformNormScale(&example.input, this->input_mean_, this->input_uniform_norm_, this->uniform_norm_multiplier_);
-        UniformNormScale(&example.output, this->output_mean_, this->output_uniform_norm_, this->uniform_norm_multiplier_);
-    });
+    for (auto& example : *this) {
+        UniformNormScale(&example.input, input_mean_, input_uniform_norm_, uniform_norm_multiplier_);
+        UniformNormScale(&example.output, output_mean_, output_uniform_norm_, uniform_norm_multiplier_);
+    }
 }
 
 void TrainingData::DescaleSimple() {
-    std::for_each(this->begin(), this->end(), [&](Example& example) {
-        SimpleDescale(&example.input, this->input_old_min_, this->input_factor_, this->simple_scaling_new_min_);
-        SimpleDescale(&example.output, this->output_old_min_, this->output_factor_, this->simple_scaling_new_min_);
-    });
+    for (auto& example : *this) {
+        SimpleDescale(&example.input, input_old_min_, input_factor_, simple_scaling_new_min_);
+        SimpleDescale(&example.output, output_old_min_, output_factor_, simple_scaling_new_min_);
+    }
 }
 
 void TrainingData::DescaleStandardDeviation() {
-    std::for_each(this->begin(), this->end(), [&](Example& example) {
-        StdevDescale(&example.input, this->input_mean_, this->input_standard_deviation_, this->standard_deviation_multiplier_);
-        StdevDescale(&example.output, this->output_mean_, this->output_standard_deviation_, this->standard_deviation_multiplier_);
-    });
+    for (auto& example : *this) {
+        StdevDescale(&example.input, input_mean_, input_standard_deviation_, standard_deviation_multiplier_);
+        StdevDescale(&example.output, output_mean_, output_standard_deviation_, standard_deviation_multiplier_);
+    }
 }
 
 void TrainingData::DescaleUniformNorm() {
-    std::for_each(this->begin(), this->end(), [&](Example& example) {
-        UniformNormDescale(&example.input, this->input_mean_, this->input_uniform_norm_, this->uniform_norm_multiplier_);
-        UniformNormDescale(&example.output, this->output_mean_, this->output_uniform_norm_, this->uniform_norm_multiplier_);
-    });
+    for (auto& example : *this) {
+        UniformNormDescale(&example.input, input_mean_, input_uniform_norm_, uniform_norm_multiplier_);
+        UniformNormDescale(&example.output, output_mean_, output_uniform_norm_, uniform_norm_multiplier_);
+    }
 }
 
 void TrainingData::Scale() {
-    switch (this->scaling_algorithm_) {
+    switch (scaling_algorithm_) {
     case ScalingAlgorithm::None:
         return;
     case ScalingAlgorithm::Simple:
-        return this->ScaleSimple();
+        return ScaleSimple();
     case ScalingAlgorithm::StandardDeviation:
-        return this->ScaleStandardDeviation();
+        return ScaleStandardDeviation();
     case ScalingAlgorithm::UniformNorm:
-        return this->ScaleUniformNorm();
+        return ScaleUniformNorm();
     default:
         assert(false);
     }
 }
 
 void TrainingData::Descale() {
-    switch (this->scaling_algorithm_) {
+    switch (scaling_algorithm_) {
     case ScalingAlgorithm::None:
         return;
     case ScalingAlgorithm::Simple:
-        return this->DescaleSimple();
+        return DescaleSimple();
     case ScalingAlgorithm::StandardDeviation:
-        return this->DescaleStandardDeviation();
+        return DescaleStandardDeviation();
     case ScalingAlgorithm::UniformNorm:
-        return this->DescaleUniformNorm();
+        return DescaleUniformNorm();
     default:
         assert(false);
     }
 }
 
-void TrainingData::ScaleInput(std::vector<double>* vec) {
-    switch (this->scaling_algorithm_) {
+void TrainingData::ScaleInput(std::vector<double>* vec) const {
+    switch (scaling_algorithm_) {
     case ScalingAlgorithm::None:
         return;
     case ScalingAlgorithm::Simple:
-        return SimpleScale(vec, this->input_old_min_, this->input_factor_, this->simple_scaling_new_min_);
+        return SimpleScale(vec, input_old_min_, input_factor_, simple_scaling_new_min_);
     case ScalingAlgorithm::StandardDeviation:
-        return StdevScale(vec, this->input_mean_, this->input_standard_deviation_, this->standard_deviation_multiplier_);
+        return StdevScale(vec, input_mean_, input_standard_deviation_, standard_deviation_multiplier_);
     case ScalingAlgorithm::UniformNorm:
-        return UniformNormScale(vec, this->input_mean_, this->input_uniform_norm_, this->uniform_norm_multiplier_);
+        return UniformNormScale(vec, input_mean_, input_uniform_norm_, uniform_norm_multiplier_);
     default:
         assert(false);
     }
 }
 
-void TrainingData::ScaleOutput(std::vector<double>* vec) {
-    switch (this->scaling_algorithm_) {
+void TrainingData::ScaleOutput(std::vector<double>* vec) const {
+    switch (scaling_algorithm_) {
     case ScalingAlgorithm::None:
         return;
     case ScalingAlgorithm::Simple:
-        return SimpleScale(vec, this->output_old_min_, this->output_factor_, this->simple_scaling_new_min_);
+        return SimpleScale(vec, output_old_min_, output_factor_, simple_scaling_new_min_);
     case ScalingAlgorithm::StandardDeviation:
-        return StdevScale(vec, this->output_mean_, this->output_standard_deviation_, this->standard_deviation_multiplier_);
+        return StdevScale(vec, output_mean_, output_standard_deviation_, standard_deviation_multiplier_);
     case ScalingAlgorithm::UniformNorm:
-        return UniformNormScale(vec, this->output_mean_, this->output_uniform_norm_, this->uniform_norm_multiplier_);
+        return UniformNormScale(vec, output_mean_, output_uniform_norm_, uniform_norm_multiplier_);
     default:
         assert(false);
     }
 }
 
-void TrainingData::DescaleInput(std::vector<double>* vec) {
-    switch (this->scaling_algorithm_) {
+void TrainingData::DescaleInput(std::vector<double>* vec) const {
+    switch (scaling_algorithm_) {
     case ScalingAlgorithm::None:
         return;
     case ScalingAlgorithm::Simple:
-        return SimpleDescale(vec, this->input_old_min_, this->input_factor_, this->simple_scaling_new_min_);
+        return SimpleDescale(vec, input_old_min_, input_factor_, simple_scaling_new_min_);
     case ScalingAlgorithm::StandardDeviation:
-        return StdevDescale(vec, this->input_mean_, this->input_standard_deviation_, this->standard_deviation_multiplier_);
+        return StdevDescale(vec, input_mean_, input_standard_deviation_, standard_deviation_multiplier_);
     case ScalingAlgorithm::UniformNorm:
-        return UniformNormDescale(vec, this->input_mean_, this->input_uniform_norm_, this->uniform_norm_multiplier_);
+        return UniformNormDescale(vec, input_mean_, input_uniform_norm_, uniform_norm_multiplier_);
     default:
         assert(false);
     }
 }
 
-void TrainingData::DescaleOutput(std::vector<double>* vec) {
-    switch (this->scaling_algorithm_) {
+void TrainingData::DescaleOutput(std::vector<double>* vec) const {
+    switch (scaling_algorithm_) {
     case ScalingAlgorithm::None:
         return;
     case ScalingAlgorithm::Simple:
-        return SimpleDescale(vec, this->output_old_min_, this->output_factor_, this->simple_scaling_new_min_);
+        return SimpleDescale(vec, output_old_min_, output_factor_, simple_scaling_new_min_);
     case ScalingAlgorithm::StandardDeviation:
-        return StdevDescale(vec, this->output_mean_, this->output_standard_deviation_, this->standard_deviation_multiplier_);
+        return StdevDescale(vec, output_mean_, output_standard_deviation_, standard_deviation_multiplier_);
     case ScalingAlgorithm::UniformNorm:
-        return UniformNormDescale(vec, this->output_mean_, this->output_uniform_norm_, this->uniform_norm_multiplier_);
+        return UniformNormDescale(vec, output_mean_, output_uniform_norm_, uniform_norm_multiplier_);
     default:
         assert(false);
     }
 }
 
-void TrainingData::FromSequentialData(std::vector<double>* data, size_t inputLength) {
-    assert(data);
-    assert(data->size() > inputLength);
+void TrainingData::FromSequentialData(const std::vector<double>& data, size_t input_length) {
+    assert(data.size() > input_length);
 
-    size_t numExamples = data->size() - inputLength;
+    const size_t num_examples = data.size() - input_length;
+    resize(num_examples);
 
-    this->resize(numExamples);
+    for (size_t i = 0; i < num_examples; i++) {
+        const auto begin = data.cbegin() + i;
+        const auto end = begin + (input_length - 1);
 
-    for (size_t i = 0; i < numExamples; i++) {
-        auto begin = data->cbegin() + i;
-        auto end = begin + (inputLength - 1);
-
-        Example& example = this->operator[](i);
+        Example& example = at(i);
         example.input.assign(begin, end);
-        example.output = { data->operator[](i + inputLength - 1) };
+        example.output = { data[i + input_length - 1] };
     }
 }
+
+}  // namespace panann
