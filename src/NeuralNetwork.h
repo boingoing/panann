@@ -135,7 +135,7 @@ public:
      * Set the number of neurons in the input layer.
      * This count may not be changed once the network topology has been constructed.
      */
-    void SetInputNeuronCount(size_t inputNeuronCount);
+    void SetInputNeuronCount(size_t input_neuron_count);
     size_t GetInputNeuronCount() const;
     size_t GetInputNeuronStartIndex() const;
 
@@ -143,7 +143,7 @@ public:
      * Set the number of neurons in the output layer.
      * This count may not be changed once the network topology has been constructed.
      */
-    void SetOutputNeuronCount(size_t outputNeuronCount);
+    void SetOutputNeuronCount(size_t output_neuron_count);
     size_t GetOutputNeuronCount() const;
     size_t GetOutputNeuronStartIndex() const;
 
@@ -153,7 +153,7 @@ public:
      * Once added, hidden layers may not be removed.<br/>
      * Hidden layers may not be added after the network has been constructed.
      */
-    void AddHiddenLayer(size_t neuronCount);
+    void AddHiddenLayer(size_t neuron_count);
     size_t GetHiddenNeuronCount() const;
     size_t GetHiddenNeuronStartIndex() const;
 
@@ -161,7 +161,7 @@ public:
      * Set the learning rate parameter used by backprop, batch, and qprop.<br/>
      * Default: 0.7
      */
-    void SetLearningRate(double learningRate);
+    void SetLearningRate(double learning_rate);
     double GetLearningRate() const;
 
     /**
@@ -427,7 +427,7 @@ protected:
 
     void ConnectLayerToNeuron(size_t fromNeuronIndex, size_t fromNeuronCount, size_t toNeuronIndex);
     void ConnectLayers(size_t fromNeuronIndex, size_t fromNeuronCount, size_t toNeuronIndex, size_t toNeuronCount);
-    void ConnectBiasNeuron(size_t biasNeuronIndex, size_t toNeuronIndex, size_t toNeuronCount);
+    void ConnectBiasNeuron(size_t bias_neuron_index, size_t toNeuronIndex, size_t toNeuronCount);
     void ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex);
 
     void ComputeNeuronValue(size_t neuronIndex);

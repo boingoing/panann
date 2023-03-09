@@ -83,7 +83,7 @@ double ActivationFunction::ExecuteDerivativeElliot(double field) {
     static constexpr double clamp_min = 0.01;
     static constexpr double clamp_max = 0.99;
     field = std::clamp(field, clamp_min, clamp_max);
-    double abs_plus_one = std::fabs(field) + 1.0;
+    const double abs_plus_one = std::fabs(field) + 1.0;
     return 1.0 / (2 * abs_plus_one * abs_plus_one);
 }
 
@@ -95,7 +95,7 @@ double ActivationFunction::ExecuteDerivativeElliotSymmetric(double field) {
     static constexpr double clamp_min = -0.98;
     static constexpr double clamp_max = 0.98;
     field = std::clamp(field, clamp_min, clamp_max);
-    double abs_plus_one = std::fabs(field) + 1.0;
+    const double abs_plus_one = std::fabs(field) + 1.0;
     return 1.0 / (abs_plus_one * abs_plus_one);
 }
 
@@ -116,12 +116,12 @@ double ActivationFunction::ExecuteDerivativeCosineSymmetric(double value) {
 }
 
 double ActivationFunction::ExecuteThreshold(double value) {
-    double threshold = 0.0;
+    static constexpr double threshold = 0.0;
     return value < threshold ? 0 : 1;
 }
 
 double ActivationFunction::ExecuteThresholdSymmetric(double value) {
-    double threshold = 0.0;
+    static constexpr double threshold = 0.0;
     return value < threshold ? -1 : 1;
 }
 

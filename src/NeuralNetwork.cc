@@ -3,196 +3,196 @@
 // Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
 //-------------------------------------------------------------------------------------------------------
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 
-#include "NeuralNetwork.h"
 #include "ActivationFunction.h"
+#include "NeuralNetwork.h"
 #include "TrainingData.h"
 
 namespace panann {
 
 size_t NeuralNetwork::GetInputNeuronCount() const {
-    return this->input_neuron_count_;
+    return input_neuron_count_;
 }
 
-void NeuralNetwork::SetInputNeuronCount(size_t inputNeuronCount) {
-    assert(!this->is_constructed_);
-    this->input_neuron_count_ = inputNeuronCount;
+void NeuralNetwork::SetInputNeuronCount(size_t input_neuron_count) {
+    assert(!is_constructed_);
+    input_neuron_count_ = input_neuron_count;
 }
 
 size_t NeuralNetwork::GetOutputNeuronCount() const {
-    return this->output_neuron_count_;
+    return output_neuron_count_;
 }
 
-void NeuralNetwork::SetOutputNeuronCount(size_t outputNeuronCount) {
-    assert(!this->is_constructed_);
-    this->output_neuron_count_ = outputNeuronCount;
+void NeuralNetwork::SetOutputNeuronCount(size_t output_neuron_count) {
+    assert(!is_constructed_);
+    output_neuron_count_ = output_neuron_count;
 }
 
-void NeuralNetwork::SetLearningRate(double learningRate) {
-    this->learning_rate_ = learningRate;
+void NeuralNetwork::SetLearningRate(double learning_rate) {
+    learning_rate_ = learning_rate;
 }
 
 double NeuralNetwork::GetLearningRate() const {
-    return this->learning_rate_;
+    return learning_rate_;
 }
 
 void NeuralNetwork::SetMomentum(double momentum) {
-    this->momentum_ = momentum;
+    momentum_ = momentum;
 }
 
 double NeuralNetwork::GetMomentum() const {
-    return this->momentum_;
+    return momentum_;
 }
 
 void NeuralNetwork::SetQpropMu(double mu) {
-    this->qprop_mu_ = mu;
+    qprop_mu_ = mu;
 }
 
 double NeuralNetwork::GetQpropMu() const {
-    return this->qprop_mu_;
+    return qprop_mu_;
 }
 
 void NeuralNetwork::SetQpropWeightDecay(double weightDecay) {
-    this->qprop_weight_decay_ = weightDecay;
+    qprop_weight_decay_ = weightDecay;
 }
 
 double NeuralNetwork::GetQpropWeightDecay() const {
-    return this->qprop_weight_decay_;
+    return qprop_weight_decay_;
 }
 
 void NeuralNetwork::SetRpropWeightStepInitial(double weightStep) {
-    this->rprop_weight_step_initial_ = weightStep;
+    rprop_weight_step_initial_ = weightStep;
 }
 
 double NeuralNetwork::GetRpropWeightStepInitial() const {
-    return this->rprop_weight_step_initial_;
+    return rprop_weight_step_initial_;
 }
 
 void NeuralNetwork::SetRpropWeightStepMin(double weightStep) {
-    this->rprop_weight_step_min_ = weightStep;
+    rprop_weight_step_min_ = weightStep;
 }
 
 double NeuralNetwork::GetRpropWeightStepMin() const {
-    return this->rprop_weight_step_min_;
+    return rprop_weight_step_min_;
 }
 
 void NeuralNetwork::SetRpropWeightStepMax(double weightStep) {
-    this->rprop_weight_step_max_ = weightStep;
+    rprop_weight_step_max_ = weightStep;
 }
 
 double NeuralNetwork::GetRpropWeightStepMax() const {
-    return this->rprop_weight_step_max_;
+    return rprop_weight_step_max_;
 }
 
 void NeuralNetwork::SetRpropIncreaseFactor(double factor) {
-    this->rprop_increase_factor_ = factor;
+    rprop_increase_factor_ = factor;
 }
 
 double NeuralNetwork::GetRpropIncreaseFactor() const {
-    return this->rprop_increase_factor_;
+    return rprop_increase_factor_;
 }
 
 void NeuralNetwork::SetRpropDecreaseFactor(double factor) {
-    this->rprop_decrease_factor_ = factor;
+    rprop_decrease_factor_ = factor;
 }
 
 double NeuralNetwork::GetRpropDecreaseFactor() const {
-    return this->rprop_decrease_factor_;
+    return rprop_decrease_factor_;
 }
 
 void NeuralNetwork::SetSarpropWeightDecayShift(double k1) {
-    this->sarprop_weight_decay_shift_ = k1;
+    sarprop_weight_decay_shift_ = k1;
 }
 
 double NeuralNetwork::GetSarpropWeightDecayShift() const {
-    return this->sarprop_weight_decay_shift_;
+    return sarprop_weight_decay_shift_;
 }
 
 void NeuralNetwork::SetSarpropStepThresholdFactor(double k2) {
-    this->sarprop_step_threshold_factor_ = k2;
+    sarprop_step_threshold_factor_ = k2;
 }
 
 double NeuralNetwork::GetSarpropStepThresholdFactor() const {
-    return this->sarprop_step_threshold_factor_;
+    return sarprop_step_threshold_factor_;
 }
 
 void NeuralNetwork::SetSarpropStepShift(double k3) {
-    this->sarprop_step_shift_ = k3;
+    sarprop_step_shift_ = k3;
 }
 
 double NeuralNetwork::GetSarpropStepShift() const {
-    return this->sarprop_step_shift_;
+    return sarprop_step_shift_;
 }
 
 void NeuralNetwork::SetSarpropTemperature(double t) {
-    this->sarprop_temperature_ = t;
+    sarprop_temperature_ = t;
 }
 
 double NeuralNetwork::GetSarpropTemperature() const {
-    return this->sarprop_temperature_;
+    return sarprop_temperature_;
 }
 
 void NeuralNetwork::SetTrainingAlgorithmType(TrainingAlgorithmType type) {
-    this->training_algorithm_type_ = type;
+    training_algorithm_type_ = type;
 }
 
 NeuralNetwork::TrainingAlgorithmType NeuralNetwork::GetTrainingAlgorithmType() const {
-    return this->training_algorithm_type_;
+    return training_algorithm_type_;
 }
 
 void NeuralNetwork::EnableShortcutConnections() {
-    assert(!this->is_constructed_);
-    this->enable_shortcut_connections_ = true;
+    assert(!is_constructed_);
+    enable_shortcut_connections_ = true;
 }
 
 void NeuralNetwork::DisableShortcutConnections() {
-    assert(!this->is_constructed_);
-    this->enable_shortcut_connections_ = false;
+    assert(!is_constructed_);
+    enable_shortcut_connections_ = false;
 }
 
 void NeuralNetwork::SetHiddenNeuronActivationFunctionType(ActivationFunctionType type) {
-    assert(!this->is_constructed_);
-    this->hidden_neuron_activation_function_type_ = type;
+    assert(!is_constructed_);
+    hidden_neuron_activation_function_type_ = type;
 }
 
 NeuralNetwork::ActivationFunctionType NeuralNetwork::GetHiddenNeuronActivationFunctionType() const {
-    return this->hidden_neuron_activation_function_type_;
+    return hidden_neuron_activation_function_type_;
 }
 
 void NeuralNetwork::SetOutputNeuronActivationFunctionType(ActivationFunctionType type) {
-    assert(!this->is_constructed_);
-    this->output_neuron_activation_function_type_ = type;
+    assert(!is_constructed_);
+    output_neuron_activation_function_type_ = type;
 }
 
 NeuralNetwork::ActivationFunctionType NeuralNetwork::GetOutputNeuronActivationFunctionType() const {
-    return this->output_neuron_activation_function_type_;
+    return output_neuron_activation_function_type_;
 }
 
 void NeuralNetwork::SetNeuronActivationFunction(size_t neuronIndex, ActivationFunctionType type) {
-    assert(this->is_constructed_);
-    assert(neuronIndex < this->neurons_.size());
-    this->neurons_[neuronIndex].activation_function_type = type;
+    assert(is_constructed_);
+    assert(neuronIndex < neurons_.size());
+    neurons_[neuronIndex].activation_function_type = type;
 }
 
 void NeuralNetwork::SetErrorCostFunction(ErrorCostFunction mode) {
-    this->error_cost_function_ = mode;
+    error_cost_function_ = mode;
 }
 
 NeuralNetwork::ErrorCostFunction NeuralNetwork::GetErrorCostFunction() const {
-    return this->error_cost_function_;
+    return error_cost_function_;
 }
 
 /**
  * | hidden neurons | input neurons | output neurons | bias neurons |
  */
 size_t NeuralNetwork::GetInputNeuronStartIndex() const {
-    return this->hidden_neuron_count_;
+    return hidden_neuron_count_;
 }
 
 size_t NeuralNetwork::GetOutputNeuronStartIndex() const {
-    return this->hidden_neuron_count_ + this->input_neuron_count_;
+    return hidden_neuron_count_ + this->input_neuron_count_;
 }
 
 size_t NeuralNetwork::GetHiddenNeuronStartIndex() const {
@@ -200,40 +200,37 @@ size_t NeuralNetwork::GetHiddenNeuronStartIndex() const {
 }
 
 size_t NeuralNetwork::GetHiddenNeuronCount() const {
-    return this->hidden_neuron_count_;
+    return hidden_neuron_count_;
 }
 
 size_t NeuralNetwork::GetBiasNeuronStartIndex() const {
-    return this->input_neuron_count_ + this->output_neuron_count_ + this->hidden_neuron_count_;
+    return input_neuron_count_ + output_neuron_count_ + hidden_neuron_count_;
 }
 
-void NeuralNetwork::AddHiddenLayer(size_t neuronCount) {
-    assert(!this->is_constructed_);
+void NeuralNetwork::AddHiddenLayer(size_t neuron_count) {
+    assert(!is_constructed_);
 
-    Layer layer;
-    layer.neuron_start_index = this->GetHiddenNeuronStartIndex() + this->hidden_neuron_count_;
-    layer.neuron_count = neuronCount;
-
-    this->hidden_layers_.push_back(layer);
-    this->hidden_neuron_count_ += neuronCount;
+    // Add a new hidden layer beginning at the current hidden neuron count and continuing for |neuron_count| neurons.
+    hidden_layers_.push_back({GetHiddenNeuronStartIndex() + hidden_neuron_count_, neuron_count});
+    hidden_neuron_count_ += neuron_count;
 }
 
 void NeuralNetwork::Allocate() {
-    assert(!this->is_constructed_);
+    assert(!is_constructed_);
     // Do not support networks with no hidden layers.
-    assert(!this->hidden_layers_.empty());
+    assert(!hidden_layers_.empty());
 
     // Total count of neurons is all the input, output, and hidden neurons.
-    // The input layer and each hidden layer also contribute one bias neuron.
-    size_t neuronCount =
-        this->input_neuron_count_ + 1 +
-        this->output_neuron_count_ +
-        this->hidden_neuron_count_ + this->hidden_layers_.size();
+    // The input layer and hidden layers also contribute one bias neuron each.
+    size_t neuron_count =
+        input_neuron_count_ + 1 +
+        output_neuron_count_ +
+        hidden_neuron_count_ + hidden_layers_.size();
 
-    this->neurons_.resize(neuronCount);
+    neurons_.resize(neuron_count);
 
-    size_t biasNeuronIndex = this->GetBiasNeuronStartIndex();
-    size_t inputConnectionIndex = 0;
+    size_t bias_neuron_index = GetBiasNeuronStartIndex();
+    size_t input_connection_index = 0;
     size_t outputConnectionIndex = 0;
     size_t currentLayerInputConnectionCount = 0;
     size_t currentLayerOutputConnectionCount = 0;
@@ -255,7 +252,7 @@ void NeuralNetwork::Allocate() {
     }
 
     // The first bias neuron is the one for the input layer.
-    Neuron& biasNeuronInput = this->neurons_[biasNeuronIndex++];
+    Neuron& biasNeuronInput = this->neurons_[bias_neuron_index++];
     biasNeuronInput.output_connection_start_index = outputConnectionIndex;
     biasNeuronInput.value = 1.0;
     outputConnectionIndex += this->hidden_layers_.front().neuron_count;
@@ -272,9 +269,9 @@ void NeuralNetwork::Allocate() {
     size_t firstOutputNeuronIndex = this->GetOutputNeuronStartIndex();
     for (size_t i = 0; i < this->output_neuron_count_; i++) {
         Neuron& neuron = this->neurons_[firstOutputNeuronIndex + i];
-        neuron.input_connection_start_index = inputConnectionIndex;
+        neuron.input_connection_start_index = input_connection_index;
         neuron.activation_function_type = this->output_neuron_activation_function_type_;
-        inputConnectionIndex += currentLayerInputConnectionCount;
+        input_connection_index += currentLayerInputConnectionCount;
     }
 
     size_t neuronIndex = this->GetHiddenNeuronStartIndex();
@@ -323,11 +320,11 @@ void NeuralNetwork::Allocate() {
         const Layer& currentLayer = this->hidden_layers_[layerIndex];
         for (size_t i = 0; i < currentLayer.neuron_count; i++) {
             Neuron& neuron = this->neurons_[neuronIndex++];
-            neuron.input_connection_start_index = inputConnectionIndex;
+            neuron.input_connection_start_index = input_connection_index;
             neuron.output_connection_start_index = outputConnectionIndex;
             neuron.activation_function_type = this->hidden_neuron_activation_function_type_;
 
-            inputConnectionIndex += currentLayerInputConnectionCount;
+            input_connection_index += currentLayerInputConnectionCount;
             outputConnectionIndex += currentLayerOutputConnectionCount;
         }
 
@@ -342,30 +339,30 @@ void NeuralNetwork::Allocate() {
         }
 
         // Bias neurons do not have incoming connections.
-        Neuron& biasNeuron = this->neurons_[biasNeuronIndex++];
+        Neuron& biasNeuron = this->neurons_[bias_neuron_index++];
         biasNeuron.output_connection_start_index = outputConnectionIndex;
         biasNeuron.value = 1.0;
         outputConnectionIndex += biasOutputConnections;
     }
 
-    this->input_connections_.resize(inputConnectionIndex);
+    this->input_connections_.resize(input_connection_index);
     this->output_connections_.resize(outputConnectionIndex);
-    this->weights_.resize(inputConnectionIndex);
+    this->weights_.resize(input_connection_index);
 }
 
 void NeuralNetwork::ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex) {
     Neuron& fromNeuron = this->neurons_[fromNeuronIndex];
     Neuron& toNeuron = this->neurons_[toNeuronIndex];
 
-    size_t inputConnectionIndex = toNeuron.input_connection_start_index + toNeuron.input_connection_count;
-    InputConnection& inputConnection = this->input_connections_.at(inputConnectionIndex);
+    size_t input_connection_index = toNeuron.input_connection_start_index + toNeuron.input_connection_count;
+    InputConnection& inputConnection = this->input_connections_.at(input_connection_index);
     inputConnection.from_neuron_index = fromNeuronIndex;
     inputConnection.to_neuron_index = toNeuronIndex;
     toNeuron.input_connection_count++;
 
     size_t outputConnectionIndex = fromNeuron.output_connection_start_index + fromNeuron.output_connection_count;
     OutputConnection& outputConnection = this->output_connections_.at(outputConnectionIndex);
-    outputConnection.input_connection_index = inputConnectionIndex;
+    outputConnection.input_connection_index = input_connection_index;
     fromNeuron.output_connection_count++;
 }
 
@@ -381,8 +378,8 @@ void NeuralNetwork::ConnectLayers(size_t fromNeuronIndex, size_t fromNeuronCount
     }
 }
 
-void NeuralNetwork::ConnectBiasNeuron(size_t biasNeuronIndex, size_t toNeuronIndex, size_t toNeuronCount) {
-    ConnectLayers(biasNeuronIndex, 1, toNeuronIndex, toNeuronCount);
+void NeuralNetwork::ConnectBiasNeuron(size_t bias_neuron_index, size_t toNeuronIndex, size_t toNeuronCount) {
+    ConnectLayers(bias_neuron_index, 1, toNeuronIndex, toNeuronCount);
 }
 
 void NeuralNetwork::ConnectFully() {
@@ -390,7 +387,7 @@ void NeuralNetwork::ConnectFully() {
     assert(!this->hidden_layers_.empty());
 
     size_t inputNeuronStartIndex = this->GetInputNeuronStartIndex();
-    size_t biasNeuronIndex = this->GetBiasNeuronStartIndex();
+    size_t bias_neuron_index = this->GetBiasNeuronStartIndex();
 
     for (size_t layerIndex = 0; layerIndex < this->hidden_layers_.size(); layerIndex++) {
         const Layer& currentLayer = this->hidden_layers_[layerIndex];
@@ -429,7 +426,7 @@ void NeuralNetwork::ConnectFully() {
 
         // Bias neurons do not have shortcut connections.
         // Just connect this layer to the bias neuron in the layer before it.
-        ConnectBiasNeuron(biasNeuronIndex++, currentLayer.neuron_start_index, currentLayer.neuron_count);
+        ConnectBiasNeuron(bias_neuron_index++, currentLayer.neuron_start_index, currentLayer.neuron_count);
     }
 
     size_t outputNeuronStartIndex = this->GetOutputNeuronStartIndex();
@@ -458,7 +455,7 @@ void NeuralNetwork::ConnectFully() {
     }
 
     // Connect output layer to the bias neuron in the last hidden layer.
-    ConnectBiasNeuron(biasNeuronIndex, outputNeuronStartIndex, this->output_neuron_count_);
+    ConnectBiasNeuron(bias_neuron_index, outputNeuronStartIndex, this->output_neuron_count_);
 }
 
 void NeuralNetwork::Construct() {
@@ -697,8 +694,8 @@ void NeuralNetwork::Train(TrainingData* trainingData, size_t epochCount) {
     }
 }
 
-void NeuralNetwork::ComputeNeuronValueRange(size_t neuronStartIndex, size_t neuronCount) {
-    for (size_t i = 0; i < neuronCount; i++) {
+void NeuralNetwork::ComputeNeuronValueRange(size_t neuronStartIndex, size_t neuron_count) {
+    for (size_t i = 0; i < neuron_count; i++) {
         this->ComputeNeuronValue(neuronStartIndex + i);
     }
 }
@@ -709,11 +706,11 @@ void NeuralNetwork::ComputeNeuronValue(size_t neuronIndex) {
 
     // Sum incoming values.
     for (size_t i = 0; i < neuron.input_connection_count; i++) {
-        size_t inputConnectionIndex = neuron.input_connection_start_index + i;
-        const InputConnection& connection = this->input_connections_[inputConnectionIndex];
+        size_t input_connection_index = neuron.input_connection_start_index + i;
+        const InputConnection& connection = this->input_connections_[input_connection_index];
         const Neuron& fromNeuron = this->neurons_[connection.from_neuron_index];
 
-        neuron.field += fromNeuron.value * this->weights_[inputConnectionIndex];
+        neuron.field += fromNeuron.value * this->weights_[input_connection_index];
     }
 
     neuron.value = ExecuteActivationFunction(&neuron);

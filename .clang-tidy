@@ -24,6 +24,7 @@ Checks: 'bugprone*,
          -misc-unused-parameters,
          -modernize-use-nodiscard,
          -modernize-use-trailing-return-type,
+         -readability-convert-member-functions-to-static,
          -readability-function-cognitive-complexity,
          -readability-identifier-length,
          -readability-simplify-boolean-expr'
