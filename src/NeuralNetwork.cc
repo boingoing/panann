@@ -13,9 +13,9 @@
 using namespace panann;
 
 NeuralNetwork::NeuralNetwork() :
-    _inputNeuronCount(0),
-    _outputNeuronCount(0),
-    _hiddenNeuronCount(0),
+    input_neuron_count_(0),
+    output_neuron_count_(0),
+    hidden_neuron_count_(0),
     _learningRate(0.7),
     _momentum(0.1),
     _qpropMu(1.75),
@@ -43,21 +43,21 @@ NeuralNetwork::NeuralNetwork() :
 NeuralNetwork::~NeuralNetwork() {}
 
 size_t NeuralNetwork::GetInputNeuronCount() {
-    return this->_inputNeuronCount;
+    return this->input_neuron_count_;
 }
 
 void NeuralNetwork::SetInputNeuronCount(size_t inputNeuronCount) {
     assert(!this->_isConstructed);
-    this->_inputNeuronCount = inputNeuronCount;
+    this->input_neuron_count_ = inputNeuronCount;
 }
 
 size_t NeuralNetwork::GetOutputNeuronCount() {
-    return this->_outputNeuronCount;
+    return this->output_neuron_count_;
 }
 
 void NeuralNetwork::SetOutputNeuronCount(size_t outputNeuronCount) {
     assert(!this->_isConstructed);
-    this->_outputNeuronCount = outputNeuronCount;
+    this->output_neuron_count_ = outputNeuronCount;
 }
 
 void NeuralNetwork::SetLearningRate(double learningRate) {
@@ -203,7 +203,7 @@ NeuralNetwork::ActivationFunctionType NeuralNetwork::GetOutputNeuronActivationFu
 void NeuralNetwork::SetNeuronActivationFunction(size_t neuronIndex, ActivationFunctionType type) {
     assert(this->_isConstructed);
     assert(neuronIndex < this->_neurons.size());
-    this->_neurons[neuronIndex]._activationFunctionType = type;
+    this->_neurons[neuronIndex].activation_function_type = type;
 }
 
 void NeuralNetwork::SetErrorCostFunction(ErrorCostFunction mode) {
@@ -218,11 +218,11 @@ NeuralNetwork::ErrorCostFunction NeuralNetwork::GetErrorCostFunction() {
  * | hidden neurons | input neurons | output neurons | bias neurons |
  */
 size_t NeuralNetwork::GetInputNeuronStartIndex() {
-    return this->_hiddenNeuronCount;
+    return this->hidden_neuron_count_;
 }
 
 size_t NeuralNetwork::GetOutputNeuronStartIndex() {
-    return this->_hiddenNeuronCount + this->_inputNeuronCount;
+    return this->hidden_neuron_count_ + this->input_neuron_count_;
 }
 
 size_t NeuralNetwork::GetHiddenNeuronStartIndex() {
@@ -230,22 +230,22 @@ size_t NeuralNetwork::GetHiddenNeuronStartIndex() {
 }
 
 size_t NeuralNetwork::GetHiddenNeuronCount() {
-    return this->_hiddenNeuronCount;
+    return this->hidden_neuron_count_;
 }
 
 size_t NeuralNetwork::GetBiasNeuronStartIndex() {
-    return this->_inputNeuronCount + this->_outputNeuronCount + this->_hiddenNeuronCount;
+    return this->input_neuron_count_ + this->output_neuron_count_ + this->hidden_neuron_count_;
 }
 
 void NeuralNetwork::AddHiddenLayer(size_t neuronCount) {
     assert(!this->_isConstructed);
 
     Layer layer;
-    layer._neuronStartIndex = this->GetHiddenNeuronStartIndex() + this->_hiddenNeuronCount;
-    layer._neuronCount = neuronCount;
+    layer.neuron_start_index = this->GetHiddenNeuronStartIndex() + this->hidden_neuron_count_;
+    layer.neuron_count = neuronCount;
 
     this->_hiddenLayers.push_back(layer);
-    this->_hiddenNeuronCount += neuronCount;
+    this->hidden_neuron_count_ += neuronCount;
 }
 
 void NeuralNetwork::Allocate() {
@@ -256,9 +256,9 @@ void NeuralNetwork::Allocate() {
     // Total count of neurons is all the input, output, and hidden neurons.
     // The input layer and each hidden layer also contribute one bias neuron.
     size_t neuronCount =
-        this->_inputNeuronCount + 1 +
-        this->_outputNeuronCount +
-        this->_hiddenNeuronCount + this->_hiddenLayers.size();
+        this->input_neuron_count_ + 1 +
+        this->output_neuron_count_ +
+        this->hidden_neuron_count_ + this->_hiddenLayers.size();
 
     this->_neurons.resize(neuronCount);
 
@@ -271,39 +271,39 @@ void NeuralNetwork::Allocate() {
     // Calculate the connections outgoing from the input layer.
     if (this->_enableShortcutConnections) {
         // The input layer connects to all hidden layers and the output layer.
-        currentLayerOutputConnectionCount = this->_hiddenNeuronCount + this->_outputNeuronCount;
+        currentLayerOutputConnectionCount = this->hidden_neuron_count_ + this->output_neuron_count_;
     } else {
         // The input layer connects only to the first hidden layer.
-        currentLayerOutputConnectionCount = this->_hiddenLayers.front()._neuronCount;
+        currentLayerOutputConnectionCount = this->_hiddenLayers.front().neuron_count;
     }
 
     size_t inputNeuronIndex = this->GetInputNeuronStartIndex();
-    for (size_t i = 0; i < this->_inputNeuronCount; i++) {
+    for (size_t i = 0; i < this->input_neuron_count_; i++) {
         Neuron& neuron = this->_neurons[inputNeuronIndex + i];
-        neuron._outputConnectionStartIndex = outputConnectionIndex;
+        neuron.output_connection_start_index = outputConnectionIndex;
         outputConnectionIndex += currentLayerOutputConnectionCount;
     }
 
     // The first bias neuron is the one for the input layer.
     Neuron& biasNeuronInput = this->_neurons[biasNeuronIndex++];
-    biasNeuronInput._outputConnectionStartIndex = outputConnectionIndex;
-    biasNeuronInput._value = 1.0;
-    outputConnectionIndex += this->_hiddenLayers.front()._neuronCount;
+    biasNeuronInput.output_connection_start_index = outputConnectionIndex;
+    biasNeuronInput.value = 1.0;
+    outputConnectionIndex += this->_hiddenLayers.front().neuron_count;
 
     // Calculate the connections incoming to the output layer.
     if (this->_enableShortcutConnections) {
         // All input and hidden neurons are connected to each output neuron.
-        currentLayerInputConnectionCount = this->_inputNeuronCount + this->_hiddenNeuronCount + 1;
+        currentLayerInputConnectionCount = this->input_neuron_count_ + this->hidden_neuron_count_ + 1;
     } else {
         // Output neurons are connected only to the last hidden layer.
-        currentLayerInputConnectionCount = this->_hiddenLayers.back()._neuronCount + 1;
+        currentLayerInputConnectionCount = this->_hiddenLayers.back().neuron_count + 1;
     }
 
     size_t firstOutputNeuronIndex = this->GetOutputNeuronStartIndex();
-    for (size_t i = 0; i < this->_outputNeuronCount; i++) {
+    for (size_t i = 0; i < this->output_neuron_count_; i++) {
         Neuron& neuron = this->_neurons[firstOutputNeuronIndex + i];
-        neuron._inputConnectionStartIndex = inputConnectionIndex;
-        neuron._activationFunctionType = this->_outputNeuronActivationFunctionType;
+        neuron.input_connection_start_index = inputConnectionIndex;
+        neuron.activation_function_type = this->_outputNeuronActivationFunctionType;
         inputConnectionIndex += currentLayerInputConnectionCount;
     }
 
@@ -316,46 +316,46 @@ void NeuralNetwork::Allocate() {
 
         if (this->_enableShortcutConnections) {
             // All hidden layers connect to the input layer when shortcuts are enabled.
-            currentLayerInputConnectionCount += this->_inputNeuronCount + 1;
+            currentLayerInputConnectionCount += this->input_neuron_count_ + 1;
 
             // Each neuron in this layer connects to the neurons in all previous hidden layers.
             for (size_t previousLayerIndex = 0; previousLayerIndex < layerIndex; previousLayerIndex++) {
-                currentLayerInputConnectionCount += this->_hiddenLayers[previousLayerIndex]._neuronCount + 1;
+                currentLayerInputConnectionCount += this->_hiddenLayers[previousLayerIndex].neuron_count + 1;
             }
 
             // All hidden layers connect directly to the output layer when shortcuts are enabled.
-            currentLayerOutputConnectionCount += this->_outputNeuronCount;
+            currentLayerOutputConnectionCount += this->output_neuron_count_;
 
             // This layer connects to all neurons in subsequent hidden layers.
             for (size_t nextLayerIndex = layerIndex + 1; nextLayerIndex < this->_hiddenLayers.size(); nextLayerIndex++) {
-                currentLayerOutputConnectionCount += this->_hiddenLayers[nextLayerIndex]._neuronCount;
+                currentLayerOutputConnectionCount += this->_hiddenLayers[nextLayerIndex].neuron_count;
             }
         } else {
             if (layerIndex == 0) {
                 // First hidden layer connects to the input layer.
-                currentLayerInputConnectionCount += this->_inputNeuronCount + 1;
+                currentLayerInputConnectionCount += this->input_neuron_count_ + 1;
             } else {
                 // This hidden layer connects directly the previous one.
-                currentLayerInputConnectionCount += this->_hiddenLayers[layerIndex - 1]._neuronCount + 1;
+                currentLayerInputConnectionCount += this->_hiddenLayers[layerIndex - 1].neuron_count + 1;
             }
 
             if (layerIndex == this->_hiddenLayers.size() - 1) {
                 // Last hidden layer connects to the output layer.
-                currentLayerOutputConnectionCount += this->_outputNeuronCount;
+                currentLayerOutputConnectionCount += this->output_neuron_count_;
             } else {
                 assert(layerIndex + 1 < this->_hiddenLayers.size());
 
                 // This hidden layer connects directly to the next one.
-                currentLayerOutputConnectionCount += this->_hiddenLayers[layerIndex + 1]._neuronCount;
+                currentLayerOutputConnectionCount += this->_hiddenLayers[layerIndex + 1].neuron_count;
             }
         }
 
         const Layer& currentLayer = this->_hiddenLayers[layerIndex];
-        for (size_t i = 0; i < currentLayer._neuronCount; i++) {
+        for (size_t i = 0; i < currentLayer.neuron_count; i++) {
             Neuron& neuron = this->_neurons[neuronIndex++];
-            neuron._inputConnectionStartIndex = inputConnectionIndex;
-            neuron._outputConnectionStartIndex = outputConnectionIndex;
-            neuron._activationFunctionType = this->_hiddenNeuronActivationFunctionType;
+            neuron.input_connection_start_index = inputConnectionIndex;
+            neuron.output_connection_start_index = outputConnectionIndex;
+            neuron.activation_function_type = this->_hiddenNeuronActivationFunctionType;
 
             inputConnectionIndex += currentLayerInputConnectionCount;
             outputConnectionIndex += currentLayerOutputConnectionCount;
@@ -365,16 +365,16 @@ void NeuralNetwork::Allocate() {
         size_t biasOutputConnections = 0;
         if (layerIndex == this->_hiddenLayers.size() - 1) {
             // Bias neuron in the last hidden layer connects to the output layer.
-            biasOutputConnections = this->_outputNeuronCount;
+            biasOutputConnections = this->output_neuron_count_;
         } else {
             // Bias neuron in this hidden layer connects to the next hidden layer.
-            biasOutputConnections = this->_hiddenLayers[layerIndex + 1]._neuronCount;
+            biasOutputConnections = this->_hiddenLayers[layerIndex + 1].neuron_count;
         }
 
         // Bias neurons do not have incoming connections.
         Neuron& biasNeuron = this->_neurons[biasNeuronIndex++];
-        biasNeuron._outputConnectionStartIndex = outputConnectionIndex;
-        biasNeuron._value = 1.0;
+        biasNeuron.output_connection_start_index = outputConnectionIndex;
+        biasNeuron.value = 1.0;
         outputConnectionIndex += biasOutputConnections;
     }
 
@@ -387,16 +387,16 @@ void NeuralNetwork::ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex)
     Neuron& fromNeuron = this->_neurons[fromNeuronIndex];
     Neuron& toNeuron = this->_neurons[toNeuronIndex];
 
-    size_t inputConnectionIndex = toNeuron._inputConnectionStartIndex + toNeuron._inputConnectionCount;
+    size_t inputConnectionIndex = toNeuron.input_connection_start_index + toNeuron.input_connection_count;
     InputConnection& inputConnection = this->_inputConnections.at(inputConnectionIndex);
-    inputConnection._fromNeuronIndex = fromNeuronIndex;
-    inputConnection._toNeuronIndex = toNeuronIndex;
-    toNeuron._inputConnectionCount++;
+    inputConnection.from_neuron_index = fromNeuronIndex;
+    inputConnection.to_neuron_index = toNeuronIndex;
+    toNeuron.input_connection_count++;
 
-    size_t outputConnectionIndex = fromNeuron._outputConnectionStartIndex + fromNeuron._outputConnectionCount;
+    size_t outputConnectionIndex = fromNeuron.output_connection_start_index + fromNeuron.output_connection_count;
     OutputConnection& outputConnection = this->_outputConnections.at(outputConnectionIndex);
-    outputConnection._inputConnectionIndex = inputConnectionIndex;
-    fromNeuron._outputConnectionCount++;
+    outputConnection.input_connection_index = inputConnectionIndex;
+    fromNeuron.output_connection_count++;
 }
 
 void NeuralNetwork::ConnectLayerToNeuron(size_t fromNeuronIndex, size_t fromNeuronCount, size_t toNeuronIndex) {
@@ -428,67 +428,67 @@ void NeuralNetwork::ConnectFully() {
         if (this->_enableShortcutConnections) {
             // Connect to input layer.
             ConnectLayers(inputNeuronStartIndex,
-                          this->_inputNeuronCount,
-                          currentLayer._neuronStartIndex,
-                          currentLayer._neuronCount);
+                          this->input_neuron_count_,
+                          currentLayer.neuron_start_index,
+                          currentLayer.neuron_count);
 
             // Connect to all previous hidden layers.
             for (size_t previousLayerIndex = 0; previousLayerIndex < layerIndex; previousLayerIndex++) {
                 const Layer& previousLayer = this->_hiddenLayers[previousLayerIndex];
-                ConnectLayers(previousLayer._neuronStartIndex,
-                              previousLayer._neuronCount,
-                              currentLayer._neuronStartIndex,
-                              currentLayer._neuronCount);
+                ConnectLayers(previousLayer.neuron_start_index,
+                              previousLayer.neuron_count,
+                              currentLayer.neuron_start_index,
+                              currentLayer.neuron_count);
             }
         } else {
             if (layerIndex == 0) {
                 // Connect first hidden layer to input layer.
                 ConnectLayers(inputNeuronStartIndex,
-                              this->_inputNeuronCount,
-                              currentLayer._neuronStartIndex,
-                              currentLayer._neuronCount);
+                              this->input_neuron_count_,
+                              currentLayer.neuron_start_index,
+                              currentLayer.neuron_count);
             } else {
                 // Connect to previous hidden layer.
                 const Layer& previousLayer = this->_hiddenLayers[layerIndex - 1];
-                ConnectLayers(previousLayer._neuronStartIndex,
-                              previousLayer._neuronCount,
-                              currentLayer._neuronStartIndex,
-                              currentLayer._neuronCount);
+                ConnectLayers(previousLayer.neuron_start_index,
+                              previousLayer.neuron_count,
+                              currentLayer.neuron_start_index,
+                              currentLayer.neuron_count);
             }
         }
 
         // Bias neurons do not have shortcut connections.
         // Just connect this layer to the bias neuron in the layer before it.
-        ConnectBiasNeuron(biasNeuronIndex++, currentLayer._neuronStartIndex, currentLayer._neuronCount);
+        ConnectBiasNeuron(biasNeuronIndex++, currentLayer.neuron_start_index, currentLayer.neuron_count);
     }
 
     size_t outputNeuronStartIndex = this->GetOutputNeuronStartIndex();
     if (this->_enableShortcutConnections) {
         // Connect input layer to output layer.
         ConnectLayers(inputNeuronStartIndex,
-                      this->_inputNeuronCount,
+                      this->input_neuron_count_,
                       outputNeuronStartIndex,
-                      this->_outputNeuronCount);
+                      this->output_neuron_count_);
 
         // Connect all hidden layers to output layer.
         for (size_t i = 0; i < this->_hiddenLayers.size(); i++) {
             const Layer& layer = this->_hiddenLayers[i];
-            ConnectLayers(layer._neuronStartIndex,
-                          layer._neuronCount,
+            ConnectLayers(layer.neuron_start_index,
+                          layer.neuron_count,
                           outputNeuronStartIndex,
-                          this->_outputNeuronCount);
+                          this->output_neuron_count_);
         }
     } else {
         const Layer& previousLayer = this->_hiddenLayers.back();
         // Connect output layer to the last hidden layer.
-        ConnectLayers(previousLayer._neuronStartIndex,
-                      previousLayer._neuronCount,
+        ConnectLayers(previousLayer.neuron_start_index,
+                      previousLayer.neuron_count,
                       outputNeuronStartIndex,
-                      this->_outputNeuronCount);
+                      this->output_neuron_count_);
     }
 
     // Connect output layer to the bias neuron in the last hidden layer.
-    ConnectBiasNeuron(biasNeuronIndex, outputNeuronStartIndex, this->_outputNeuronCount);
+    ConnectBiasNeuron(biasNeuronIndex, outputNeuronStartIndex, this->output_neuron_count_);
 }
 
 void NeuralNetwork::Construct() {
@@ -524,10 +524,10 @@ void NeuralNetwork::ResetPreviousSlopes() {
 void NeuralNetwork::UpdateWeightsOnline() {
     for (size_t i = 0; i < this->_inputConnections.size(); i++) {
         const InputConnection& connection = this->_inputConnections[i];
-        const Neuron& fromNeuron = this->_neurons[connection._fromNeuronIndex];
-        const Neuron& toNeuron = this->_neurons[connection._toNeuronIndex];
+        const Neuron& fromNeuron = this->_neurons[connection.from_neuron_index];
+        const Neuron& toNeuron = this->_neurons[connection.to_neuron_index];
 
-        double delta = -1.0 * this->_learningRate * toNeuron._error * fromNeuron._value + this->_momentum * this->_previousWeightSteps[i];
+        double delta = -1.0 * this->_learningRate * toNeuron.error * fromNeuron.value + this->_momentum * this->_previousWeightSteps[i];
         this->_previousWeightSteps[i] = delta;
         this->_weights[i] += delta;
     }
@@ -640,7 +640,7 @@ void NeuralNetwork::UpdateWeightsSimulatedAnnealingResilientBackpropagation(size
             double rmsError = std::sqrt(this->GetError());
 
             if (previousWeightStep < this->_sarpropStepThresholdFactor * rmsError * rmsError) {
-                weightStep = previousWeightStep * this->_rpropDecreaseFactor + this->_sarpropStepShift * this->_randomWrapper.RandomFloat(0.0, 1.0) * rmsError * std::exp2(-this->_sarpropTemperature * currentEpoch);
+                weightStep = previousWeightStep * this->_rpropDecreaseFactor + this->_sarpropStepShift * this->random_.RandomFloat(0.0, 1.0) * rmsError * std::exp2(-this->_sarpropTemperature * currentEpoch);
             } else {
                 weightStep = std::max(previousWeightStep * this->_rpropDecreaseFactor, this->_rpropWeightStepMin);
             }
@@ -659,10 +659,10 @@ void NeuralNetwork::UpdateWeightsSimulatedAnnealingResilientBackpropagation(size
 void NeuralNetwork::UpdateSlopes() {
     for (size_t i = 0; i < this->_inputConnections.size(); i++) {
         const InputConnection& connection = this->_inputConnections[i];
-        const Neuron& fromNeuron = this->_neurons[connection._fromNeuronIndex];
-        const Neuron& toNeuron = this->_neurons[connection._toNeuronIndex];
+        const Neuron& fromNeuron = this->_neurons[connection.from_neuron_index];
+        const Neuron& toNeuron = this->_neurons[connection.to_neuron_index];
 
-        this->_slopes[i] += -1.0 * fromNeuron._value * toNeuron._error;
+        this->_slopes[i] += -1.0 * fromNeuron.value * toNeuron.error;
     }
 }
 
@@ -671,16 +671,16 @@ void NeuralNetwork::TrainOffline(TrainingData* trainingData, size_t epochCount) 
     this->ResetWeightSteps();
 
     for (size_t i = 0; i < epochCount; i++) {
-        this->_randomWrapper.ShuffleVector(trainingData);
+        this->random_.ShuffleVector(trainingData);
         this->ResetSlopes();
 
         // Train the network using offline weight updates - batching
         for (size_t j = 0; j < trainingData->size(); j++) {
             // Run the network forward to get values in the output neurons.
-            this->RunForward(&trainingData->operator[](j)._input);
+            this->RunForward(&trainingData->operator[](j).input);
 
             // Run the network backward to propagate the error values
-            this->RunBackward(&trainingData->operator[](j)._output);
+            this->RunBackward(&trainingData->operator[](j).output);
 
             // Update slopes, but not weights - this is a batching algorithm
             this->UpdateSlopes();
@@ -695,15 +695,15 @@ void NeuralNetwork::TrainOnline(TrainingData* trainingData, size_t epochCount) {
     this->ResetWeightSteps();
 
     for (size_t i = 0; i < epochCount; i++) {
-        this->_randomWrapper.ShuffleVector(trainingData);
+        this->random_.ShuffleVector(trainingData);
 
         // Train the network using online weight updates - no batching
         for (size_t j = 0; j < trainingData->size(); j++) {
             // Run the network forward to get values in the output neurons.
-            this->RunForward(&trainingData->operator[](j)._input);
+            this->RunForward(&trainingData->operator[](j).input);
 
             // Run the network backward to propagate the error values
-            this->RunBackward(&trainingData->operator[](j)._output);
+            this->RunBackward(&trainingData->operator[](j).output);
 
             // Update weights online - no batching
             this->UpdateWeightsOnline();
@@ -735,18 +735,18 @@ void NeuralNetwork::ComputeNeuronValueRange(size_t neuronStartIndex, size_t neur
 
 void NeuralNetwork::ComputeNeuronValue(size_t neuronIndex) {
     Neuron& neuron = this->_neurons[neuronIndex];
-    neuron._field = 0.0;
+    neuron.field = 0.0;
 
     // Sum incoming values.
-    for (size_t i = 0; i < neuron._inputConnectionCount; i++) {
-        size_t inputConnectionIndex = neuron._inputConnectionStartIndex + i;
+    for (size_t i = 0; i < neuron.input_connection_count; i++) {
+        size_t inputConnectionIndex = neuron.input_connection_start_index + i;
         const InputConnection& connection = this->_inputConnections[inputConnectionIndex];
-        const Neuron& fromNeuron = this->_neurons[connection._fromNeuronIndex];
+        const Neuron& fromNeuron = this->_neurons[connection.from_neuron_index];
 
-        neuron._field += fromNeuron._value * this->_weights[inputConnectionIndex];
+        neuron.field += fromNeuron.value * this->_weights[inputConnectionIndex];
     }
 
-    neuron._value = ExecuteActivationFunction(&neuron);
+    neuron.value = ExecuteActivationFunction(&neuron);
 }
 
 void NeuralNetwork::ComputeNeuronError(size_t neuronIndex) {
@@ -754,35 +754,35 @@ void NeuralNetwork::ComputeNeuronError(size_t neuronIndex) {
     double sum = 0.0;
 
     // Sum outgoing errors.
-    for (size_t i = 0; i < neuron._outputConnectionCount; i++) {
-        size_t outputConnectionIndex = neuron._outputConnectionStartIndex + i;
+    for (size_t i = 0; i < neuron.output_connection_count; i++) {
+        size_t outputConnectionIndex = neuron.output_connection_start_index + i;
         const OutputConnection& outputConnection = this->_outputConnections[outputConnectionIndex];
-        const InputConnection& inputConnection = this->_inputConnections[outputConnection._inputConnectionIndex];
-        const Neuron& toNeuron = this->_neurons[inputConnection._toNeuronIndex];
+        const InputConnection& inputConnection = this->_inputConnections[outputConnection.input_connection_index];
+        const Neuron& toNeuron = this->_neurons[inputConnection.to_neuron_index];
 
-        sum += this->_weights[outputConnection._inputConnectionIndex] * toNeuron._error;
+        sum += this->_weights[outputConnection.input_connection_index] * toNeuron.error;
     }
 
-    neuron._error = ExecuteActivationFunctionDerivative(&neuron) * sum;
+    neuron.error = ExecuteActivationFunctionDerivative(&neuron) * sum;
 }
 
 void NeuralNetwork::RunForward(const std::vector<double>* input) {
     assert(this->_isConstructed);
-    assert(input->size() == this->_inputNeuronCount);
+    assert(input->size() == this->input_neuron_count_);
 
     // Feed each input into the corresponding input neuron.
     size_t inputNeuronStartIndex = GetInputNeuronStartIndex();
-    for (size_t i = 0; i < this->_inputNeuronCount; i++) {
-        this->_neurons[inputNeuronStartIndex + i]._value = input->operator[](i);
+    for (size_t i = 0; i < this->input_neuron_count_; i++) {
+        this->_neurons[inputNeuronStartIndex + i].value = input->operator[](i);
     }
 
     // Pull the values from the input layer through the hidden layer neurons.
     size_t hiddenNeuronStartIndex = GetHiddenNeuronStartIndex();
-    this->ComputeNeuronValueRange(hiddenNeuronStartIndex, this->_hiddenNeuronCount);
+    this->ComputeNeuronValueRange(hiddenNeuronStartIndex, this->hidden_neuron_count_);
 
     // Pull values into the output layer.
     size_t outputNeuronStartIndex = GetOutputNeuronStartIndex();
-    this->ComputeNeuronValueRange(outputNeuronStartIndex, this->_outputNeuronCount);
+    this->ComputeNeuronValueRange(outputNeuronStartIndex, this->output_neuron_count_);
 }
 
 double NeuralNetwork::ApplyErrorShaping(double value) {
@@ -800,7 +800,7 @@ double NeuralNetwork::ApplyErrorShaping(double value) {
 
 void NeuralNetwork::RunBackward(const std::vector<double>* output) {
     assert(this->_isConstructed);
-    assert(output->size() == this->_outputNeuronCount);
+    assert(output->size() == this->output_neuron_count_);
 
     this->ResetOutputLayerError();
 
@@ -808,8 +808,8 @@ void NeuralNetwork::RunBackward(const std::vector<double>* output) {
 
     // Calculate error at each hidden layer neuron.
     size_t hiddenNeuronStartIndex = this->GetHiddenNeuronStartIndex();
-    for (size_t i = 0; i < this->_hiddenNeuronCount; i++) {
-        ComputeNeuronError(hiddenNeuronStartIndex + (this->_hiddenNeuronCount - 1 - i));
+    for (size_t i = 0; i < this->hidden_neuron_count_; i++) {
+        ComputeNeuronError(hiddenNeuronStartIndex + (this->hidden_neuron_count_ - 1 - i));
     }
 }
 
@@ -817,7 +817,7 @@ void NeuralNetwork::InitializeWeightsRandom(double min, double max) {
     assert(this->_isConstructed);
 
     for (size_t i = 0; i < this->_weights.size(); i++) {
-        this->_weights[i] = this->_randomWrapper.RandomFloat(min, max);
+        this->_weights[i] = this->random_.RandomFloat(min, max);
     }
 }
 
@@ -829,13 +829,13 @@ void NeuralNetwork::InitializeWeights(const TrainingData* trainingData) {
     double maxInput = std::numeric_limits<double>::min();
 
     std::for_each(trainingData->begin(), trainingData->end(), [&](const Example& ex) {
-        assert(this->GetInputNeuronCount() == ex._input.size());
-        auto minmax = std::minmax_element(ex._input.begin(), ex._input.end());
+        assert(this->GetInputNeuronCount() == ex.input.size());
+        auto minmax = std::minmax_element(ex.input.begin(), ex.input.end());
         minInput = std::min(minInput, *minmax.first);
         maxInput = std::max(maxInput, *minmax.second);
     });
 
-    double factor = pow(0.7 * this->_hiddenNeuronCount, 1.0 / this->_hiddenNeuronCount) / (maxInput - minInput);
+    double factor = pow(0.7 * this->hidden_neuron_count_, 1.0 / this->hidden_neuron_count_) / (maxInput - minInput);
 
     this->InitializeWeightsRandom(-factor, factor);
 }
@@ -845,33 +845,33 @@ bool NeuralNetwork::IsActivationFunctionSymmetric(ActivationFunctionType activat
 }
 
 double NeuralNetwork::ExecuteActivationFunction(Neuron* neuron) {
-    switch (neuron->_activationFunctionType) {
+    switch (neuron->activation_function_type) {
     case ActivationFunctionType::Sigmoid:
-        return ActivationFunction::ExecuteSigmoid(neuron->_field);
+        return ActivationFunction::ExecuteSigmoid(neuron->field);
     case ActivationFunctionType::SigmoidSymmetric:
-        return ActivationFunction::ExecuteSigmoidSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteSigmoidSymmetric(neuron->field);
     case ActivationFunctionType::Gaussian:
-        return ActivationFunction::ExecuteGaussian(neuron->_field);
+        return ActivationFunction::ExecuteGaussian(neuron->field);
     case ActivationFunctionType::GaussianSymmetric:
-        return ActivationFunction::ExecuteGaussianSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteGaussianSymmetric(neuron->field);
     case ActivationFunctionType::Cosine:
-        return ActivationFunction::ExecuteCosine(neuron->_field);
+        return ActivationFunction::ExecuteCosine(neuron->field);
     case ActivationFunctionType::CosineSymmetric:
-        return ActivationFunction::ExecuteCosineSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteCosineSymmetric(neuron->field);
     case ActivationFunctionType::Sine:
-        return ActivationFunction::ExecuteSine(neuron->_field);
+        return ActivationFunction::ExecuteSine(neuron->field);
     case ActivationFunctionType::SineSymmetric:
-        return ActivationFunction::ExecuteSineSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteSineSymmetric(neuron->field);
     case ActivationFunctionType::Elliot:
-        return ActivationFunction::ExecuteElliot(neuron->_field);
+        return ActivationFunction::ExecuteElliot(neuron->field);
     case ActivationFunctionType::ElliotSymmetric:
-        return ActivationFunction::ExecuteElliotSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteElliotSymmetric(neuron->field);
     case ActivationFunctionType::Linear:
-        return ActivationFunction::ExecuteLinear(neuron->_field);
+        return ActivationFunction::ExecuteLinear(neuron->field);
     case ActivationFunctionType::Threshold:
-        return ActivationFunction::ExecuteThreshold(neuron->_field);
+        return ActivationFunction::ExecuteThreshold(neuron->field);
     case ActivationFunctionType::ThresholdSymmetric:
-        return ActivationFunction::ExecuteThresholdSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteThresholdSymmetric(neuron->field);
     default:
         assert(false);
     }
@@ -880,29 +880,29 @@ double NeuralNetwork::ExecuteActivationFunction(Neuron* neuron) {
 }
 
 double NeuralNetwork::ExecuteActivationFunctionDerivative(Neuron* neuron) {
-    switch (neuron->_activationFunctionType) {
+    switch (neuron->activation_function_type) {
     case ActivationFunctionType::Sigmoid:
-        return ActivationFunction::ExecuteDerivativeSigmoid(neuron->_value);
+        return ActivationFunction::ExecuteDerivativeSigmoid(neuron->value);
     case ActivationFunctionType::SigmoidSymmetric:
-        return ActivationFunction::ExecuteDerivativeSigmoidSymmetric(neuron->_value);
+        return ActivationFunction::ExecuteDerivativeSigmoidSymmetric(neuron->value);
     case ActivationFunctionType::Gaussian:
-        return ActivationFunction::ExecuteDerivativeGaussian(neuron->_value, neuron->_field);
+        return ActivationFunction::ExecuteDerivativeGaussian(neuron->value, neuron->field);
     case ActivationFunctionType::GaussianSymmetric:
-        return ActivationFunction::ExecuteDerivativeGaussianSymmetric(neuron->_value, neuron->_field);
+        return ActivationFunction::ExecuteDerivativeGaussianSymmetric(neuron->value, neuron->field);
     case ActivationFunctionType::Cosine:
-        return ActivationFunction::ExecuteDerivativeCosine(neuron->_field);
+        return ActivationFunction::ExecuteDerivativeCosine(neuron->field);
     case ActivationFunctionType::CosineSymmetric:
-        return ActivationFunction::ExecuteDerivativeCosineSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteDerivativeCosineSymmetric(neuron->field);
     case ActivationFunctionType::Sine:
-        return ActivationFunction::ExecuteDerivativeSine(neuron->_field);
+        return ActivationFunction::ExecuteDerivativeSine(neuron->field);
     case ActivationFunctionType::SineSymmetric:
-        return ActivationFunction::ExecuteDerivativeSineSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteDerivativeSineSymmetric(neuron->field);
     case ActivationFunctionType::Elliot:
-        return ActivationFunction::ExecuteDerivativeElliot(neuron->_field);
+        return ActivationFunction::ExecuteDerivativeElliot(neuron->field);
     case ActivationFunctionType::ElliotSymmetric:
-        return ActivationFunction::ExecuteDerivativeElliotSymmetric(neuron->_field);
+        return ActivationFunction::ExecuteDerivativeElliotSymmetric(neuron->field);
     case ActivationFunctionType::Linear:
-        return ActivationFunction::ExecuteDerivativeLinear(neuron->_value);
+        return ActivationFunction::ExecuteDerivativeLinear(neuron->value);
     default:
         assert(false);
     }
@@ -926,8 +926,8 @@ double NeuralNetwork::GetError(const TrainingData* trainingData) {
     this->ResetOutputLayerError();
 
     for (size_t i = 0; i < trainingData->size(); i++) {
-        this->RunForward(&trainingData->operator[](i)._input);
-        this->CalculateOutputLayerError(&trainingData->operator[](i)._output);
+        this->RunForward(&trainingData->operator[](i).input);
+        this->CalculateOutputLayerError(&trainingData->operator[](i).output);
     }
 
     return this->GetError();
@@ -941,9 +941,9 @@ void NeuralNetwork::ResetOutputLayerError() {
 void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>* output) {
     // Calculate error at each output neuron.
     size_t outputNeuronStartIndex = this->GetOutputNeuronStartIndex();
-    for (size_t i = 0; i < this->_outputNeuronCount; i++) {
+    for (size_t i = 0; i < this->output_neuron_count_; i++) {
         Neuron& neuron = this->_neurons[outputNeuronStartIndex + i];
-        double delta = neuron._value - output->operator[](i);
+        double delta = neuron.value - output->operator[](i);
 
         switch (this->_errorCostFunction) {
         case ErrorCostFunction::MeanSquareError:
@@ -956,7 +956,7 @@ void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>* output)
         this->_errorCount++;
 
         /*
-        if (IsActivationFunctionSymmetric(neuron._activationFunctionType)) {
+        if (IsActivationFunctionSymmetric(neuron.activation_function_type)) {
             delta /= 2;
         }
 
@@ -965,7 +965,7 @@ void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>* output)
         }
         */
 
-        neuron._error = ExecuteActivationFunctionDerivative(&neuron) * delta;
+        neuron.error = ExecuteActivationFunctionDerivative(&neuron) * delta;
     }
 }
 
@@ -980,9 +980,9 @@ void NeuralNetwork::SetWeights(std::vector<double>* weights) {
 }
 
 void NeuralNetwork::GetOutput(std::vector<double>* output) {
-    output->resize(this->_outputNeuronCount);
+    output->resize(this->output_neuron_count_);
     size_t firstOutputNeuron = this->GetOutputNeuronStartIndex();
-    for (size_t i = 0; i < this->_outputNeuronCount; i++) {
-        output->operator[](i) = this->_neurons[firstOutputNeuron + i]._value;
+    for (size_t i = 0; i < this->output_neuron_count_; i++) {
+        output->operator[](i) = this->_neurons[firstOutputNeuron + i].value;
     }
 }

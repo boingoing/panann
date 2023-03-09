@@ -100,70 +100,29 @@ public:
 
 protected:
     struct Neuron {
-        size_t _inputConnectionStartIndex;
-        size_t _inputConnectionCount;
-        size_t _outputConnectionStartIndex;
-        size_t _outputConnectionCount;
-        double _field;
-        double _value;
-        double _error;
-        ActivationFunctionType _activationFunctionType;
+        size_t input_connection_start_index;
+        size_t input_connection_count;
+        size_t output_connection_start_index;
+        size_t output_connection_count;
+        double field;
+        double value;
+        double error;
+        ActivationFunctionType activation_function_type;
     };
 
     struct Layer {
-        size_t _neuronStartIndex;
-        size_t _neuronCount;
+        size_t neuron_start_index;
+        size_t neuron_count;
     };
 
     struct InputConnection {
-        size_t _fromNeuronIndex;
-        size_t _toNeuronIndex;
+        size_t from_neuron_index;
+        size_t to_neuron_index;
     };
 
     struct OutputConnection {
-        size_t _inputConnectionIndex;
+        size_t input_connection_index;
     };
-
-    size_t _inputNeuronCount;
-    size_t _outputNeuronCount;
-    size_t _hiddenNeuronCount;
-
-    double _learningRate;
-    double _momentum;
-    double _qpropMu;
-    double _qpropWeightDecay;
-    double _rpropWeightStepInitial;
-    double _rpropWeightStepMin;
-    double _rpropWeightStepMax;
-    double _rpropIncreaseFactor;
-    double _rpropDecreaseFactor;
-    double _sarpropWeightDecayShift;
-    double _sarpropStepThresholdFactor;
-    double _sarpropStepShift;
-    double _sarpropTemperature;
-
-    double _errorSum;
-    double _errorCount;
-
-    std::vector<Neuron> _neurons;
-    std::vector<Layer> _hiddenLayers;
-    std::vector<InputConnection> _inputConnections;
-    std::vector<OutputConnection> _outputConnections;
-    std::vector<double> _weights;
-    std::vector<double> _previousWeightSteps;
-    std::vector<double> _slopes;
-    std::vector<double> _previousSlopes;
-
-    ActivationFunctionType _hiddenNeuronActivationFunctionType;
-    ActivationFunctionType _outputNeuronActivationFunctionType;
-    ErrorCostFunction _errorCostFunction;
-    TrainingAlgorithmType _trainingAlgorithmType;
-
-    bool _shouldShapeErrorCurve;
-    bool _enableShortcutConnections;
-    bool _isConstructed;
-
-    RandomWrapper _randomWrapper;
 
 public:
     NeuralNetwork();
@@ -499,6 +458,74 @@ protected:
     void CalculateOutputLayerError(const std::vector<double>* output);
 
     double GetError();
+
+private:
+    size_t input_neuron_count_ = 0;
+    size_t output_neuron_count_ = 0;
+    size_t hidden_neuron_count_ = 0;
+
+    double _learningRate = 0.7;
+    double _momentum = 0.1;
+    double _qpropMu = 1.75;
+    double _qpropWeightDecay = -0.0001;
+    double _rpropWeightStepInitial = 0.0125;
+    double _rpropWeightStepMin = 0.000001;
+    double _rpropWeightStepMax = 50;
+    double _rpropIncreaseFactor = 1.2;
+    double _rpropDecreaseFactor = 0.5;
+    double _sarpropWeightDecayShift = 0.01;
+    double _sarpropStepThresholdFactor = 0.1;
+    double _sarpropStepShift = 3;
+    double _sarpropTemperature = 0.015;
+
+    double _errorSum;
+    double _errorCount;
+
+    std::vector<Neuron> _neurons;
+    std::vector<Layer> _hiddenLayers;
+    std::vector<InputConnection> _inputConnections;
+    std::vector<OutputConnection> _outputConnections;
+    std::vector<double> _weights;
+    std::vector<double> _previousWeightSteps;
+    std::vector<double> _slopes;
+    std::vector<double> _previousSlopes;
+
+    ActivationFunctionType _hiddenNeuronActivationFunctionType;
+    ActivationFunctionType _outputNeuronActivationFunctionType;
+    ErrorCostFunction _errorCostFunction;
+    TrainingAlgorithmType _trainingAlgorithmType;
+
+    bool _shouldShapeErrorCurve;
+    bool _enableShortcutConnections;
+    bool _isConstructed;
+
+    RandomWrapper random_;
 };
 
 } // namespace panann
+
+    input_neuron_count_(0),
+    output_neuron_count_(0),
+    hidden_neuron_count_(0),
+    _learningRate(0.7),
+    _momentum(0.1),
+    _qpropMu(1.75),
+    _qpropWeightDecay(-0.0001),
+    _rpropWeightStepInitial(0.0125),
+    _rpropWeightStepMin(0.000001),
+    _rpropWeightStepMax(50.0),
+    _rpropIncreaseFactor(1.2),
+    _rpropDecreaseFactor(0.5),
+    _sarpropWeightDecayShift(0.01),
+    _sarpropStepThresholdFactor(0.1),
+    _sarpropStepShift(3),
+    _sarpropTemperature(0.015),
+    _errorSum(0.0),
+    _errorCount(0),
+    _hiddenNeuronActivationFunctionType(ActivationFunctionType::Sigmoid),
+    _outputNeuronActivationFunctionType(ActivationFunctionType::Sigmoid),
+    _errorCostFunction(ErrorCostFunction::MeanSquareError),
+    _trainingAlgorithmType(TrainingAlgorithmType::ResilientBackpropagation),
+    _shouldShapeErrorCurve(true),
+    _enableShortcutConnections(false),
+    _isConstructed(false) {

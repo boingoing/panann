@@ -25,14 +25,14 @@ const char* TrainingAlgorithmNames[] = {
 
 void MakeXorTwoBitTrainingData(TrainingData* trainingData) {
     trainingData->resize(4);
-    trainingData->at(0)._input = { 0.0, 0.0 };
-    trainingData->at(0)._output = { 0.0 };
-    trainingData->at(1)._input = { 1.0, 1.0 };
-    trainingData->at(1)._output = { 0.0 };
-    trainingData->at(2)._input = { 1.0, 0.0 };
-    trainingData->at(2)._output = { 1.0 };
-    trainingData->at(3)._input = { 0.0, 1.0 };
-    trainingData->at(3)._output = { 1.0 };
+    trainingData->at(0).input = { 0.0, 0.0 };
+    trainingData->at(0).output = { 0.0 };
+    trainingData->at(1).input = { 1.0, 1.0 };
+    trainingData->at(1).output = { 0.0 };
+    trainingData->at(2).input = { 1.0, 0.0 };
+    trainingData->at(2).output = { 1.0 };
+    trainingData->at(3).input = { 0.0, 1.0 };
+    trainingData->at(3).output = { 1.0 };
 }
 
 void MakeSineTrainingData(TrainingData* trainingData, size_t steps) {
@@ -51,16 +51,16 @@ void MakeSineTrainingData(TrainingData* trainingData, size_t steps) {
 
 void MakeTestNetwork(NeuralNetwork* nn, TrainingData* trainingData) {
     nn->DisableShortcutConnections();
-    nn->SetInputNeuronCount(trainingData->at(0)._input.size());
-    nn->SetOutputNeuronCount(trainingData->at(0)._output.size());
+    nn->SetInputNeuronCount(trainingData->at(0).input.size());
+    nn->SetOutputNeuronCount(trainingData->at(0).output.size());
     nn->AddHiddenLayer(5);
     nn->AddHiddenLayer(5);
     nn->Construct();
 }
 
 void MakeTestNetwork(RecurrentNeuralNetwork* rnn, TrainingData* trainingData) {
-    rnn->SetInputNeuronCount(trainingData->at(0)._input.size());
-    rnn->SetOutputNeuronCount(trainingData->at(0)._output.size());
+    rnn->SetInputNeuronCount(trainingData->at(0).input.size());
+    rnn->SetOutputNeuronCount(trainingData->at(0).output.size());
     rnn->AddHiddenLayer(5);
     rnn->SetCellMemorySize(5);
     rnn->Construct();
@@ -99,16 +99,16 @@ int main(int argc, const char** argv) {
     MakeTestNetwork(&rnn, &trainingData);
     rnn.InitializeWeightsRandom(-1.0, 1.0);
 
-    rnn.RunForward(&trainingData[0]._input);
-    double e1 = rnn.GetError(&trainingData[0]._output);
-    rnn.RunForward(&trainingData[0]._input);
-    double e2 = rnn.GetError(&trainingData[0]._output);
-    rnn.RunForward(&trainingData[0]._input);
-    double e3 = rnn.GetError(&trainingData[0]._output);
-    rnn.RunForward(&trainingData[0]._input);
-    double e4 = rnn.GetError(&trainingData[0]._output);
-    rnn.RunForward(&trainingData[0]._input);
-    double e5 = rnn.GetError(&trainingData[0]._output);
+    rnn.RunForward(&trainingData[0].input);
+    double e1 = rnn.GetError(&trainingData[0].output);
+    rnn.RunForward(&trainingData[0].input);
+    double e2 = rnn.GetError(&trainingData[0].output);
+    rnn.RunForward(&trainingData[0].input);
+    double e3 = rnn.GetError(&trainingData[0].output);
+    rnn.RunForward(&trainingData[0].input);
+    double e4 = rnn.GetError(&trainingData[0].output);
+    rnn.RunForward(&trainingData[0].input);
+    double e5 = rnn.GetError(&trainingData[0].output);
 
     MakeXorTwoBitTrainingData(&trainingData);
 

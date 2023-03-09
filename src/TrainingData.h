@@ -3,21 +3,22 @@
 // Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
 //-------------------------------------------------------------------------------------------------------
 
-#pragma once
+#ifndef TRAININGDATA_H__
+#define TRAININGDATA_H__
 
 #include <vector>
 #include <cstdint>
 
 namespace panann {
 
-/**
- * An example used to train a neural network.<br/>
- * Feeding the input values into a network and running forward should produce the output.
- */
-struct Example {
-    std::vector<double> _input;
-    std::vector<double> _output;
-};
+    /**
+     * An example used to train a neural network.<br/>
+     * Feeding the input values into a network and running forward should produce the output.
+     */
+    struct Example {
+        std::vector<double> input;
+        std::vector<double> output;
+    };
 
 /**
  * The TrainingData is just a set of Examples with some utility functions for scaling that data.<br/>
@@ -33,7 +34,7 @@ public:
 
         /**
          * Scale the Examples by calculating a simple factor which will shift the values in the
-         * Examples into the range [_simpleScalingNewMin, _simpleScalingNewMax] (which is [-1,1]
+         * Examples into the range [simple_scaling_new_min_, simple_scaling_new_max_] (which is [-1,1]
          * by default).
          * @see SetSimpleScalingNewMin
          * @see SetSimpleScalingNewMax
@@ -55,7 +56,10 @@ public:
         UniformNorm
     };
 
-    TrainingData();
+    TrainingData() = default;
+    TrainingData(const TrainingData&) = delete;
+    TrainingData& operator=(const TrainingData&) = delete;
+    ~TrainingData() = default;
 
     /**
      * Set the algorithm used to scale Examples in this TrainingData via Scale().<br/>
@@ -69,7 +73,7 @@ public:
     /**
      * Set the new minimum value used by the simple scaling algorithm.<br/>
      * When using simple scaling, Examples will be scaled to the range
-     * [_simpleScalingNewMin, _simpleScalingNewMax].<br/>
+     * [simple_scaling_new_min_, simple_scaling_new_max_].<br/>
      * By default, this range is [-1, 1].
      * @see SetSimpleScalingNewMax
      */
@@ -79,7 +83,7 @@ public:
     /**
      * Set the new maximum value used by the simple scaling algorithm.<br/>
      * When using simple scaling, Examples will be scaled to the range
-     * [_simpleScalingNewMin, _simpleScalingNewMax].<br/>
+     * [simple_scaling_new_min_, simple_scaling_new_max_].<br/>
      * By default, this range is [-1, 1].
      * @see SetSimpleScalingNewMin
      */
@@ -163,26 +167,6 @@ public:
     void FromSequentialData(std::vector<double>* data, size_t inputLength);
 
 protected:
-    TrainingData(const TrainingData&);
-
-    ScalingAlgorithm _scalingAlgorithm;
-    double _simpleScalingNewMin;
-    double _simpleScalingNewMax;
-    double _inputOldMin;
-    double _inputOldMax;
-    double _outputOldMin;
-    double _outputOldMax;
-    double _inputFactor;
-    double _outputFactor;
-    double _inputMean;
-    double _inputStandardDeviation;
-    double _outputMean;
-    double _outputStandardDeviation;
-    double _standardDeviationMultiplier;
-    double _inputUniformNorm;
-    double _outputUniformNorm;
-    double _uniformNormMultiplier;
-
     void CalculateMinMax();
     void CalculateMean();
     void CalculateStdev();
@@ -195,6 +179,27 @@ protected:
     void DescaleSimple();
     void DescaleStandardDeviation();
     void DescaleUniformNorm();
+
+private:
+    ScalingAlgorithm scaling_algorithm_ = ScalingAlgorithm::Simple;
+    double simple_scaling_new_min_ = -1.0;
+    double simple_scaling_new_max_ = 1.0;
+    double input_old_min_ = 0;
+    double input_old_max_ = 0;
+    double output_old_min_ = 0;
+    double output_old_max_ = 0;
+    double input_factor_ = 0;
+    double output_factor_ = 0;
+    double input_mean_ = 0;
+    double input_standard_deviation_ = 0;
+    double output_mean_ = 0;
+    double output_standard_deviation_ = 0;
+    double standard_deviation_multiplier_ = 2.5;
+    double input_uniform_norm_ = 0;
+    double output_uniform_norm_ = 0;
+    double uniform_norm_multiplier_ = 1.0;
 };
 
 } // namespace panann
+
+#endif  // TRAININGDATA_H__
