@@ -478,8 +478,8 @@ private:
     double _sarpropStepShift = 3;
     double _sarpropTemperature = 0.015;
 
-    double _errorSum;
-    double _errorCount;
+    double _errorSum = 0;
+    double _errorCount = 0;
 
     std::vector<Neuron> _neurons;
     std::vector<Layer> _hiddenLayers;
@@ -490,42 +490,16 @@ private:
     std::vector<double> _slopes;
     std::vector<double> _previousSlopes;
 
-    ActivationFunctionType _hiddenNeuronActivationFunctionType;
-    ActivationFunctionType _outputNeuronActivationFunctionType;
-    ErrorCostFunction _errorCostFunction;
-    TrainingAlgorithmType _trainingAlgorithmType;
+    ActivationFunctionType _hiddenNeuronActivationFunctionType = ActivationFunctionType::Sigmoid;
+    ActivationFunctionType _outputNeuronActivationFunctionType = ActivationFunctionType::Sigmoid;
+    ErrorCostFunction _errorCostFunction = ErrorCostFunction::MeanSquareError;
+    TrainingAlgorithmType _trainingAlgorithmType = TrainingAlgorithmType::ResilientBackpropagation;
 
-    bool _shouldShapeErrorCurve;
-    bool _enableShortcutConnections;
-    bool _isConstructed;
+    bool _shouldShapeErrorCurve = true;
+    bool _enableShortcutConnections = false;
+    bool _isConstructed = false;
 
     RandomWrapper random_;
 };
 
 } // namespace panann
-
-    input_neuron_count_(0),
-    output_neuron_count_(0),
-    hidden_neuron_count_(0),
-    _learningRate(0.7),
-    _momentum(0.1),
-    _qpropMu(1.75),
-    _qpropWeightDecay(-0.0001),
-    _rpropWeightStepInitial(0.0125),
-    _rpropWeightStepMin(0.000001),
-    _rpropWeightStepMax(50.0),
-    _rpropIncreaseFactor(1.2),
-    _rpropDecreaseFactor(0.5),
-    _sarpropWeightDecayShift(0.01),
-    _sarpropStepThresholdFactor(0.1),
-    _sarpropStepShift(3),
-    _sarpropTemperature(0.015),
-    _errorSum(0.0),
-    _errorCount(0),
-    _hiddenNeuronActivationFunctionType(ActivationFunctionType::Sigmoid),
-    _outputNeuronActivationFunctionType(ActivationFunctionType::Sigmoid),
-    _errorCostFunction(ErrorCostFunction::MeanSquareError),
-    _trainingAlgorithmType(TrainingAlgorithmType::ResilientBackpropagation),
-    _shouldShapeErrorCurve(true),
-    _enableShortcutConnections(false),
-    _isConstructed(false) {
