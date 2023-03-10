@@ -355,8 +355,8 @@ void NeuralNetwork::Allocate() {
 }
 
 void NeuralNetwork::ConnectNeurons(size_t from_neuron_index, size_t to_neuron_index) {
-    Neuron& from_neuron = neurons_[from_neuron_index];
-    Neuron& to_neuron = neurons_[to_neuron_index];
+    auto& from_neuron = neurons_[from_neuron_index];
+    auto& to_neuron = neurons_[to_neuron_index];
 
     const size_t input_connection_index = to_neuron.input_connection_start_index + to_neuron.input_connection_count;
     auto& input_connection = input_connections_[input_connection_index];
