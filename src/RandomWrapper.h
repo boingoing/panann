@@ -71,6 +71,6 @@ class RandomWrapper {
   std::optional<std::mt19937> engine_;
 };
 
-}  // namespace panga
+}  // namespace panann
 
 #endif  // RANDOMWRAPPER_H__

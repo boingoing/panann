@@ -314,7 +314,7 @@ public:
     void SetOutputNeuronActivationFunctionType(ActivationFunctionType type);
     ActivationFunctionType GetOutputNeuronActivationFunctionType() const;
 
-    void SetNeuronActivationFunction(size_t neuronIndex, ActivationFunctionType type);
+    void SetNeuronActivationFunction(size_t neuron_index, ActivationFunctionType type);
 
     /**
      * Build the network topology.<br/>
@@ -345,15 +345,15 @@ public:
      * Execute the above once for each epoch.<br/>
      * The actual method by which we will update the weights depends on the
      * training algorithm chosen.
-     * @param trainingData Examples on which we will train the network.<br/>
-     * Note: Shuffles the order of examples in trainingData.
-     * @param epochCount The number of epochs we should execute to train the
+     * @param training_data Examples on which we will train the network.<br/>
+     * Note: Shuffles the order of examples in training_data.
+     * @param epoch_count The number of epochs we should execute to train the
      * network. One epoch is one full step through all of the training examples.
      * @see SetTrainingAlgorithmType
      * @see TrainingAlgorithmType
      * @see TrainingData
      */
-    void Train(TrainingData* trainingData, size_t epochCount);
+    void Train(TrainingData* training_data, size_t epoch_count);
 
     /**
      * Run the network forward on a set of inputs.<br/>
@@ -365,7 +365,7 @@ public:
      * @param input Must have the same number of elements as this network has input
      * neurons.
      */
-    virtual void RunForward(const std::vector<double>* input);
+    virtual void RunForward(const std::vector<double>& input);
 
     /**
      * Compute the error attributed to each neuron in the network.<br/>
@@ -376,7 +376,7 @@ public:
      * @param output Must have the same number of elements as this network has output
      * neurons.
      */
-    void RunBackward(const std::vector<double>* output);
+    void RunBackward(const std::vector<double>& output);
 
     /**
      * Get the total network error by calculating the average of the difference between each
@@ -389,7 +389,7 @@ public:
      * @see ErrorCostFunction
      * @see SetErrorCostFunction
      */
-    double GetError(const std::vector<double>* output);
+    double GetError(const std::vector<double>& output);
 
     /**
      * Get the total network error against a set of examples.<br/>
@@ -401,7 +401,7 @@ public:
      * @see ErrorCostFunction
      * @see SetErrorCostFunction
      */
-    double GetError(const TrainingData* trainingData);
+    double GetError(const TrainingData& training_data);
 
     /**
      * Get a writable vector containing all the weight values for the network.
@@ -413,7 +413,7 @@ public:
      * The weight values will be copied from the provided vector which must contain exactly the number
      * of values for which this network has weights.
      */
-    void SetWeights(std::vector<double>& weights);
+    void SetWeights(const std::vector<double>& weights);
 
     /**
      * Writes all of the output neuron values into |output|.<br/>
@@ -452,11 +452,11 @@ protected:
     void ResetWeightSteps();
     void ResetSlopes();
     void ResetPreviousSlopes();
-    void TrainOffline(TrainingData* trainingData, size_t epochCount);
-    void TrainOnline(TrainingData* trainingData, size_t epochCount);
+    void TrainOffline(TrainingData* training_data, size_t epoch_count);
+    void TrainOnline(TrainingData* training_data, size_t epoch_count);
 
     void ResetOutputLayerError();
-    void CalculateOutputLayerError(const std::vector<double>* output);
+    void CalculateOutputLayerError(const std::vector<double>& output);
 
     double GetError() const;
 

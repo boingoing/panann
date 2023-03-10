@@ -62,24 +62,24 @@ double NeuralNetwork::GetQpropWeightDecay() const {
     return qprop_weight_decay_;
 }
 
-void NeuralNetwork::SetRpropWeightStepInitial(double weightStep) {
-    rprop_weight_step_initial_ = weightStep;
+void NeuralNetwork::SetRpropWeightStepInitial(double weight_step) {
+    rprop_weight_step_initial_ = weight_step;
 }
 
 double NeuralNetwork::GetRpropWeightStepInitial() const {
     return rprop_weight_step_initial_;
 }
 
-void NeuralNetwork::SetRpropWeightStepMin(double weightStep) {
-    rprop_weight_step_min_ = weightStep;
+void NeuralNetwork::SetRpropWeightStepMin(double weight_step) {
+    rprop_weight_step_min_ = weight_step;
 }
 
 double NeuralNetwork::GetRpropWeightStepMin() const {
     return rprop_weight_step_min_;
 }
 
-void NeuralNetwork::SetRpropWeightStepMax(double weightStep) {
-    rprop_weight_step_max_ = weightStep;
+void NeuralNetwork::SetRpropWeightStepMax(double weight_step) {
+    rprop_weight_step_max_ = weight_step;
 }
 
 double NeuralNetwork::GetRpropWeightStepMax() const {
@@ -170,10 +170,10 @@ NeuralNetwork::ActivationFunctionType NeuralNetwork::GetOutputNeuronActivationFu
     return output_neuron_activation_function_type_;
 }
 
-void NeuralNetwork::SetNeuronActivationFunction(size_t neuronIndex, ActivationFunctionType type) {
+void NeuralNetwork::SetNeuronActivationFunction(size_t neuron_index, ActivationFunctionType type) {
     assert(is_constructed_);
-    assert(neuronIndex < neurons_.size());
-    neurons_[neuronIndex].activation_function_type = type;
+    assert(neuron_index < neurons_.size());
+    neurons_[neuron_index].activation_function_type = type;
 }
 
 void NeuralNetwork::SetErrorCostFunction(ErrorCostFunction mode) {
@@ -222,7 +222,7 @@ void NeuralNetwork::Allocate() {
 
     // Total count of neurons is all the input, output, and hidden neurons.
     // The input layer and hidden layers also contribute one bias neuron each.
-    size_t neuron_count =
+    const size_t neuron_count =
         input_neuron_count_ + 1 +
         output_neuron_count_ +
         hidden_neuron_count_ + hidden_layers_.size();
@@ -232,462 +232,476 @@ void NeuralNetwork::Allocate() {
     size_t bias_neuron_index = GetBiasNeuronStartIndex();
     size_t input_connection_index = 0;
     size_t output_connection_index = 0;
-    size_t currentLayerInputConnectionCount = 0;
-    size_t currentLayerOutputConnectionCount = 0;
+    size_t current_layer_input_connection_count = 0;
+    size_t current_layer_output_connection_count = 0;
 
     // Calculate the connections outgoing from the input layer.
-    if (this->enable_shortcut_connections_) {
+    if (enable_shortcut_connections_) {
         // The input layer connects to all hidden layers and the output layer.
-        currentLayerOutputConnectionCount = this->hidden_neuron_count_ + this->output_neuron_count_;
+        current_layer_output_connection_count = hidden_neuron_count_ + output_neuron_count_;
     } else {
         // The input layer connects only to the first hidden layer.
-        currentLayerOutputConnectionCount = this->hidden_layers_.front().neuron_count;
+        current_layer_output_connection_count = hidden_layers_.front().neuron_count;
     }
 
-    size_t inputNeuronIndex = this->GetInputNeuronStartIndex();
-    for (size_t i = 0; i < this->input_neuron_count_; i++) {
-        Neuron& neuron = this->neurons_[inputNeuronIndex + i];
+    // Set the output connection indices into the input neurons.
+    std::for_each(neurons_.begin() + GetInputNeuronStartIndex(), neurons_.begin() + GetInputNeuronStartIndex() + input_neuron_count_, [&](auto& neuron){
+        // |neuron| has |current_layer_output_connection_count| output connections beginning at |output_connection_index|.
         neuron.output_connection_start_index = output_connection_index;
-        output_connection_index += currentLayerOutputConnectionCount;
-    }
+        // The next free output connection begins where the set of output connections for the current neuron end.
+        // Increment our index by that count.
+        output_connection_index += current_layer_output_connection_count;
+    });
 
     // The first bias neuron is the one for the input layer.
-    Neuron& biasNeuronInput = this->neurons_[bias_neuron_index++];
-    biasNeuronInput.output_connection_start_index = output_connection_index;
-    biasNeuronInput.value = 1.0;
-    output_connection_index += this->hidden_layers_.front().neuron_count;
+    // It has output connections to each hidden neuron.
+    Neuron& bias_neuron_input = neurons_[bias_neuron_index++];
+    bias_neuron_input.output_connection_start_index = output_connection_index;
+    // TODO(boingoing): Should we set the bias neuron values someplace else?
+    bias_neuron_input.value = 1.0;
+    output_connection_index += hidden_layers_.front().neuron_count;
 
     // Calculate the connections incoming to the output layer.
-    if (this->enable_shortcut_connections_) {
+    if (enable_shortcut_connections_) {
         // All input and hidden neurons are connected to each output neuron.
-        currentLayerInputConnectionCount = this->input_neuron_count_ + this->hidden_neuron_count_ + 1;
+        current_layer_input_connection_count = input_neuron_count_ + hidden_neuron_count_ + 1;
     } else {
         // Output neurons are connected only to the last hidden layer.
-        currentLayerInputConnectionCount = this->hidden_layers_.back().neuron_count + 1;
+        current_layer_input_connection_count = hidden_layers_.back().neuron_count + 1;
     }
 
-    size_t firstOutputNeuronIndex = this->GetOutputNeuronStartIndex();
-    for (size_t i = 0; i < this->output_neuron_count_; i++) {
-        Neuron& neuron = this->neurons_[firstOutputNeuronIndex + i];
+    // Set the input connection indices into the output neurons.
+    std::for_each(neurons_.begin() + GetOutputNeuronStartIndex(), neurons_.begin() + GetOutputNeuronStartIndex() + output_neuron_count_, [&](auto& neuron){
         neuron.input_connection_start_index = input_connection_index;
-        neuron.activation_function_type = this->output_neuron_activation_function_type_;
-        input_connection_index += currentLayerInputConnectionCount;
-    }
+        // TODO(boingoing): Should we set the activation function type elsewhere?
+        neuron.activation_function_type = output_neuron_activation_function_type_;
+        input_connection_index += current_layer_input_connection_count;
+    });
 
-    size_t neuronIndex = this->GetHiddenNeuronStartIndex();
+    size_t neuron_index = GetHiddenNeuronStartIndex();
 
     // Calculate the connections to and from all hidden layers.
-    for (size_t layerIndex = 0; layerIndex < this->hidden_layers_.size(); layerIndex++) {
-        currentLayerInputConnectionCount = 0;
-        currentLayerOutputConnectionCount = 0;
+    for (size_t layer_index = 0; layer_index < hidden_layers_.size(); layer_index++) {
+        current_layer_input_connection_count = 0;
+        current_layer_output_connection_count = 0;
 
-        if (this->enable_shortcut_connections_) {
+        if (enable_shortcut_connections_) {
             // All hidden layers connect to the input layer when shortcuts are enabled.
-            currentLayerInputConnectionCount += this->input_neuron_count_ + 1;
+            current_layer_input_connection_count += input_neuron_count_ + 1;
 
             // Each neuron in this layer connects to the neurons in all previous hidden layers.
-            for (size_t previousLayerIndex = 0; previousLayerIndex < layerIndex; previousLayerIndex++) {
-                currentLayerInputConnectionCount += this->hidden_layers_[previousLayerIndex].neuron_count + 1;
+            for (size_t previous_layer_index = 0; previous_layer_index < layer_index; previous_layer_index++) {
+                current_layer_input_connection_count += hidden_layers_[previous_layer_index].neuron_count + 1;
             }
 
             // All hidden layers connect directly to the output layer when shortcuts are enabled.
-            currentLayerOutputConnectionCount += this->output_neuron_count_;
+            current_layer_output_connection_count += output_neuron_count_;
 
             // This layer connects to all neurons in subsequent hidden layers.
-            for (size_t nextLayerIndex = layerIndex + 1; nextLayerIndex < this->hidden_layers_.size(); nextLayerIndex++) {
-                currentLayerOutputConnectionCount += this->hidden_layers_[nextLayerIndex].neuron_count;
+            for (size_t next_layer_index = layer_index + 1; next_layer_index < hidden_layers_.size(); next_layer_index++) {
+                current_layer_output_connection_count += hidden_layers_[next_layer_index].neuron_count;
             }
         } else {
-            if (layerIndex == 0) {
+            if (layer_index == 0) {
                 // First hidden layer connects to the input layer.
-                currentLayerInputConnectionCount += this->input_neuron_count_ + 1;
+                current_layer_input_connection_count += input_neuron_count_ + 1;
             } else {
                 // This hidden layer connects directly the previous one.
-                currentLayerInputConnectionCount += this->hidden_layers_[layerIndex - 1].neuron_count + 1;
+                current_layer_input_connection_count += hidden_layers_[layer_index - 1].neuron_count + 1;
             }
 
-            if (layerIndex == this->hidden_layers_.size() - 1) {
+            if (layer_index == hidden_layers_.size() - 1) {
                 // Last hidden layer connects to the output layer.
-                currentLayerOutputConnectionCount += this->output_neuron_count_;
+                current_layer_output_connection_count += output_neuron_count_;
             } else {
-                assert(layerIndex + 1 < this->hidden_layers_.size());
+                assert(layer_index + 1 < hidden_layers_.size());
 
                 // This hidden layer connects directly to the next one.
-                currentLayerOutputConnectionCount += this->hidden_layers_[layerIndex + 1].neuron_count;
+                current_layer_output_connection_count += hidden_layers_[layer_index + 1].neuron_count;
             }
         }
 
-        const Layer& currentLayer = this->hidden_layers_[layerIndex];
-        for (size_t i = 0; i < currentLayer.neuron_count; i++) {
-            Neuron& neuron = this->neurons_[neuronIndex++];
+        const Layer& current_layer = hidden_layers_[layer_index];
+        for (size_t i = 0; i < current_layer.neuron_count; i++) {
+            Neuron& neuron = neurons_[neuron_index++];
             neuron.input_connection_start_index = input_connection_index;
             neuron.output_connection_start_index = output_connection_index;
-            neuron.activation_function_type = this->hidden_neuron_activation_function_type_;
+            neuron.activation_function_type = hidden_neuron_activation_function_type_;
 
-            input_connection_index += currentLayerInputConnectionCount;
-            output_connection_index += currentLayerOutputConnectionCount;
+            input_connection_index += current_layer_input_connection_count;
+            output_connection_index += current_layer_output_connection_count;
         }
 
         // Bias neurons cannot have shortcut connections.
-        size_t biasOutputConnections = 0;
-        if (layerIndex == this->hidden_layers_.size() - 1) {
+        size_t bias_output_connection_count = 0;
+        if (layer_index == hidden_layers_.size() - 1) {
             // Bias neuron in the last hidden layer connects to the output layer.
-            biasOutputConnections = this->output_neuron_count_;
+            bias_output_connection_count = output_neuron_count_;
         } else {
             // Bias neuron in this hidden layer connects to the next hidden layer.
-            biasOutputConnections = this->hidden_layers_[layerIndex + 1].neuron_count;
+            bias_output_connection_count = hidden_layers_[layer_index + 1].neuron_count;
         }
 
         // Bias neurons do not have incoming connections.
-        Neuron& biasNeuron = this->neurons_[bias_neuron_index++];
-        biasNeuron.output_connection_start_index = output_connection_index;
-        biasNeuron.value = 1.0;
-        output_connection_index += biasOutputConnections;
+        Neuron& bias_neuron = neurons_[bias_neuron_index++];
+        bias_neuron.output_connection_start_index = output_connection_index;
+        bias_neuron.value = 1.0;
+        output_connection_index += bias_output_connection_count;
     }
 
-    this->input_connections_.resize(input_connection_index);
-    this->output_connections_.resize(output_connection_index);
-    this->weights_.resize(input_connection_index);
+    input_connections_.resize(input_connection_index);
+    output_connections_.resize(output_connection_index);
+    weights_.resize(input_connection_index);
 }
 
-void NeuralNetwork::ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex) {
-    Neuron& fromNeuron = this->neurons_[fromNeuronIndex];
-    Neuron& toNeuron = this->neurons_[toNeuronIndex];
+void NeuralNetwork::ConnectNeurons(size_t from_neuron_index, size_t to_neuron_index) {
+    Neuron& from_neuron = neurons_[from_neuron_index];
+    Neuron& to_neuron = neurons_[to_neuron_index];
 
-    size_t input_connection_index = toNeuron.input_connection_start_index + toNeuron.input_connection_count;
-    InputConnection& inputConnection = this->input_connections_.at(input_connection_index);
-    inputConnection.from_neuron_index = fromNeuronIndex;
-    inputConnection.to_neuron_index = toNeuronIndex;
-    toNeuron.input_connection_count++;
+    const size_t input_connection_index = to_neuron.input_connection_start_index + to_neuron.input_connection_count;
+    auto& input_connection = input_connections_[input_connection_index];
+    input_connection.from_neuron_index = from_neuron_index;
+    input_connection.to_neuron_index = to_neuron_index;
+    to_neuron.input_connection_count++;
 
-    size_t output_connection_index = fromNeuron.output_connection_start_index + fromNeuron.output_connection_count;
-    OutputConnection& outputConnection = this->output_connections_.at(output_connection_index);
-    outputConnection.input_connection_index = input_connection_index;
-    fromNeuron.output_connection_count++;
+    const size_t output_connection_index = from_neuron.output_connection_start_index + from_neuron.output_connection_count;
+    auto& output_connection = output_connections_[output_connection_index];
+    output_connection.input_connection_index = input_connection_index;
+    from_neuron.output_connection_count++;
 }
 
-void NeuralNetwork::ConnectLayerToNeuron(size_t fromNeuronIndex, size_t fromNeuronCount, size_t toNeuronIndex) {
-    for (size_t i = 0; i < fromNeuronCount; i++) {
-        ConnectNeurons(fromNeuronIndex + i, toNeuronIndex);
-    }
-}
-
-void NeuralNetwork::ConnectLayers(size_t fromNeuronIndex, size_t fromNeuronCount, size_t toNeuronIndex, size_t toNeuronCount) {
-    for (size_t i = 0; i < toNeuronCount; i++) {
-        ConnectLayerToNeuron(fromNeuronIndex, fromNeuronCount, toNeuronIndex + i);
+void NeuralNetwork::ConnectLayerToNeuron(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index) {
+    for (size_t i = 0; i < from_neuron_count; i++) {
+        ConnectNeurons(from_neuron_index + i, to_neuron_index);
     }
 }
 
-void NeuralNetwork::ConnectBiasNeuron(size_t bias_neuron_index, size_t toNeuronIndex, size_t toNeuronCount) {
-    ConnectLayers(bias_neuron_index, 1, toNeuronIndex, toNeuronCount);
+void NeuralNetwork::ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count) {
+    for (size_t i = 0; i < to_neuron_count; i++) {
+        ConnectLayerToNeuron(from_neuron_index, from_neuron_count, to_neuron_index + i);
+    }
+}
+
+void NeuralNetwork::ConnectBiasNeuron(size_t bias_neuron_index, size_t to_neuron_index, size_t to_neuron_count) {
+    ConnectLayers(bias_neuron_index, 1, to_neuron_index, to_neuron_count);
 }
 
 void NeuralNetwork::ConnectFully() {
-    assert(!this->is_constructed_);
-    assert(!this->hidden_layers_.empty());
+    assert(!is_constructed_);
+    assert(!hidden_layers_.empty());
 
-    size_t inputNeuronStartIndex = this->GetInputNeuronStartIndex();
-    size_t bias_neuron_index = this->GetBiasNeuronStartIndex();
+    const size_t input_neuron_start_index = GetInputNeuronStartIndex();
+    size_t bias_neuron_index = GetBiasNeuronStartIndex();
 
-    for (size_t layerIndex = 0; layerIndex < this->hidden_layers_.size(); layerIndex++) {
-        const Layer& currentLayer = this->hidden_layers_[layerIndex];
+    for (auto iter = hidden_layers_.cbegin(); iter != hidden_layers_.cend(); iter++) {
+        const auto& current_layer = *iter;
 
-        if (this->enable_shortcut_connections_) {
+        if (enable_shortcut_connections_) {
             // Connect to input layer.
-            ConnectLayers(inputNeuronStartIndex,
-                          this->input_neuron_count_,
-                          currentLayer.neuron_start_index,
-                          currentLayer.neuron_count);
+            ConnectLayers(input_neuron_start_index,
+                          input_neuron_count_,
+                          current_layer.neuron_start_index,
+                          current_layer.neuron_count);
 
             // Connect to all previous hidden layers.
-            for (size_t previousLayerIndex = 0; previousLayerIndex < layerIndex; previousLayerIndex++) {
-                const Layer& previousLayer = this->hidden_layers_[previousLayerIndex];
-                ConnectLayers(previousLayer.neuron_start_index,
-                              previousLayer.neuron_count,
-                              currentLayer.neuron_start_index,
-                              currentLayer.neuron_count);
+            for (auto prev_iter = hidden_layers_.cbegin(); prev_iter != iter; prev_iter++) {
+                const auto& previous_layer = *prev_iter;
+                ConnectLayers(previous_layer.neuron_start_index,
+                              previous_layer.neuron_count,
+                              current_layer.neuron_start_index,
+                              current_layer.neuron_count);
             }
         } else {
-            if (layerIndex == 0) {
+            if (iter == hidden_layers_.cbegin()) {
                 // Connect first hidden layer to input layer.
-                ConnectLayers(inputNeuronStartIndex,
-                              this->input_neuron_count_,
-                              currentLayer.neuron_start_index,
-                              currentLayer.neuron_count);
+                ConnectLayers(input_neuron_start_index,
+                              input_neuron_count_,
+                              current_layer.neuron_start_index,
+                              current_layer.neuron_count);
             } else {
                 // Connect to previous hidden layer.
-                const Layer& previousLayer = this->hidden_layers_[layerIndex - 1];
-                ConnectLayers(previousLayer.neuron_start_index,
-                              previousLayer.neuron_count,
-                              currentLayer.neuron_start_index,
-                              currentLayer.neuron_count);
+                const auto& previous_layer = *(iter-1);
+                ConnectLayers(previous_layer.neuron_start_index,
+                              previous_layer.neuron_count,
+                              current_layer.neuron_start_index,
+                              current_layer.neuron_count);
             }
         }
 
         // Bias neurons do not have shortcut connections.
         // Just connect this layer to the bias neuron in the layer before it.
-        ConnectBiasNeuron(bias_neuron_index++, currentLayer.neuron_start_index, currentLayer.neuron_count);
+        ConnectBiasNeuron(bias_neuron_index++, current_layer.neuron_start_index, current_layer.neuron_count);
     }
 
-    size_t outputNeuronStartIndex = this->GetOutputNeuronStartIndex();
-    if (this->enable_shortcut_connections_) {
+    const size_t output_neuron_start_index = GetOutputNeuronStartIndex();
+    if (enable_shortcut_connections_) {
         // Connect input layer to output layer.
-        ConnectLayers(inputNeuronStartIndex,
-                      this->input_neuron_count_,
-                      outputNeuronStartIndex,
-                      this->output_neuron_count_);
+        ConnectLayers(input_neuron_start_index,
+                      input_neuron_count_,
+                      output_neuron_start_index,
+                      output_neuron_count_);
 
         // Connect all hidden layers to output layer.
-        for (size_t i = 0; i < this->hidden_layers_.size(); i++) {
-            const Layer& layer = this->hidden_layers_[i];
+        for (const auto& layer : hidden_layers_) {
             ConnectLayers(layer.neuron_start_index,
                           layer.neuron_count,
-                          outputNeuronStartIndex,
-                          this->output_neuron_count_);
+                          output_neuron_start_index,
+                          output_neuron_count_);
         }
     } else {
-        const Layer& previousLayer = this->hidden_layers_.back();
+        const Layer& previous_layer = hidden_layers_.back();
         // Connect output layer to the last hidden layer.
-        ConnectLayers(previousLayer.neuron_start_index,
-                      previousLayer.neuron_count,
-                      outputNeuronStartIndex,
-                      this->output_neuron_count_);
+        ConnectLayers(previous_layer.neuron_start_index,
+                      previous_layer.neuron_count,
+                      output_neuron_start_index,
+                      output_neuron_count_);
     }
 
     // Connect output layer to the bias neuron in the last hidden layer.
-    ConnectBiasNeuron(bias_neuron_index, outputNeuronStartIndex, this->output_neuron_count_);
+    ConnectBiasNeuron(bias_neuron_index, output_neuron_start_index, output_neuron_count_);
 }
 
 void NeuralNetwork::Construct() {
-    assert(!this->is_constructed_);
+    assert(!is_constructed_);
 
-    this->Allocate();
-    this->ConnectFully();
+    Allocate();
+    ConnectFully();
 
-    this->is_constructed_ = true;
+    is_constructed_ = true;
 }
 
 void NeuralNetwork::ResetWeightSteps() {
-    double initialWeightStep =
-        (this->training_algorithm_type_ == TrainingAlgorithmType::ResilientBackpropagation ||
-         this->training_algorithm_type_ == TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation) ?
-        this->rprop_weight_step_initial_ :
+    const double initial_weight_step =
+        (training_algorithm_type_ == TrainingAlgorithmType::ResilientBackpropagation ||
+         training_algorithm_type_ == TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation) ?
+        rprop_weight_step_initial_ :
         0;
 
-    this->previous_weight_steps_.resize(this->weights_.size());
-    std::fill(this->previous_weight_steps_.begin(), this->previous_weight_steps_.end(), initialWeightStep);
+    previous_weight_steps_.assign(weights_.size(), initial_weight_step);
 }
 
 void NeuralNetwork::ResetSlopes() {
-    this->slopes_.resize(this->weights_.size());
-    std::fill(this->slopes_.begin(), this->slopes_.end(), 0);
+    slopes_.assign(weights_.size(), 0);
 }
 
 void NeuralNetwork::ResetPreviousSlopes() {
-    this->previous_slopes_.resize(this->weights_.size());
-    std::fill(this->previous_slopes_.begin(), this->previous_slopes_.end(), 0);
+    previous_slopes_.assign(weights_.size(), 0);
 }
 
 void NeuralNetwork::UpdateWeightsOnline() {
-    for (size_t i = 0; i < this->input_connections_.size(); i++) {
-        const InputConnection& connection = this->input_connections_[i];
-        const Neuron& fromNeuron = this->neurons_[connection.from_neuron_index];
-        const Neuron& toNeuron = this->neurons_[connection.to_neuron_index];
-
-        double delta = -1.0 * this->learning_rate_ * toNeuron.error * fromNeuron.value + this->momentum_ * this->previous_weight_steps_[i];
-        this->previous_weight_steps_[i] = delta;
-        this->weights_[i] += delta;
+    size_t weight_index = 0;
+    for (const auto& connection : input_connections_) {
+        const auto& from_neuron = neurons_[connection.from_neuron_index];
+        const auto& to_neuron = neurons_[connection.to_neuron_index];
+        const double delta = -1.0 * learning_rate_ * to_neuron.error * from_neuron.value + momentum_ * previous_weight_steps_[weight_index];
+        previous_weight_steps_[weight_index] = delta;
+        weights_[weight_index] += delta;
+        weight_index++;
     }
 }
 
-void NeuralNetwork::UpdateWeightsOffline(size_t currentEpoch, size_t stepCount) {
-    assert(stepCount != 0);
+void NeuralNetwork::UpdateWeightsOffline(size_t current_epoch, size_t step_count) {
+    assert(step_count != 0);
 
-    switch (this->training_algorithm_type_) {
+    switch (training_algorithm_type_) {
     case TrainingAlgorithmType::BatchingBackpropagation:
-        this->UpdateWeightsBatchingBackpropagation(stepCount);
+        UpdateWeightsBatchingBackpropagation(step_count);
         break;
     case TrainingAlgorithmType::QuickBackpropagation:
-        this->UpdateWeightsQuickBackpropagation(stepCount);
+        UpdateWeightsQuickBackpropagation(step_count);
         break;
     case TrainingAlgorithmType::ResilientBackpropagation:
-        this->UpdateWeightsResilientBackpropagation();
+        UpdateWeightsResilientBackpropagation();
         break;
     case TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation:
-        this->UpdateWeightsSimulatedAnnealingResilientBackpropagation(currentEpoch);
+        UpdateWeightsSimulatedAnnealingResilientBackpropagation(current_epoch);
         break;
     default:
         assert(false);
     }
 }
 
-void NeuralNetwork::UpdateWeightsBatchingBackpropagation(size_t stepCount) {
-    double epsilon = this->learning_rate_ / stepCount;
+void NeuralNetwork::UpdateWeightsBatchingBackpropagation(size_t step_count) {
+    const double epsilon = learning_rate_ / step_count;
 
-    for (size_t i = 0; i < this->weights_.size(); i++) {
-        this->weights_[i] += this->slopes_[i] * epsilon;
+    size_t weight_index = 0;
+    for (auto& weight : weights_) {
+        weight += slopes_[weight_index++] * epsilon;
     }
 }
 
-void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t stepCount) {
-    double epsilon = this->learning_rate_ / stepCount;
-    double shrinkFactor = this->qprop_mu_ / (1.0 + this->qprop_mu_);
+void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t step_count) {
+    const double epsilon = learning_rate_ / step_count;
+    const double shrink_factor = qprop_mu_ / (1.0 + qprop_mu_);
 
-    for (size_t i = 0; i < this->weights_.size(); i++) {
-        double previousSlope = this->previous_slopes_[i];
-        double previousWeightStep = this->previous_weight_steps_[i];
-        double currentSlope = this->slopes_[i] + this->qprop_weight_decay_ * this->weights_[i];
-        double weightStep = epsilon * currentSlope;
+    size_t weight_index = 0;
+    for (auto& weight : weights_) {
+        const double previous_slope = previous_slopes_[weight_index];
+        const double previous_weight_step = previous_weight_steps_[weight_index];
+        const double current_slope = slopes_[weight_index] + qprop_weight_decay_ * weight;
+        double weight_step = epsilon * current_slope;
 
-        if (previousWeightStep > 0.001) {
-            if (currentSlope <= 0.0) {
-                weightStep = 0.0;
+        if (previous_weight_step > 0.001) {
+            if (current_slope <= 0.0) {
+                weight_step = 0.0;
             }
 
-            if (currentSlope > (shrinkFactor * previousSlope)) {
-                weightStep += this->qprop_mu_ * previousWeightStep;
+            if (current_slope > (shrink_factor * previous_slope)) {
+                weight_step += qprop_mu_ * previous_weight_step;
             } else {
-                weightStep += previousWeightStep * currentSlope / (previousSlope - currentSlope);
+                weight_step += previous_weight_step * current_slope / (previous_slope - current_slope);
             }
-        } else if (previousWeightStep < -0.001) {
-            if (currentSlope >= 0.0) {
-                weightStep = 0.0;
+        } else if (previous_weight_step < -0.001) {
+            if (current_slope >= 0.0) {
+                weight_step = 0.0;
             }
 
-            if (currentSlope < (shrinkFactor * previousSlope)) {
-                weightStep += this->qprop_mu_ * previousWeightStep;
+            if (current_slope < (shrink_factor * previous_slope)) {
+                weight_step += qprop_mu_ * previous_weight_step;
             } else {
-                weightStep += previousWeightStep * currentSlope / (previousSlope - currentSlope);
+                weight_step += previous_weight_step * current_slope / (previous_slope - current_slope);
             }
         }
 
-        this->previous_slopes_[i] = currentSlope;
-        this->previous_weight_steps_[i] = weightStep;
+        previous_slopes_[weight_index] = current_slope;
+        previous_weight_steps_[weight_index] = weight_step;
 
-        this->weights_[i] += weightStep;
+        weight += weight_step;
+        weight_index++;
     }
 }
 
 void NeuralNetwork::UpdateWeightsResilientBackpropagation() {
-    for (size_t i = 0; i < this->weights_.size(); i++) {
-        double previousSlope = this->previous_slopes_[i];
-        double currentSlope = this->slopes_[i];
-        double weightStep = 0.0;
-        double previousSlopeTimesCurrentSlope = previousSlope * currentSlope;
-        double previousWeightStep = std::max(this->previous_weight_steps_[i], this->rprop_weight_step_min_);
+    size_t weight_index = 0;
+    for (auto& weight : weights_) {
+        const double previous_slope = previous_slopes_[weight_index];
+        double current_slope = slopes_[weight_index];
+        double weight_step = 0.0;
+        const double previous_slope_times_current_slope = previous_slope * current_slope;
+        const double previous_weight_step = std::max(previous_weight_steps_[weight_index], rprop_weight_step_min_);
 
-        if (previousSlopeTimesCurrentSlope >= 0.0) {
-            weightStep = std::min(previousWeightStep * this->rprop_increase_factor_, this->rprop_weight_step_max_);
-        } else if (previousSlopeTimesCurrentSlope < 0.0) {
-            weightStep = std::max(previousWeightStep * this->rprop_decrease_factor_, this->rprop_weight_step_min_);
-            currentSlope = 0.0;
+        if (previous_slope_times_current_slope >= 0.0) {
+            weight_step = std::min(previous_weight_step * rprop_increase_factor_, rprop_weight_step_max_);
+        } else if (previous_slope_times_current_slope < 0.0) {
+            weight_step = std::max(previous_weight_step * rprop_decrease_factor_, rprop_weight_step_min_);
+            current_slope = 0.0;
         }
 
-        double weightDelta = std::signbit(currentSlope) ? -1 * weightStep : weightStep;
-        this->weights_[i] += weightDelta;
+        previous_slopes_[weight_index] = current_slope;
+        previous_weight_steps_[weight_index] = weight_step;
 
-        this->previous_slopes_[i] = currentSlope;
-        this->previous_weight_steps_[i] = weightStep;
+        const double weight_delta = std::signbit(current_slope) ? -1 * weight_step : weight_step;
+        weight += weight_delta;
+        weight_index++;
     }
 }
 
-void NeuralNetwork::UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t currentEpoch) {
-    for (size_t i = 0; i < this->weights_.size(); i++) {
-        double previousSlope = this->previous_slopes_[i];
-        double currentSlope = this->slopes_[i] - this->sarprop_weight_decay_shift_ * this->weights_[i] * std::exp2(-this->sarprop_temperature_ * currentEpoch);
-        double previousSlopeTimesCurrentSlope = previousSlope * currentSlope;
-        double previousWeightStep = std::max(this->previous_weight_steps_[i], this->rprop_weight_step_min_);
-        double weightStep = 0.0;
+void NeuralNetwork::UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t current_epoch) {
+    size_t weight_index = 0;
+    for (auto& weight : weights_) {
+        const double previous_slope = previous_slopes_[weight_index];
+        double current_slope = slopes_[weight_index] - sarprop_weight_decay_shift_ * weight * std::exp2(-sarprop_temperature_ * current_epoch);
+        const double previous_slope_times_current_slope = previous_slope * current_slope;
+        const double previous_weight_step = std::max(previous_weight_steps_[weight_index], rprop_weight_step_min_);
+        double weight_step = 0.0;
 
-        if (previousSlopeTimesCurrentSlope > 0.0) {
-            weightStep = std::min(previousWeightStep * this->rprop_increase_factor_, this->rprop_weight_step_max_);
-            double weightDelta = std::signbit(currentSlope) ? -1 * weightStep : weightStep;
-            this->weights_[i] += weightDelta;
-        } else if (previousSlopeTimesCurrentSlope < 0.0) {
-            double rmsError = std::sqrt(this->GetError());
+        if (previous_slope_times_current_slope > 0.0) {
+            weight_step = std::min(previous_weight_step * rprop_increase_factor_, rprop_weight_step_max_);
+            const double weight_delta = std::signbit(current_slope) ? -1 * weight_step : weight_step;
+            weight += weight_delta;
+        } else if (previous_slope_times_current_slope < 0.0) {
+            const double rms_error = std::sqrt(GetError());
 
-            if (previousWeightStep < this->sarprop_step_threshold_factor_ * rmsError * rmsError) {
-                weightStep = previousWeightStep * this->rprop_decrease_factor_ + this->sarprop_step_shift_ * this->random_.RandomFloat(0.0, 1.0) * rmsError * std::exp2(-this->sarprop_temperature_ * currentEpoch);
+            if (previous_weight_step < sarprop_step_threshold_factor_ * rms_error * rms_error) {
+                weight_step = previous_weight_step * rprop_decrease_factor_ + sarprop_step_shift_ * random_.RandomFloat(0.0, 1.0) * rms_error * std::exp2(-sarprop_temperature_ * current_epoch);
             } else {
-                weightStep = std::max(previousWeightStep * this->rprop_decrease_factor_, this->rprop_weight_step_min_);
+                weight_step = std::max(previous_weight_step * rprop_decrease_factor_, rprop_weight_step_min_);
             }
 
-            currentSlope = 0.0;
+            current_slope = 0.0;
         } else {
-            double weightDelta = std::signbit(currentSlope) ? -1 * previousWeightStep : previousWeightStep;
-            this->weights_[i] += weightDelta;
+            const double weight_delta = std::signbit(current_slope) ? -1 * previous_weight_step : previous_weight_step;
+            weight += weight_delta;
         }
 
-        this->previous_slopes_[i] = currentSlope;
-        this->previous_weight_steps_[i] = weightStep;
+        previous_slopes_[weight_index] = current_slope;
+        previous_weight_steps_[weight_index] = weight_step;
+        weight_index++;
     }
 }
 
 void NeuralNetwork::UpdateSlopes() {
-    for (size_t i = 0; i < this->input_connections_.size(); i++) {
-        const InputConnection& connection = this->input_connections_[i];
-        const Neuron& fromNeuron = this->neurons_[connection.from_neuron_index];
-        const Neuron& toNeuron = this->neurons_[connection.to_neuron_index];
+    size_t connection_index = 0;
+    for (const auto& connection : input_connections_) {
+        const auto& from_neuron = neurons_[connection.from_neuron_index];
+        const auto& to_neuron = neurons_[connection.to_neuron_index];
 
-        this->slopes_[i] += -1.0 * fromNeuron.value * toNeuron.error;
+        slopes_[connection_index] += -1.0 * from_neuron.value * to_neuron.error;
     }
 }
 
-void NeuralNetwork::TrainOffline(TrainingData* trainingData, size_t epochCount) {
-    this->ResetPreviousSlopes();
-    this->ResetWeightSteps();
+void NeuralNetwork::TrainOffline(TrainingData* training_data, size_t epoch_count) {
+    ResetPreviousSlopes();
+    ResetWeightSteps();
 
-    for (size_t i = 0; i < epochCount; i++) {
-        this->random_.ShuffleVector(trainingData);
-        this->ResetSlopes();
+    for (size_t i = 0; i < epoch_count; i++) {
+        ResetSlopes();
 
-        // Train the network using offline weight updates - batching
-        for (size_t j = 0; j < trainingData->size(); j++) {
+        // Shuffle the training data each epoch.
+        random_.ShuffleVector(training_data);
+
+        // Train the network using offline weight updates - batching.
+        for (const auto& example : *training_data) {
             // Run the network forward to get values in the output neurons.
-            this->RunForward(&trainingData->operator[](j).input);
+            RunForward(example.input);
 
-            // Run the network backward to propagate the error values
-            this->RunBackward(&trainingData->operator[](j).output);
+            // Run the network backward to propagate the error values.
+            RunBackward(example.output);
 
-            // Update slopes, but not weights - this is a batching algorithm
-            this->UpdateSlopes();
+            // Update slopes, but not weights - this is a batching algorithm.
+            UpdateSlopes();
         }
 
-        // Update weights
-        this->UpdateWeightsOffline(i, trainingData->size());
+        
+        for (size_t j = 0; j < training_data->size(); j++) {
+        }
+
+        // Update weights.
+        UpdateWeightsOffline(i, training_data->size());
     }
 }
 
-void NeuralNetwork::TrainOnline(TrainingData* trainingData, size_t epochCount) {
-    this->ResetWeightSteps();
+void NeuralNetwork::TrainOnline(TrainingData* training_data, size_t epoch_count) {
+    ResetWeightSteps();
 
-    for (size_t i = 0; i < epochCount; i++) {
-        this->random_.ShuffleVector(trainingData);
+    for (size_t i = 0; i < epoch_count; i++) {
+        // Shuffle the training data each epoch.
+        random_.ShuffleVector(training_data);
 
-        // Train the network using online weight updates - no batching
-        for (size_t j = 0; j < trainingData->size(); j++) {
+        // Train the network using online weight updates - no batching.
+        for (const auto& example : *training_data) {
             // Run the network forward to get values in the output neurons.
-            this->RunForward(&trainingData->operator[](j).input);
+            RunForward(example.input);
 
-            // Run the network backward to propagate the error values
-            this->RunBackward(&trainingData->operator[](j).output);
+            // Run the network backward to propagate the error values.
+            RunBackward(example.output);
 
-            // Update weights online - no batching
-            this->UpdateWeightsOnline();
+            // Update weights online - no batching.
+            UpdateWeightsOnline();
         }
     }
 }
 
-void NeuralNetwork::Train(TrainingData* trainingData, size_t epochCount) {
-    switch (this->training_algorithm_type_) {
+void NeuralNetwork::Train(TrainingData* training_data, size_t epoch_count) {
+    switch (training_algorithm_type_) {
     case TrainingAlgorithmType::Backpropagation:
-        this->TrainOnline(trainingData, epochCount);
+        TrainOnline(training_data, epoch_count);
         break;
     case TrainingAlgorithmType::BatchingBackpropagation:
     case TrainingAlgorithmType::QuickBackpropagation:
     case TrainingAlgorithmType::ResilientBackpropagation:
     case TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation:
-        this->TrainOffline(trainingData, epochCount);
+        TrainOffline(training_data, epoch_count);
         break;
     default:
         assert(false);
@@ -696,65 +710,64 @@ void NeuralNetwork::Train(TrainingData* trainingData, size_t epochCount) {
 
 void NeuralNetwork::ComputeNeuronValueRange(size_t neuronStartIndex, size_t neuron_count) {
     for (size_t i = 0; i < neuron_count; i++) {
-        this->ComputeNeuronValue(neuronStartIndex + i);
+        ComputeNeuronValue(neuronStartIndex + i);
     }
 }
 
-void NeuralNetwork::ComputeNeuronValue(size_t neuronIndex) {
-    Neuron& neuron = this->neurons_[neuronIndex];
+void NeuralNetwork::ComputeNeuronValue(size_t neuron_index) {
+    Neuron& neuron = neurons_[neuron_index];
     neuron.field = 0.0;
 
     // Sum incoming values.
     for (size_t i = 0; i < neuron.input_connection_count; i++) {
-        size_t input_connection_index = neuron.input_connection_start_index + i;
-        const InputConnection& connection = this->input_connections_[input_connection_index];
-        const Neuron& fromNeuron = this->neurons_[connection.from_neuron_index];
+        const size_t input_connection_index = neuron.input_connection_start_index + i;
+        const auto& connection = input_connections_[input_connection_index];
+        const auto& from_neuron = neurons_[connection.from_neuron_index];
 
-        neuron.field += fromNeuron.value * this->weights_[input_connection_index];
+        neuron.field += from_neuron.value * weights_[input_connection_index];
     }
 
     neuron.value = ExecuteActivationFunction(&neuron);
 }
 
-void NeuralNetwork::ComputeNeuronError(size_t neuronIndex) {
-    Neuron& neuron = this->neurons_[neuronIndex];
+void NeuralNetwork::ComputeNeuronError(size_t neuron_index) {
+    Neuron& neuron = neurons_[neuron_index];
     double sum = 0.0;
 
     // Sum outgoing errors.
     for (size_t i = 0; i < neuron.output_connection_count; i++) {
-        size_t output_connection_index = neuron.output_connection_start_index + i;
-        const OutputConnection& outputConnection = this->output_connections_[output_connection_index];
-        const InputConnection& inputConnection = this->input_connections_[outputConnection.input_connection_index];
-        const Neuron& toNeuron = this->neurons_[inputConnection.to_neuron_index];
+        const size_t output_connection_index = neuron.output_connection_start_index + i;
+        const auto& output_connection = output_connections_[output_connection_index];
+        const auto& input_connection = input_connections_[output_connection.input_connection_index];
+        const auto& to_neuron = neurons_[input_connection.to_neuron_index];
 
-        sum += this->weights_[outputConnection.input_connection_index] * toNeuron.error;
+        sum += weights_[output_connection.input_connection_index] * to_neuron.error;
     }
 
     neuron.error = ExecuteActivationFunctionDerivative(&neuron) * sum;
 }
 
-void NeuralNetwork::RunForward(const std::vector<double>* input) {
-    assert(this->is_constructed_);
-    assert(input->size() == this->input_neuron_count_);
+void NeuralNetwork::RunForward(const std::vector<double>& input) {
+    assert(is_constructed_);
+    assert(input.size() == input_neuron_count_);
 
     // Feed each input into the corresponding input neuron.
-    size_t inputNeuronStartIndex = GetInputNeuronStartIndex();
-    for (size_t i = 0; i < this->input_neuron_count_; i++) {
-        this->neurons_[inputNeuronStartIndex + i].value = input->operator[](i);
-    }
+    // TODO(boingoing): Use assign or something more performant?
+    size_t input_index = 0;
+    std::for_each(neurons_.cbegin() + GetInputNeuronStartIndex(), neurons_.cbegin() + GetInputNeuronStartIndex() + input_neuron_count_, [=](auto& neuron) {
+        neuron.value = input[input_index++];
+    });
 
     // Pull the values from the input layer through the hidden layer neurons.
-    size_t hiddenNeuronStartIndex = GetHiddenNeuronStartIndex();
-    this->ComputeNeuronValueRange(hiddenNeuronStartIndex, this->hidden_neuron_count_);
+    ComputeNeuronValueRange(GetHiddenNeuronStartIndex(), hidden_neuron_count_);
 
     // Pull values into the output layer.
-    size_t outputNeuronStartIndex = GetOutputNeuronStartIndex();
-    this->ComputeNeuronValueRange(outputNeuronStartIndex, this->output_neuron_count_);
+    ComputeNeuronValueRange(GetOutputNeuronStartIndex(), output_neuron_count_);
 }
 
 // static
 double NeuralNetwork::ApplyErrorShaping(double value) {
-    // TODO: Should this be replaced by?
+    // TODO(boingoing): Should this be replaced by?
     //return tanh(value);
 
     if (value < -0.9999999) {
@@ -766,23 +779,22 @@ double NeuralNetwork::ApplyErrorShaping(double value) {
     }
 }
 
-void NeuralNetwork::RunBackward(const std::vector<double>* output) {
-    assert(this->is_constructed_);
-    assert(output->size() == this->output_neuron_count_);
+void NeuralNetwork::RunBackward(const std::vector<double>& output) {
+    assert(is_constructed_);
+    assert(output.size() == output_neuron_count_);
 
-    this->ResetOutputLayerError();
-
-    this->CalculateOutputLayerError(output);
+    ResetOutputLayerError();
+    CalculateOutputLayerError(output);
 
     // Calculate error at each hidden layer neuron.
-    size_t hiddenNeuronStartIndex = this->GetHiddenNeuronStartIndex();
-    for (size_t i = 0; i < this->hidden_neuron_count_; i++) {
-        ComputeNeuronError(hiddenNeuronStartIndex + (this->hidden_neuron_count_ - 1 - i));
+    size_t hiddenNeuronStartIndex = GetHiddenNeuronStartIndex();
+    for (size_t i = 0; i < hidden_neuron_count_; i++) {
+        ComputeNeuronError(hiddenNeuronStartIndex + (hidden_neuron_count_ - 1 - i));
     }
 }
 
 void NeuralNetwork::InitializeWeightsRandom(double min, double max) {
-    assert(this->is_constructed_);
+    assert(is_constructed_);
 
     for (auto& weight : weights_) {
         weight = random_.RandomFloat(min, max);
@@ -883,39 +895,39 @@ double NeuralNetwork::ExecuteActivationFunctionDerivative(Neuron* neuron) {
 }
 
 double NeuralNetwork::GetError() const {
-    assert(this->error_count_ != 0);
+    assert(error_count_ != 0);
 
-    return this->error_sum_ / this->error_count_;
+    return error_sum_ / error_count_;
 }
 
-double NeuralNetwork::GetError(const std::vector<double>* output) {
-    this->ResetOutputLayerError();
-    this->CalculateOutputLayerError(output);
-    return this->GetError();
+double NeuralNetwork::GetError(const std::vector<double>& output) {
+    ResetOutputLayerError();
+    CalculateOutputLayerError(output);
+    return GetError();
 }
 
-double NeuralNetwork::GetError(const TrainingData* trainingData) {
-    this->ResetOutputLayerError();
+double NeuralNetwork::GetError(const TrainingData& training_data) {
+    ResetOutputLayerError();
 
-    for (size_t i = 0; i < trainingData->size(); i++) {
-        this->RunForward(&trainingData->operator[](i).input);
-        this->CalculateOutputLayerError(&trainingData->operator[](i).output);
+    for (const auto& example : training_data) {
+        RunForward(example.input);
+        CalculateOutputLayerError(example.output);
     }
 
-    return this->GetError();
+    return GetError();
 }
 
 void NeuralNetwork::ResetOutputLayerError() {
-    this->error_count_ = 0;
-    this->error_sum_ = 0.0;
+    error_count_ = 0;
+    error_sum_ = 0.0;
 }
 
-void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>* output) {
+void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>& output) {
     // Calculate error at each output neuron.
-    size_t outputNeuronStartIndex = this->GetOutputNeuronStartIndex();
-    for (size_t i = 0; i < this->output_neuron_count_; i++) {
-        Neuron& neuron = this->neurons_[outputNeuronStartIndex + i];
-        double delta = neuron.value - output->operator[](i);
+    size_t output_neuron_start_index = GetOutputNeuronStartIndex();
+    for (size_t i = 0; i < output_neuron_count_; i++) {
+        Neuron& neuron = neurons_[output_neuron_start_index + i];
+        double delta = neuron.value - output[i];
 
         switch (this->error_cost_function_) {
         case ErrorCostFunction::MeanSquareError:
@@ -942,10 +954,10 @@ void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>* output)
 }
 
 std::vector<double>& NeuralNetwork::GetWeights() {
-    return this->weights_;
+    return weights_;
 }
 
-void NeuralNetwork::SetWeights(std::vector<double>& weights) {
+void NeuralNetwork::SetWeights(const std::vector<double>& weights) {
     assert(weights_.size() == weights.size());
 
     weights_.assign(weights.cbegin(), weights.cend());
@@ -953,10 +965,10 @@ void NeuralNetwork::SetWeights(std::vector<double>& weights) {
 
 void NeuralNetwork::GetOutput(std::vector<double>* output) const {
     output->resize(output_neuron_count_);
-    size_t firstOutputNeuron = GetOutputNeuronStartIndex();
-    for (size_t i = 0; i < output_neuron_count_; i++) {
-        output->operator[](i) = neurons_[firstOutputNeuron + i].value;
-    }
+    size_t index = 0;
+    std::for_each(neurons_.cbegin() + GetOutputNeuronStartIndex(), neurons_.cbegin() + GetOutputNeuronStartIndex() + output_neuron_count_, [&](const auto& neuron) {
+        output->at(index++) = neuron.value;
+    });
 }
 
 }  // namespace panann
