@@ -231,7 +231,7 @@ void NeuralNetwork::Allocate() {
 
     size_t bias_neuron_index = GetBiasNeuronStartIndex();
     size_t input_connection_index = 0;
-    size_t outputConnectionIndex = 0;
+    size_t output_connection_index = 0;
     size_t currentLayerInputConnectionCount = 0;
     size_t currentLayerOutputConnectionCount = 0;
 
@@ -247,15 +247,15 @@ void NeuralNetwork::Allocate() {
     size_t inputNeuronIndex = this->GetInputNeuronStartIndex();
     for (size_t i = 0; i < this->input_neuron_count_; i++) {
         Neuron& neuron = this->neurons_[inputNeuronIndex + i];
-        neuron.output_connection_start_index = outputConnectionIndex;
-        outputConnectionIndex += currentLayerOutputConnectionCount;
+        neuron.output_connection_start_index = output_connection_index;
+        output_connection_index += currentLayerOutputConnectionCount;
     }
 
     // The first bias neuron is the one for the input layer.
     Neuron& biasNeuronInput = this->neurons_[bias_neuron_index++];
-    biasNeuronInput.output_connection_start_index = outputConnectionIndex;
+    biasNeuronInput.output_connection_start_index = output_connection_index;
     biasNeuronInput.value = 1.0;
-    outputConnectionIndex += this->hidden_layers_.front().neuron_count;
+    output_connection_index += this->hidden_layers_.front().neuron_count;
 
     // Calculate the connections incoming to the output layer.
     if (this->enable_shortcut_connections_) {
@@ -321,11 +321,11 @@ void NeuralNetwork::Allocate() {
         for (size_t i = 0; i < currentLayer.neuron_count; i++) {
             Neuron& neuron = this->neurons_[neuronIndex++];
             neuron.input_connection_start_index = input_connection_index;
-            neuron.output_connection_start_index = outputConnectionIndex;
+            neuron.output_connection_start_index = output_connection_index;
             neuron.activation_function_type = this->hidden_neuron_activation_function_type_;
 
             input_connection_index += currentLayerInputConnectionCount;
-            outputConnectionIndex += currentLayerOutputConnectionCount;
+            output_connection_index += currentLayerOutputConnectionCount;
         }
 
         // Bias neurons cannot have shortcut connections.
@@ -340,13 +340,13 @@ void NeuralNetwork::Allocate() {
 
         // Bias neurons do not have incoming connections.
         Neuron& biasNeuron = this->neurons_[bias_neuron_index++];
-        biasNeuron.output_connection_start_index = outputConnectionIndex;
+        biasNeuron.output_connection_start_index = output_connection_index;
         biasNeuron.value = 1.0;
-        outputConnectionIndex += biasOutputConnections;
+        output_connection_index += biasOutputConnections;
     }
 
     this->input_connections_.resize(input_connection_index);
-    this->output_connections_.resize(outputConnectionIndex);
+    this->output_connections_.resize(output_connection_index);
     this->weights_.resize(input_connection_index);
 }
 
@@ -360,8 +360,8 @@ void NeuralNetwork::ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex)
     inputConnection.to_neuron_index = toNeuronIndex;
     toNeuron.input_connection_count++;
 
-    size_t outputConnectionIndex = fromNeuron.output_connection_start_index + fromNeuron.output_connection_count;
-    OutputConnection& outputConnection = this->output_connections_.at(outputConnectionIndex);
+    size_t output_connection_index = fromNeuron.output_connection_start_index + fromNeuron.output_connection_count;
+    OutputConnection& outputConnection = this->output_connections_.at(output_connection_index);
     outputConnection.input_connection_index = input_connection_index;
     fromNeuron.output_connection_count++;
 }
@@ -722,8 +722,8 @@ void NeuralNetwork::ComputeNeuronError(size_t neuronIndex) {
 
     // Sum outgoing errors.
     for (size_t i = 0; i < neuron.output_connection_count; i++) {
-        size_t outputConnectionIndex = neuron.output_connection_start_index + i;
-        const OutputConnection& outputConnection = this->output_connections_[outputConnectionIndex];
+        size_t output_connection_index = neuron.output_connection_start_index + i;
+        const OutputConnection& outputConnection = this->output_connections_[output_connection_index];
         const InputConnection& inputConnection = this->input_connections_[outputConnection.input_connection_index];
         const Neuron& toNeuron = this->neurons_[inputConnection.to_neuron_index];
 
