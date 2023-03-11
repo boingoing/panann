@@ -10,6 +10,98 @@
 #include "NeuralNetwork.h"
 #include "TrainingData.h"
 
+namespace {
+
+using ActivationFunctionType = panann::NeuralNetwork::ActivationFunctionType;
+using panann::ActivationFunction;
+
+bool IsActivationFunctionSymmetric(ActivationFunctionType type) {
+    return type >= ActivationFunctionType::FirstSymmetric;
+}
+
+double ExecuteActivationFunction(ActivationFunctionType type, double value) {
+    switch (type) {
+    case ActivationFunctionType::Sigmoid:
+        return ActivationFunction::ExecuteSigmoid(value);
+    case ActivationFunctionType::SigmoidSymmetric:
+        return ActivationFunction::ExecuteSigmoidSymmetric(value);
+    case ActivationFunctionType::Gaussian:
+        return ActivationFunction::ExecuteGaussian(value);
+    case ActivationFunctionType::GaussianSymmetric:
+        return ActivationFunction::ExecuteGaussianSymmetric(value);
+    case ActivationFunctionType::Cosine:
+        return ActivationFunction::ExecuteCosine(value);
+    case ActivationFunctionType::CosineSymmetric:
+        return ActivationFunction::ExecuteCosineSymmetric(value);
+    case ActivationFunctionType::Sine:
+        return ActivationFunction::ExecuteSine(value);
+    case ActivationFunctionType::SineSymmetric:
+        return ActivationFunction::ExecuteSineSymmetric(value);
+    case ActivationFunctionType::Elliot:
+        return ActivationFunction::ExecuteElliot(value);
+    case ActivationFunctionType::ElliotSymmetric:
+        return ActivationFunction::ExecuteElliotSymmetric(value);
+    case ActivationFunctionType::Linear:
+        return ActivationFunction::ExecuteLinear(value);
+    case ActivationFunctionType::Threshold:
+        return ActivationFunction::ExecuteThreshold(value);
+    case ActivationFunctionType::ThresholdSymmetric:
+        return ActivationFunction::ExecuteThresholdSymmetric(value);
+    default:
+        assert(false);
+    }
+
+    return 0;
+}
+
+double ExecuteActivationFunctionDerivative(ActivationFunctionType type, double value, double field) {
+    switch (type) {
+    case ActivationFunctionType::Sigmoid:
+        return ActivationFunction::ExecuteDerivativeSigmoid(value);
+    case ActivationFunctionType::SigmoidSymmetric:
+        return ActivationFunction::ExecuteDerivativeSigmoidSymmetric(value);
+    case ActivationFunctionType::Gaussian:
+        return ActivationFunction::ExecuteDerivativeGaussian(value, field);
+    case ActivationFunctionType::GaussianSymmetric:
+        return ActivationFunction::ExecuteDerivativeGaussianSymmetric(value, field);
+    case ActivationFunctionType::Cosine:
+        return ActivationFunction::ExecuteDerivativeCosine(field);
+    case ActivationFunctionType::CosineSymmetric:
+        return ActivationFunction::ExecuteDerivativeCosineSymmetric(field);
+    case ActivationFunctionType::Sine:
+        return ActivationFunction::ExecuteDerivativeSine(field);
+    case ActivationFunctionType::SineSymmetric:
+        return ActivationFunction::ExecuteDerivativeSineSymmetric(field);
+    case ActivationFunctionType::Elliot:
+        return ActivationFunction::ExecuteDerivativeElliot(field);
+    case ActivationFunctionType::ElliotSymmetric:
+        return ActivationFunction::ExecuteDerivativeElliotSymmetric(field);
+    case ActivationFunctionType::Linear:
+        return ActivationFunction::ExecuteDerivativeLinear(value);
+    default:
+        assert(false);
+    }
+
+    return 0;
+}
+
+double ApplyErrorShaping(double value) {
+    // TODO(boingoing): Should this be replaced by?
+    //return tanh(value);
+
+    static constexpr double tanh_value_limit = 0.9999999;
+    static constexpr double tanh_output_clamp = 17;
+    if (value < -tanh_value_limit) {
+        return -tanh_output_clamp;
+    }
+    if (value > tanh_value_limit) {
+        return tanh_output_clamp;
+    }
+        return log((1.0 + value) / (1.0 - value));
+}
+
+}  // namespace
+
 namespace panann {
 
 size_t NeuralNetwork::GetInputNeuronCount() const {
@@ -728,7 +820,7 @@ void NeuralNetwork::ComputeNeuronValue(size_t neuron_index) {
         neuron.field += from_neuron.value * weights_[input_connection_index];
     }
 
-    neuron.value = ExecuteActivationFunction(&neuron);
+    neuron.value = ExecuteActivationFunction(neuron.activation_function_type, neuron.value);
 }
 
 void NeuralNetwork::ComputeNeuronError(size_t neuron_index) {
@@ -745,7 +837,7 @@ void NeuralNetwork::ComputeNeuronError(size_t neuron_index) {
         sum += weights_[output_connection.input_connection_index] * to_neuron.error;
     }
 
-    neuron.error = ExecuteActivationFunctionDerivative(&neuron) * sum;
+    neuron.error = ExecuteActivationFunctionDerivative(neuron.activation_function_type, neuron.value, neuron.field) * sum;
 }
 
 void NeuralNetwork::RunForward(const std::vector<double>& input) {
@@ -764,22 +856,6 @@ void NeuralNetwork::RunForward(const std::vector<double>& input) {
 
     // Pull values into the output layer.
     ComputeNeuronValueRange(GetOutputNeuronStartIndex(), output_neuron_count_);
-}
-
-// static
-double NeuralNetwork::ApplyErrorShaping(double value) {
-    // TODO(boingoing): Should this be replaced by?
-    //return tanh(value);
-
-    static constexpr double tanh_value_limit = 0.9999999;
-    static constexpr double tanh_output_clamp = 17;
-    if (value < -tanh_value_limit) {
-        return -tanh_output_clamp;
-    }
-    if (value > tanh_value_limit) {
-        return tanh_output_clamp;
-    }
-        return log((1.0 + value) / (1.0 - value));
 }
 
 void NeuralNetwork::RunBackward(const std::vector<double>& output) {
@@ -822,79 +898,6 @@ void NeuralNetwork::InitializeWeights(const TrainingData& training_data) {
     constexpr double neuron_percentage = 0.7;
     const double factor = pow(neuron_percentage * hidden_neuron_count_, 1.0 / hidden_neuron_count_) / (max_input - min_input);
     InitializeWeightsRandom(-factor, factor);
-}
-
-// static
-bool NeuralNetwork::IsActivationFunctionSymmetric(ActivationFunctionType type) {
-    return type >= ActivationFunctionType::FirstSymmetric;
-}
-
-// static
-double NeuralNetwork::ExecuteActivationFunction(Neuron* neuron) {
-    switch (neuron->activation_function_type) {
-    case ActivationFunctionType::Sigmoid:
-        return ActivationFunction::ExecuteSigmoid(neuron->field);
-    case ActivationFunctionType::SigmoidSymmetric:
-        return ActivationFunction::ExecuteSigmoidSymmetric(neuron->field);
-    case ActivationFunctionType::Gaussian:
-        return ActivationFunction::ExecuteGaussian(neuron->field);
-    case ActivationFunctionType::GaussianSymmetric:
-        return ActivationFunction::ExecuteGaussianSymmetric(neuron->field);
-    case ActivationFunctionType::Cosine:
-        return ActivationFunction::ExecuteCosine(neuron->field);
-    case ActivationFunctionType::CosineSymmetric:
-        return ActivationFunction::ExecuteCosineSymmetric(neuron->field);
-    case ActivationFunctionType::Sine:
-        return ActivationFunction::ExecuteSine(neuron->field);
-    case ActivationFunctionType::SineSymmetric:
-        return ActivationFunction::ExecuteSineSymmetric(neuron->field);
-    case ActivationFunctionType::Elliot:
-        return ActivationFunction::ExecuteElliot(neuron->field);
-    case ActivationFunctionType::ElliotSymmetric:
-        return ActivationFunction::ExecuteElliotSymmetric(neuron->field);
-    case ActivationFunctionType::Linear:
-        return ActivationFunction::ExecuteLinear(neuron->field);
-    case ActivationFunctionType::Threshold:
-        return ActivationFunction::ExecuteThreshold(neuron->field);
-    case ActivationFunctionType::ThresholdSymmetric:
-        return ActivationFunction::ExecuteThresholdSymmetric(neuron->field);
-    default:
-        assert(false);
-    }
-
-    return 0;
-}
-
-// static
-double NeuralNetwork::ExecuteActivationFunctionDerivative(Neuron* neuron) {
-    switch (neuron->activation_function_type) {
-    case ActivationFunctionType::Sigmoid:
-        return ActivationFunction::ExecuteDerivativeSigmoid(neuron->value);
-    case ActivationFunctionType::SigmoidSymmetric:
-        return ActivationFunction::ExecuteDerivativeSigmoidSymmetric(neuron->value);
-    case ActivationFunctionType::Gaussian:
-        return ActivationFunction::ExecuteDerivativeGaussian(neuron->value, neuron->field);
-    case ActivationFunctionType::GaussianSymmetric:
-        return ActivationFunction::ExecuteDerivativeGaussianSymmetric(neuron->value, neuron->field);
-    case ActivationFunctionType::Cosine:
-        return ActivationFunction::ExecuteDerivativeCosine(neuron->field);
-    case ActivationFunctionType::CosineSymmetric:
-        return ActivationFunction::ExecuteDerivativeCosineSymmetric(neuron->field);
-    case ActivationFunctionType::Sine:
-        return ActivationFunction::ExecuteDerivativeSine(neuron->field);
-    case ActivationFunctionType::SineSymmetric:
-        return ActivationFunction::ExecuteDerivativeSineSymmetric(neuron->field);
-    case ActivationFunctionType::Elliot:
-        return ActivationFunction::ExecuteDerivativeElliot(neuron->field);
-    case ActivationFunctionType::ElliotSymmetric:
-        return ActivationFunction::ExecuteDerivativeElliotSymmetric(neuron->field);
-    case ActivationFunctionType::Linear:
-        return ActivationFunction::ExecuteDerivativeLinear(neuron->value);
-    default:
-        assert(false);
-    }
-
-    return 0;
 }
 
 double NeuralNetwork::GetError() const {
@@ -952,7 +955,7 @@ void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>& output)
         }
         */
 
-        neuron.error = ExecuteActivationFunctionDerivative(&neuron) * delta;
+        neuron.error = ExecuteActivationFunctionDerivative(neuron.activation_function_type, neuron.value, neuron.field) * delta;
     }
 }
 

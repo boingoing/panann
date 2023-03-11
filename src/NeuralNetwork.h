@@ -442,11 +442,6 @@ protected:
     void UpdateWeightsResilientBackpropagation();
     void UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t current_epoch);
 
-    static double ExecuteActivationFunction(Neuron* neuron);
-    static double ExecuteActivationFunctionDerivative(Neuron* neuron);
-    static bool IsActivationFunctionSymmetric(ActivationFunctionType type);
-    static double ApplyErrorShaping(double value);
-
     size_t GetBiasNeuronStartIndex() const;
 
     void ResetWeightSteps();
