@@ -182,7 +182,7 @@ public:
      * Set the weight decay parameter for qprop.<br/>
      * Default: -0.0001
      */
-    void SetQpropWeightDecay(double weightDecay);
+    void SetQpropWeightDecay(double weight_decay);
     double GetQpropWeightDecay() const;
 
     /**
@@ -190,7 +190,7 @@ public:
      * This is sometimes called delta_zero.<br/>
      * Default: 0.0125
      */
-    void SetRpropWeightStepInitial(double weightStep);
+    void SetRpropWeightStepInitial(double weight_step);
     double GetRpropWeightStepInitial() const;
 
     /**
@@ -200,7 +200,7 @@ public:
      * to use some small value instead of zero.<br/>
      * Default: 0.000001
      */
-    void SetRpropWeightStepMin(double weightStep);
+    void SetRpropWeightStepMin(double weight_step);
     double GetRpropWeightStepMin() const;
 
     /**
@@ -211,7 +211,7 @@ public:
      * training.<br/>
      * Default: 50
      */
-    void SetRpropWeightStepMax(double weightStep);
+    void SetRpropWeightStepMax(double weight_step);
     double GetRpropWeightStepMax() const;
 
     /**
@@ -425,26 +425,26 @@ protected:
     void Allocate();
     void ConnectFully();
 
-    void ConnectLayerToNeuron(size_t fromNeuronIndex, size_t fromNeuronCount, size_t toNeuronIndex);
-    void ConnectLayers(size_t fromNeuronIndex, size_t fromNeuronCount, size_t toNeuronIndex, size_t toNeuronCount);
-    void ConnectBiasNeuron(size_t bias_neuron_index, size_t toNeuronIndex, size_t toNeuronCount);
-    void ConnectNeurons(size_t fromNeuronIndex, size_t toNeuronIndex);
+    void ConnectLayerToNeuron(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index);
+    void ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count);
+    void ConnectBiasNeuron(size_t bias_neuron_index, size_t to_neuron_index, size_t to_neuron_count);
+    void ConnectNeurons(size_t from_neuron_index, size_t to_neuron_index);
 
-    void ComputeNeuronValue(size_t neuronIndex);
-    void ComputeNeuronValueRange(size_t neuronStartIndex, size_t neuronCount);
+    void ComputeNeuronValue(size_t neuron_index);
+    void ComputeNeuronValueRange(size_t neuron_start_index, size_t neuron_count);
 
-    void ComputeNeuronError(size_t neuronIndex);
+    void ComputeNeuronError(size_t neuron_index);
     void UpdateSlopes();
     void UpdateWeightsOnline();
-    void UpdateWeightsOffline(size_t currentEpoch, size_t stepCount);
-    void UpdateWeightsBatchingBackpropagation(size_t stepCount);
-    void UpdateWeightsQuickBackpropagation(size_t stepCount);
+    void UpdateWeightsOffline(size_t current_epoch, size_t step_count);
+    void UpdateWeightsBatchingBackpropagation(size_t step_count);
+    void UpdateWeightsQuickBackpropagation(size_t step_count);
     void UpdateWeightsResilientBackpropagation();
-    void UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t currentEpoch);
+    void UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t current_epoch);
 
     static double ExecuteActivationFunction(Neuron* neuron);
     static double ExecuteActivationFunctionDerivative(Neuron* neuron);
-    static bool IsActivationFunctionSymmetric(ActivationFunctionType activationFunctionType);
+    static bool IsActivationFunctionSymmetric(ActivationFunctionType type);
     static double ApplyErrorShaping(double value);
 
     size_t GetBiasNeuronStartIndex() const;

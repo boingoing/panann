@@ -7,6 +7,7 @@
 #ifndef RANDOMWRAPPER_H__
 #define RANDOMWRAPPER_H__
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <optional>

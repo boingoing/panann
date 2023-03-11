@@ -40,4 +40,4 @@ std::mt19937& RandomWrapper::Engine() {
   return *engine_;
 }
 
-}  // namespace panga
+}  // namespace panann

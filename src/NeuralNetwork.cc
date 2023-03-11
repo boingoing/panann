@@ -54,8 +54,8 @@ double NeuralNetwork::GetQpropMu() const {
     return qprop_mu_;
 }
 
-void NeuralNetwork::SetQpropWeightDecay(double weightDecay) {
-    qprop_weight_decay_ = weightDecay;
+void NeuralNetwork::SetQpropWeightDecay(double weight_decay) {
+    qprop_weight_decay_ = weight_decay;
 }
 
 double NeuralNetwork::GetQpropWeightDecay() const {
@@ -541,7 +541,8 @@ void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t step_count) {
         const double current_slope = slopes_[weight_index] + qprop_weight_decay_ * weight;
         double weight_step = epsilon * current_slope;
 
-        if (previous_weight_step > 0.001) {
+        static constexpr double previous_weight_step_epsilon = 0.001;
+        if (previous_weight_step > previous_weight_step_epsilon) {
             if (current_slope <= 0.0) {
                 weight_step = 0.0;
             }
@@ -551,7 +552,7 @@ void NeuralNetwork::UpdateWeightsQuickBackpropagation(size_t step_count) {
             } else {
                 weight_step += previous_weight_step * current_slope / (previous_slope - current_slope);
             }
-        } else if (previous_weight_step < -0.001) {
+        } else if (previous_weight_step < -previous_weight_step_epsilon) {
             if (current_slope >= 0.0) {
                 weight_step = 0.0;
             }
@@ -708,9 +709,9 @@ void NeuralNetwork::Train(TrainingData* training_data, size_t epoch_count) {
     }
 }
 
-void NeuralNetwork::ComputeNeuronValueRange(size_t neuronStartIndex, size_t neuron_count) {
+void NeuralNetwork::ComputeNeuronValueRange(size_t neuron_start_index, size_t neuron_count) {
     for (size_t i = 0; i < neuron_count; i++) {
-        ComputeNeuronValue(neuronStartIndex + i);
+        ComputeNeuronValue(neuron_start_index + i);
     }
 }
 
@@ -754,7 +755,7 @@ void NeuralNetwork::RunForward(const std::vector<double>& input) {
     // Feed each input into the corresponding input neuron.
     // TODO(boingoing): Use assign or something more performant?
     size_t input_index = 0;
-    std::for_each(neurons_.cbegin() + GetInputNeuronStartIndex(), neurons_.cbegin() + GetInputNeuronStartIndex() + input_neuron_count_, [=](auto& neuron) {
+    std::for_each(neurons_.begin() + GetInputNeuronStartIndex(), neurons_.begin() + GetInputNeuronStartIndex() + input_neuron_count_, [&](auto& neuron) {
         neuron.value = input[input_index++];
     });
 
@@ -770,13 +771,15 @@ double NeuralNetwork::ApplyErrorShaping(double value) {
     // TODO(boingoing): Should this be replaced by?
     //return tanh(value);
 
-    if (value < -0.9999999) {
-        return -17.0;
-    } else if (value > 0.9999999) {
-        return 17.0;
-    } else {
-        return log((1.0 + value) / (1.0 - value));
+    static constexpr double tanh_value_limit = 0.9999999;
+    static constexpr double tanh_output_clamp = 17;
+    if (value < -tanh_value_limit) {
+        return -tanh_output_clamp;
     }
+    if (value > tanh_value_limit) {
+        return tanh_output_clamp;
+    }
+        return log((1.0 + value) / (1.0 - value));
 }
 
 void NeuralNetwork::RunBackward(const std::vector<double>& output) {
@@ -822,8 +825,8 @@ void NeuralNetwork::InitializeWeights(const TrainingData& training_data) {
 }
 
 // static
-bool NeuralNetwork::IsActivationFunctionSymmetric(ActivationFunctionType activationFunctionType) {
-    return activationFunctionType >= ActivationFunctionType::FirstSymmetric;
+bool NeuralNetwork::IsActivationFunctionSymmetric(ActivationFunctionType type) {
+    return type >= ActivationFunctionType::FirstSymmetric;
 }
 
 // static
