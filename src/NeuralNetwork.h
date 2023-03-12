@@ -352,12 +352,10 @@ public:
      *   - Calculate the partial error contributed by each weight in the network<br/>
      *   - Update all the weights in the network to reduce the total error<br/>
      * Execute the above once for each epoch.<br/>
-     * The actual method by which we will update the weights depends on the
-     * training algorithm chosen.
+     * The actual method by which we will update the weights depends on the training algorithm chosen.
      * @param training_data Examples on which we will train the network.<br/>
-     * Note: Shuffles the order of examples in training_data.
-     * @param epoch_count The number of epochs we should execute to train the
-     * network. One epoch is one full step through all of the training examples.
+     * Note: Each epoch, shuffles the order of examples in training_data before performing the training operation.
+     * @param epoch_count The number of epochs we should execute to train the network. One epoch is one full step through all of the training examples.
      * @see SetTrainingAlgorithmType
      * @see TrainingAlgorithmType
      * @see TrainingData
