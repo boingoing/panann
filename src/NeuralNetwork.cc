@@ -729,7 +729,7 @@ void NeuralNetwork::UpdateSlopes() {
         const auto& from_neuron = neurons_[connection.from_neuron_index];
         const auto& to_neuron = neurons_[connection.to_neuron_index];
 
-        slopes_[connection_index] += -1.0 * from_neuron.value * to_neuron.error;
+        slopes_[connection_index++] += -1.0 * from_neuron.value * to_neuron.error;
     }
 }
 
@@ -866,7 +866,7 @@ void NeuralNetwork::RunBackward(const std::vector<double>& output) {
     CalculateOutputLayerError(output);
 
     // Calculate error at each hidden layer neuron.
-    size_t hiddenNeuronStartIndex = GetHiddenNeuronStartIndex();
+    const size_t hiddenNeuronStartIndex = GetHiddenNeuronStartIndex();
     for (size_t i = 0; i < hidden_neuron_count_; i++) {
         ComputeNeuronError(hiddenNeuronStartIndex + (hidden_neuron_count_ - 1 - i));
     }
@@ -930,10 +930,10 @@ void NeuralNetwork::ResetOutputLayerError() {
 
 void NeuralNetwork::CalculateOutputLayerError(const std::vector<double>& output) {
     // Calculate error at each output neuron.
-    size_t output_neuron_start_index = GetOutputNeuronStartIndex();
+    const size_t output_neuron_start_index = GetOutputNeuronStartIndex();
     for (size_t i = 0; i < output_neuron_count_; i++) {
         Neuron& neuron = neurons_[output_neuron_start_index + i];
-        double delta = neuron.value - output[i];
+        const double delta = neuron.value - output[i];
 
         switch (this->error_cost_function_) {
         case ErrorCostFunction::MeanSquareError:
