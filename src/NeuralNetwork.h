@@ -314,6 +314,9 @@ public:
     void SetOutputNeuronActivationFunctionType(ActivationFunctionType type);
     ActivationFunctionType GetOutputNeuronActivationFunctionType() const;
 
+    /**
+     * Set the activation function which will be used for the neuron at |neuron_index|.
+     */
     void SetNeuronActivationFunction(size_t neuron_index, ActivationFunctionType type);
 
     /**
@@ -323,6 +326,12 @@ public:
      * not be modified.
      */
     virtual void Construct();
+
+    /**
+     * Returns true if the network topology has been constructed and false otherwise.<br/>
+     * Note: Once constructed, the network topology is fixed and cannot be changed.
+     */
+    bool IsConstructed() const;
 
     /**
      * Reset every weight in the network to a random value between min and max.
@@ -422,8 +431,8 @@ public:
     void GetOutput(std::vector<double>* output) const;
 
 protected:
-    void Allocate();
-    void ConnectFully();
+    virtual void Allocate();
+    virtual void ConnectFully();
 
     void ConnectLayerToNeuron(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index);
     void ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count);
@@ -454,6 +463,8 @@ protected:
     void CalculateOutputLayerError(const std::vector<double>& output);
 
     double GetError() const;
+
+    Neuron& GetNeuron(size_t neuron_index);
 
 private:
   static constexpr double DefaultLearningRate = 0.7;

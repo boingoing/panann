@@ -965,7 +965,6 @@ std::vector<double>& NeuralNetwork::GetWeights() {
 
 void NeuralNetwork::SetWeights(const std::vector<double>& weights) {
     assert(weights_.size() == weights.size());
-
     weights_.assign(weights.cbegin(), weights.cend());
 }
 
@@ -975,6 +974,11 @@ void NeuralNetwork::GetOutput(std::vector<double>* output) const {
     std::for_each(neurons_.cbegin() + GetOutputNeuronStartIndex(), neurons_.cbegin() + GetOutputNeuronStartIndex() + output_neuron_count_, [&](const auto& neuron) {
         output->at(index++) = neuron.value;
     });
+}
+
+NeuralNetwork::Neuron& NeuralNetwork::GetNeuron(size_t neuron_index) {
+    assert(neuron_index < neurons_.size());
+    return neurons_[neuron_index];
 }
 
 }  // namespace panann
