@@ -20,7 +20,7 @@ size_t RecurrentNeuralNetwork::GetCellMemorySize() const {
 
 void RecurrentNeuralNetwork::Allocate() {
     assert(!IsConstructed());
-    assert(!hidden_layers_.empty());
+    assert(GetHiddenLayerCount() > 0);
 
     // Allocate the neurons and memory cells
 
@@ -59,7 +59,8 @@ void RecurrentNeuralNetwork::Allocate() {
     size_t current_layer_output_connection_count = 0;
 
     // The input layer connects to all the neurons in each gate of the cells in the first hidden layer.
-    current_layer_output_connection_count = hidden_layers_.front().neuron_count * neurons_per_gate * 4;
+    const auto& first_layer = GetHiddenLayer(0);
+    current_layer_output_connection_count = first_layer.neuron_count * neurons_per_gate * 4;
 
     // Count all connections outgoing from the input layer.
     for (size_t i = 0; i < GetInputNeuronCount(); i++) {
@@ -91,7 +92,8 @@ void RecurrentNeuralNetwork::Allocate() {
     output_connection_index += GetOutputNeuronCount();
 
     // The output layer itself takes input from the output layer of each memory cell in the last hidden layer.
-    current_layer_input_connection_count = this->hidden_layers_.back().neuron_count * cell_memory_size_ + 1;
+    const auto& last_layer = GetHiddenLayer(GetHiddenLayerCount()-1);
+    current_layer_input_connection_count = last_layer.neuron_count * cell_memory_size_ + 1;
     for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
         auto& neuron = GetNeuron(GetOutputNeuronStartIndex() + i);
         neuron.input_connection_start_index = input_connection_index;
@@ -103,23 +105,27 @@ void RecurrentNeuralNetwork::Allocate() {
     size_t hidden_neuron_index = GetHiddenNeuronStartIndex();
     size_t cell_index = 0;
 
-    for (size_t layer_index = 0; layer_index < this->hidden_layers_.size(); layer_index++) {
+    for (size_t layer_index = 0; layer_index < GetHiddenLayerCount(); layer_index++) {
+        const auto& current_layer = GetHiddenLayer(layer_index);
+
         if (layer_index == 0) {
             // First layer of cells takes input from the input layer, previous hidden state, and a bias connection.
             current_layer_input_connection_count = GetInputNeuronCount() + cell_memory_size_ + 1;
         } else {
+            const auto& previous_layer = GetHiddenLayer(layer_index - 1);
             // Remaining layers of cells take input from the output of previous layers, previous hidden state, and a bias connection.
-            current_layer_input_connection_count = this->hidden_layers_[layer_index - 1].neuron_count * cell_memory_size_ + cell_memory_size_ + 1;
+            current_layer_input_connection_count = previous_layer.neuron_count * cell_memory_size_ + cell_memory_size_ + 1;
         }
 
-        if (layer_index == this->hidden_layers_.size() - 1) {
+        if (layer_index == GetHiddenLayerCount() - 1) {
             // Last layer of cells connect to the output layer.
             current_layer_output_connection_count = GetOutputNeuronCount();
         } else {
-            assert(layer_index + 1 < this->hidden_layers_.size());
+            assert(layer_index + 1 < GetHiddenLayerCount());
 
+            const auto& next_layer = GetHiddenLayer(layer_index + 1);
             // Previous layers of cells connect to cell gates in subsequent layer.
-            current_layer_output_connection_count = this->hidden_layers_[layer_index + 1].neuron_count * cell_memory_size_ * 4;
+            current_layer_output_connection_count = next_layer.neuron_count * cell_memory_size_ * 4;
         }
 
         // Cell output neurons also connect back to the gates of the cell.
@@ -139,7 +145,7 @@ void RecurrentNeuralNetwork::Allocate() {
         };
 
         // The hidden layer structure holds the count of cells in each layer, not the actual count of hidden units.
-        for (size_t j = 0; j < this->hidden_layers_[layer_index].neuron_count; j++) {
+        for (size_t j = 0; j < current_layer.neuron_count; j++) {
             auto& cell = cells_[cell_index++];
             cell.neuron_start_index = hidden_neuron_index;
             cell.neuron_count = neurons_per_cell;
@@ -180,13 +186,15 @@ void RecurrentNeuralNetwork::Allocate() {
 
 void RecurrentNeuralNetwork::ConnectFully() {
     assert(!IsConstructed());
+    assert(GetHiddenLayerCount() > 0);
     assert(!cells_.empty());
 
     size_t current_cell_index = 0;
     size_t bias_neuron_index = GetBiasNeuronStartIndex();
+    const auto& first_layer = GetHiddenLayer(0);
 
     // Connect all cells in the first layer to the input neurons.
-    for (size_t i = 0; i < this->hidden_layers_.front().neuron_count; i++) {
+    for (size_t i = 0; i < first_layer.neuron_count; i++) {
         const auto& cell = cells_[current_cell_index++];
 
         // Connect input layer to gate neurons for this cell.
@@ -206,9 +214,9 @@ void RecurrentNeuralNetwork::ConnectFully() {
     }
 
     // Connect all cells in the subsequent layers to each other.
-    for (size_t layer_index = 1; layer_index < this->hidden_layers_.size(); layer_index++) {
-        const auto& previous_layer = this->hidden_layers_[layer_index - 1];
-        const auto& current_layer = this->hidden_layers_[layer_index];
+    for (size_t layer_index = 1; layer_index < GetHiddenLayerCount(); layer_index++) {
+        const auto& previous_layer = GetHiddenLayer(layer_index - 1);
+        const auto& current_layer = GetHiddenLayer(layer_index);
 
         for (size_t i = 0; i < current_layer.neuron_count; i++) {
             const auto& current_cell = cells_[current_layer.neuron_start_index + i];
@@ -234,11 +242,12 @@ void RecurrentNeuralNetwork::ConnectFully() {
         }
     }
 
-    const auto& last_hidden_layer = this->hidden_layers_.back();
+    // The last layer or the only layer if there's only one hidden layer.
+    const auto& last_layer = GetHiddenLayer(GetHiddenLayerCount() - 1);
 
     // Connect cells in the last hidden layer to the output layer.
-    for (size_t i = 0; i < last_hidden_layer.neuron_count; i++) {
-        const auto& cell = cells_[last_hidden_layer.neuron_start_index + i];
+    for (size_t i = 0; i < last_layer.neuron_count; i++) {
+        const auto& cell = cells_[last_layer.neuron_start_index + i];
 
         ConnectLayers(cell.neuron_start_index + cell.cell_state_count * 4,
             cell.cell_state_count,

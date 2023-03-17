@@ -449,8 +449,6 @@ protected:
     void UpdateWeightsResilientBackpropagation();
     void UpdateWeightsSimulatedAnnealingResilientBackpropagation(size_t current_epoch);
 
-    size_t GetBiasNeuronStartIndex() const;
-
     void ResetWeightSteps();
     void ResetSlopes();
     void ResetPreviousSlopes();
@@ -462,7 +460,12 @@ protected:
 
     double GetError() const;
 
+    size_t GetBiasNeuronStartIndex() const;
+    size_t GetHiddenLayerCount() const;
+
     Neuron& GetNeuron(size_t neuron_index);
+    Layer& GetHiddenLayer(size_t layer_index);
+
 
 private:
   static constexpr double DefaultLearningRate = 0.7;

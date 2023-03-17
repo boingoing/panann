@@ -981,4 +981,14 @@ NeuralNetwork::Neuron& NeuralNetwork::GetNeuron(size_t neuron_index) {
     return neurons_[neuron_index];
 }
 
+size_t NeuralNetwork::GetHiddenLayerCount() const {
+    return hidden_layers_.size();
+}
+
+
+NeuralNetwork::Layer& NeuralNetwork::GetHiddenLayer(size_t layer_index) {
+    assert(layer_index < hidden_layers_.size());
+    return hidden_layers_[layer_index];
+}
+
 }  // namespace panann
