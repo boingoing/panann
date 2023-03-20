@@ -18,6 +18,16 @@ size_t RecurrentNeuralNetwork::GetCellMemorySize() const {
     return cell_memory_size_;
 }
 
+void RecurrentNeuralNetwork::SetHiddenLayerCount(size_t layer_count) {
+    assert(!IsConstructed());
+    // TODO(boingoing): Support resetting the count of hidden layers.
+    assert(GetHiddenLayerCount() == 0);
+
+    for (size_t i = 0; i < layer_count; i++) {
+        AddHiddenLayer(0);
+    }
+}
+
 void RecurrentNeuralNetwork::Allocate() {
     assert(!IsConstructed());
     assert(GetHiddenLayerCount() > 0);

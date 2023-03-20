@@ -137,7 +137,6 @@ public:
      */
     void SetInputNeuronCount(size_t input_neuron_count);
     size_t GetInputNeuronCount() const;
-    size_t GetInputNeuronStartIndex() const;
 
     /**
      * Set the number of neurons in the output layer.
@@ -145,7 +144,6 @@ public:
      */
     void SetOutputNeuronCount(size_t output_neuron_count);
     size_t GetOutputNeuronCount() const;
-    size_t GetOutputNeuronStartIndex() const;
 
     /**
      * Append a hidden layer to the end of the list of existing hidden layers.<br/>
@@ -154,8 +152,6 @@ public:
      * Hidden layers may not be added after the network has been constructed.
      */
     void AddHiddenLayer(size_t neuron_count);
-    size_t GetHiddenNeuronCount() const;
-    size_t GetHiddenNeuronStartIndex() const;
 
     /**
      * Set the learning rate parameter used by backprop, batch, and qprop.<br/>
@@ -460,12 +456,65 @@ protected:
 
     double GetError() const;
 
+  /**
+   * All of the neurons are physically stored in a vector.
+   * All of the hidden neurons are stored first, starting at index 0 and continuing for GetHiddenNeuronCount() neurons, stored sequentially.
+   * Immediately following the hidden neurons are all of the input, output, and bias neurons.
+   *
+   * +--------------------------------------------------+----------------------+
+   * |          Index                                   |     Which Neuron     |
+   * +--------------------------------------------------+----------------------+
+   * | GetHiddenNeuronStartIndex()                      | First Hidden Neuron  |
+   * +--------------------------------------------------+----------------------+
+   * | GetHiddenNeuronStartIndex() + 1                  | Second Hidden Neuron |
+   * +--------------------------------------------------+----------------------+
+   * | ...                                              |                      |
+   * +--------------------------------------------------+----------------------+
+   * | GetHiddenNeuronStartIndex()                      | Last Hidden Neuron   |
+   * | + GetHiddenNeuronCount() - 1                     |                      |
+   * +--------------------------------------------------+----------------------+
+   * | GetInputNeuronStartIndex()                       | First Input Neuron   |
+   * +--------------------------------------------------+----------------------+
+   * | GetInputNeuronStartIndex() + 1                   | Second Input Neuron  |
+   * +--------------------------------------------------+----------------------+
+   * | ...                                              |                      |
+   * +--------------------------------------------------+----------------------+
+   * | GetInputNeuronStartIndex()                       | Last Input Neuron    |
+   * | + GetInputNeuronCount() - 1                      |                      |
+   * +--------------------------------------------------+----------------------+
+   * | GetOutputNeuronStartIndex()                      | First Output Neuron  |
+   * +--------------------------------------------------+----------------------+
+   * | GetOutputNeuronStartIndex() + 1                  | Second Output Neuron |
+   * +--------------------------------------------------+----------------------+
+   * | ...                                              |                      |
+   * +--------------------------------------------------+----------------------+
+   * | GetOutputNeuronStartIndex()                      | Last Output Neuron   |
+   * | + GetOutputNeuronCount() - 1                     |                      |
+   * +--------------------------------------------------+----------------------+
+   * | GetBiasNeuronStartIndex()                        | First Bias Neuron    |
+   * +--------------------------------------------------+----------------------+
+   * | GetBiasNeuronStartIndex() + 1                    | Second Bias Neuron   |
+   * +--------------------------------------------------+----------------------+
+   * | ...                                              |                      |
+   * +--------------------------------------------------+----------------------+
+   * | GetBiasNeuronStartIndex()                        | Last Bias Neuron     |
+   * | + GetBiasNeuronCount() - 1                       |                      |
+   * +--------------------------------------------------+----------------------+
+   */
+  size_t GetHiddenNeuronStartIndex() const;
+  size_t GetInputNeuronStartIndex() const;
+    size_t GetOutputNeuronStartIndex() const;
     size_t GetBiasNeuronStartIndex() const;
+
+    size_t GetHiddenNeuronCount() const;
+    size_t GetBiasNeuronCount() const;
     size_t GetHiddenLayerCount() const;
 
     Neuron& GetNeuron(size_t neuron_index);
     Layer& GetHiddenLayer(size_t layer_index);
 
+    void AddHiddenNeurons(size_t count);
+    void AddBiasNeurons(size_t count);
 
 private:
   static constexpr double DefaultLearningRate = 0.7;
@@ -496,6 +545,7 @@ private:
     size_t input_neuron_count_ = 0;
     size_t output_neuron_count_ = 0;
     size_t hidden_neuron_count_ = 0;
+    size_t bias_neuron_count_ = 0;
 
     double error_sum_ = 0;
     double error_count_ = 0;

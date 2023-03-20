@@ -111,6 +111,10 @@ size_t NeuralNetwork::GetInputNeuronCount() const {
 void NeuralNetwork::SetInputNeuronCount(size_t input_neuron_count) {
     assert(!is_constructed_);
     input_neuron_count_ = input_neuron_count;
+
+    // The input layer hooks-up to a bias neuron.
+    // TODO(boingoing): We don't really have any other place where we can initialize the input layer - if we don't set the count, it'll be zero which will assert when constructing - so increment the bias neuron count here. We should do this elsewhere if there become other ways to initialize the input layer.
+    bias_neuron_count_++;
 }
 
 size_t NeuralNetwork::GetOutputNeuronCount() const {
@@ -276,48 +280,64 @@ NeuralNetwork::ErrorCostFunction NeuralNetwork::GetErrorCostFunction() const {
     return error_cost_function_;
 }
 
-/**
- * | hidden neurons | input neurons | output neurons | bias neurons |
- */
+size_t NeuralNetwork::GetHiddenNeuronStartIndex() const {
+    return 0;
+}
+
 size_t NeuralNetwork::GetInputNeuronStartIndex() const {
     return hidden_neuron_count_;
 }
 
 size_t NeuralNetwork::GetOutputNeuronStartIndex() const {
-    return hidden_neuron_count_ + this->input_neuron_count_;
+    return hidden_neuron_count_ + input_neuron_count_;
 }
 
-size_t NeuralNetwork::GetHiddenNeuronStartIndex() const {
-    return 0;
+size_t NeuralNetwork::GetBiasNeuronStartIndex() const {
+    return hidden_neuron_count_ + input_neuron_count_ + output_neuron_count_;
 }
 
 size_t NeuralNetwork::GetHiddenNeuronCount() const {
     return hidden_neuron_count_;
 }
 
-size_t NeuralNetwork::GetBiasNeuronStartIndex() const {
-    return input_neuron_count_ + output_neuron_count_ + hidden_neuron_count_;
+size_t NeuralNetwork::GetBiasNeuronCount() const {
+    return bias_neuron_count_;
+}
+
+void NeuralNetwork::AddHiddenNeurons(size_t count) {
+    assert(!IsConstructed());
+    hidden_neuron_count_ += count;
+}
+
+void NeuralNetwork::AddBiasNeurons(size_t count) {
+    assert(!IsConstructed());
+    bias_neuron_count_ += count;
 }
 
 void NeuralNetwork::AddHiddenLayer(size_t neuron_count) {
-    assert(!is_constructed_);
+    assert(!IsConstructed());
 
     // Add a new hidden layer beginning at the current hidden neuron count and continuing for |neuron_count| neurons.
-    hidden_layers_.push_back({GetHiddenNeuronStartIndex() + hidden_neuron_count_, neuron_count});
-    hidden_neuron_count_ += neuron_count;
+    hidden_layers_.emplace_back() = {GetHiddenNeuronStartIndex() + GetHiddenNeuronCount(), neuron_count};
+    AddHiddenNeurons(neuron_count);
+
+    // Each hidden layer hooks-up to one bias neuron, keep track of the number of bias neurons we need.
+    AddBiasNeurons(1);
 }
 
 void NeuralNetwork::Allocate() {
-    assert(!is_constructed_);
-    // Do not support networks with no hidden layers.
-    assert(!hidden_layers_.empty());
+    assert(!IsConstructed());
+    // Do not support networks with no hidden layers, no input neurons, or no output neurons.
+    assert(GetHiddenLayerCount() > 0);
+    assert(GetInputNeuronCount() > 0);
+    assert(GetOutputNeuronCount() > 0);
 
-    // Total count of neurons is all the input, output, and hidden neurons.
-    // The input layer and hidden layers also contribute one bias neuron each.
+    // Total count of neurons is all the input, output, hidden, and bias neurons.
     const size_t neuron_count =
-        input_neuron_count_ + 1 +
-        output_neuron_count_ +
-        hidden_neuron_count_ + hidden_layers_.size();
+        GetInputNeuronCount() +
+        GetOutputNeuronCount() +
+        GetHiddenNeuronCount() +
+        GetBiasNeuronCount();
 
     neurons_.resize(neuron_count);
 
@@ -330,7 +350,7 @@ void NeuralNetwork::Allocate() {
     // Calculate the connections outgoing from the input layer.
     if (enable_shortcut_connections_) {
         // The input layer connects to all hidden layers and the output layer.
-        current_layer_output_connection_count = hidden_neuron_count_ + output_neuron_count_;
+        current_layer_output_connection_count = GetHiddenNeuronCount() + output_neuron_count_;
     } else {
         // The input layer connects only to the first hidden layer.
         current_layer_output_connection_count = hidden_layers_.front().neuron_count;
@@ -356,7 +376,7 @@ void NeuralNetwork::Allocate() {
     // Calculate the connections incoming to the output layer.
     if (enable_shortcut_connections_) {
         // All input and hidden neurons are connected to each output neuron.
-        current_layer_input_connection_count = input_neuron_count_ + hidden_neuron_count_ + 1;
+        current_layer_input_connection_count = input_neuron_count_ + GetHiddenNeuronCount() + 1;
     } else {
         // Output neurons are connected only to the last hidden layer.
         current_layer_input_connection_count = hidden_layers_.back().neuron_count + 1;
@@ -852,7 +872,7 @@ void NeuralNetwork::RunForward(const std::vector<double>& input) {
     });
 
     // Pull the values from the input layer through the hidden layer neurons.
-    ComputeNeuronValueRange(GetHiddenNeuronStartIndex(), hidden_neuron_count_);
+    ComputeNeuronValueRange(GetHiddenNeuronStartIndex(), GetHiddenNeuronCount());
 
     // Pull values into the output layer.
     ComputeNeuronValueRange(GetOutputNeuronStartIndex(), output_neuron_count_);
@@ -867,8 +887,8 @@ void NeuralNetwork::RunBackward(const std::vector<double>& output) {
 
     // Calculate error at each hidden layer neuron.
     const size_t hiddenNeuronStartIndex = GetHiddenNeuronStartIndex();
-    for (size_t i = 0; i < hidden_neuron_count_; i++) {
-        ComputeNeuronError(hiddenNeuronStartIndex + (hidden_neuron_count_ - 1 - i));
+    for (size_t i = 0; i < GetHiddenNeuronCount(); i++) {
+        ComputeNeuronError(hiddenNeuronStartIndex + (GetHiddenNeuronCount() - 1 - i));
     }
 }
 
@@ -896,7 +916,7 @@ void NeuralNetwork::InitializeWeights(const TrainingData& training_data) {
     }
 
     constexpr double neuron_percentage = 0.7;
-    const double factor = pow(neuron_percentage * hidden_neuron_count_, 1.0 / hidden_neuron_count_) / (max_input - min_input);
+    const double factor = pow(neuron_percentage * GetHiddenNeuronCount(), 1.0 / GetHiddenNeuronCount()) / (max_input - min_input);
     InitializeWeightsRandom(-factor, factor);
 }
 

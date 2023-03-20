@@ -17,7 +17,7 @@ class RecurrentNeuralNetwork : public NeuralNetwork {
 protected:
     struct LongShortTermMemoryCell {
         /**
-         * Index into the neurons_ vector of the first neuron belonging to the cell.
+         * Index into the |neurons_| vector of the first neuron belonging to the cell.
          */
         size_t neuron_start_index;
 
@@ -27,13 +27,13 @@ protected:
         size_t neuron_count;
 
         /**
-         * Index into the cell_states_ vector of the first state belonging to the cell.
+         * Index into the |cell_states_| vector of the first state belonging to the cell.
          */
         size_t cell_state_start_index;
 
         /**
          * Count of cell states belonging to the cell.<br/>
-         * Note: All cells currently have the same count of cell states and that count equals cell_memory_size_.
+         * Note: All cells currently have the same count of cell states and that count equals |cell_memory_size_|.
          */
         size_t cell_state_count;
     };
@@ -51,6 +51,8 @@ public:
      */
     void SetCellMemorySize(size_t memory_size);
     size_t GetCellMemorySize() const;
+
+    void SetHiddenLayerCount(size_t layer_count);
 
     void RunForward(const std::vector<double>& input) override;
 
