@@ -325,13 +325,7 @@ void NeuralNetwork::AddHiddenLayer(size_t neuron_count) {
     AddBiasNeurons(1);
 }
 
-void NeuralNetwork::Allocate() {
-    assert(!IsConstructed());
-    // Do not support networks with no hidden layers, no input neurons, or no output neurons.
-    assert(GetHiddenLayerCount() > 0);
-    assert(GetInputNeuronCount() > 0);
-    assert(GetOutputNeuronCount() > 0);
-
+void NeuralNetwork::AllocateNeurons() {
     // Total count of neurons is all the input, output, hidden, and bias neurons.
     const size_t neuron_count =
         GetInputNeuronCount() +
@@ -340,6 +334,16 @@ void NeuralNetwork::Allocate() {
         GetBiasNeuronCount();
 
     neurons_.resize(neuron_count);
+}
+
+void NeuralNetwork::Allocate() {
+    assert(!IsConstructed());
+    // Do not support networks with no hidden layers, no input neurons, or no output neurons.
+    assert(GetHiddenLayerCount() > 0);
+    assert(GetInputNeuronCount() > 0);
+    assert(GetOutputNeuronCount() > 0);
+
+    AllocateNeurons();
 
     size_t bias_neuron_index = GetBiasNeuronStartIndex();
     size_t input_connection_index = 0;

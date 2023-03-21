@@ -516,6 +516,8 @@ protected:
     void AddHiddenNeurons(size_t count);
     void AddBiasNeurons(size_t count);
 
+    void AllocateNeurons();
+
 private:
   static constexpr double DefaultLearningRate = 0.7;
   static constexpr double DefaultMomentum = 0.1;
