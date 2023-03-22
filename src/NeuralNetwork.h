@@ -8,6 +8,8 @@
 
 #include <vector>
 
+#include "ActivationFunction.h"
+#include "NeuronContainer.h"
 #include "RandomWrapper.h"
 
 namespace panann {
@@ -17,29 +19,8 @@ class TrainingData;
 /**
  * Simple feed-forward, multi-layer perceptron.
  */
-class NeuralNetwork {
+class NeuralNetwork : public NeuronContainer {
 public:
-    enum class ActivationFunctionType : uint8_t {
-        Linear = 1,
-        Sigmoid,
-        Gaussian,
-        Sine,
-        Cosine,
-        Elliot,
-        Threshold,
-        SigmoidSymmetric,
-        GaussianSymmetric,
-        SineSymmetric,
-        CosineSymmetric,
-        ElliotSymmetric,
-        ThresholdSymmetric,
-
-        // The symmetric activation functions are grouped at the end so we would
-        // know that an activation function is symmetric if it's at least the
-        // first one in this group.
-        FirstSymmetric = SigmoidSymmetric
-    };
-
     enum class ErrorCostFunction : uint8_t {
         MeanSquareError = 1,
         MeanAbsoluteError,
@@ -100,17 +81,6 @@ public:
     };
 
 protected:
-    struct Neuron {
-        size_t input_connection_start_index;
-        size_t input_connection_count;
-        size_t output_connection_start_index;
-        size_t output_connection_count;
-        double field;
-        double value;
-        double error;
-        ActivationFunctionType activation_function_type;
-    };
-
     struct Layer {
         size_t neuron_start_index;
         size_t neuron_count;
@@ -130,20 +100,6 @@ public:
     NeuralNetwork(const NeuralNetwork&) = delete;
     NeuralNetwork& operator=(const NeuralNetwork&) = delete;
     virtual ~NeuralNetwork() = default;
-
-    /**
-     * Set the number of neurons in the input layer.
-     * This count may not be changed once the network topology has been constructed.
-     */
-    void SetInputNeuronCount(size_t input_neuron_count);
-    size_t GetInputNeuronCount() const;
-
-    /**
-     * Set the number of neurons in the output layer.
-     * This count may not be changed once the network topology has been constructed.
-     */
-    void SetOutputNeuronCount(size_t output_neuron_count);
-    size_t GetOutputNeuronCount() const;
 
     /**
      * Append a hidden layer to the end of the list of existing hidden layers.<br/>
@@ -311,11 +267,6 @@ public:
     ActivationFunctionType GetOutputNeuronActivationFunctionType() const;
 
     /**
-     * Set the activation function which will be used for the neuron at |neuron_index|.
-     */
-    void SetNeuronActivationFunction(size_t neuron_index, ActivationFunctionType type);
-
-    /**
      * Build the network topology.<br/>
      * After construction, the number of input and output neurons, number of
      * hidden layers, use of shortcut connections, and some other settings may
@@ -456,67 +407,8 @@ protected:
 
     double GetError() const;
 
-  /**
-   * All of the neurons are physically stored in a vector.
-   * All of the hidden neurons are stored first, starting at index 0 and continuing for GetHiddenNeuronCount() neurons, stored sequentially.
-   * Immediately following the hidden neurons are all of the input, output, and bias neurons.
-   *
-   * +--------------------------------------------------+----------------------+
-   * |          Index                                   |     Which Neuron     |
-   * +--------------------------------------------------+----------------------+
-   * | GetHiddenNeuronStartIndex()                      | First Hidden Neuron  |
-   * +--------------------------------------------------+----------------------+
-   * | GetHiddenNeuronStartIndex() + 1                  | Second Hidden Neuron |
-   * +--------------------------------------------------+----------------------+
-   * | ...                                              |                      |
-   * +--------------------------------------------------+----------------------+
-   * | GetHiddenNeuronStartIndex()                      | Last Hidden Neuron   |
-   * | + GetHiddenNeuronCount() - 1                     |                      |
-   * +--------------------------------------------------+----------------------+
-   * | GetInputNeuronStartIndex()                       | First Input Neuron   |
-   * +--------------------------------------------------+----------------------+
-   * | GetInputNeuronStartIndex() + 1                   | Second Input Neuron  |
-   * +--------------------------------------------------+----------------------+
-   * | ...                                              |                      |
-   * +--------------------------------------------------+----------------------+
-   * | GetInputNeuronStartIndex()                       | Last Input Neuron    |
-   * | + GetInputNeuronCount() - 1                      |                      |
-   * +--------------------------------------------------+----------------------+
-   * | GetOutputNeuronStartIndex()                      | First Output Neuron  |
-   * +--------------------------------------------------+----------------------+
-   * | GetOutputNeuronStartIndex() + 1                  | Second Output Neuron |
-   * +--------------------------------------------------+----------------------+
-   * | ...                                              |                      |
-   * +--------------------------------------------------+----------------------+
-   * | GetOutputNeuronStartIndex()                      | Last Output Neuron   |
-   * | + GetOutputNeuronCount() - 1                     |                      |
-   * +--------------------------------------------------+----------------------+
-   * | GetBiasNeuronStartIndex()                        | First Bias Neuron    |
-   * +--------------------------------------------------+----------------------+
-   * | GetBiasNeuronStartIndex() + 1                    | Second Bias Neuron   |
-   * +--------------------------------------------------+----------------------+
-   * | ...                                              |                      |
-   * +--------------------------------------------------+----------------------+
-   * | GetBiasNeuronStartIndex()                        | Last Bias Neuron     |
-   * | + GetBiasNeuronCount() - 1                       |                      |
-   * +--------------------------------------------------+----------------------+
-   */
-  size_t GetHiddenNeuronStartIndex() const;
-  size_t GetInputNeuronStartIndex() const;
-    size_t GetOutputNeuronStartIndex() const;
-    size_t GetBiasNeuronStartIndex() const;
-
-    size_t GetHiddenNeuronCount() const;
-    size_t GetBiasNeuronCount() const;
     size_t GetHiddenLayerCount() const;
-
-    Neuron& GetNeuron(size_t neuron_index);
     Layer& GetHiddenLayer(size_t layer_index);
-
-    void AddHiddenNeurons(size_t count);
-    void AddBiasNeurons(size_t count);
-
-    void AllocateNeurons();
 
 private:
   static constexpr double DefaultLearningRate = 0.7;
@@ -533,7 +425,6 @@ private:
   static constexpr double DefaultSarpropStepShift = 3;
   static constexpr double DefaultSarpropTemperature = 0.015;
 
-    std::vector<Neuron> neurons_;
     std::vector<Layer> hidden_layers_;
     std::vector<InputConnection> input_connections_;
     std::vector<OutputConnection> output_connections_;
@@ -543,11 +434,6 @@ private:
     std::vector<double> previous_slopes_;
 
     RandomWrapper random_;
-
-    size_t input_neuron_count_ = 0;
-    size_t output_neuron_count_ = 0;
-    size_t hidden_neuron_count_ = 0;
-    size_t bias_neuron_count_ = 0;
 
     double error_sum_ = 0;
     double error_count_ = 0;

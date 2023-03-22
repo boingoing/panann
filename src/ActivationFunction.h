@@ -8,6 +8,27 @@
 
 namespace panann {
 
+enum class ActivationFunctionType : uint8_t {
+    Linear = 1,
+    Sigmoid,
+    Gaussian,
+    Sine,
+    Cosine,
+    Elliot,
+    Threshold,
+    SigmoidSymmetric,
+    GaussianSymmetric,
+    SineSymmetric,
+    CosineSymmetric,
+    ElliotSymmetric,
+    ThresholdSymmetric,
+
+    // The symmetric activation functions are grouped at the end so we would
+    // know that an activation function is symmetric if it's at least the
+    // first one in this group.
+    FirstSymmetric = SigmoidSymmetric
+};
+
 class ActivationFunction
 {
 public:
