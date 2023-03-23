@@ -126,7 +126,6 @@ protected:
  */
     size_t GetBiasNeuronStartIndex() const;
 
-
     /**
      * Get the count of hidden neurons in the container.
      */
@@ -169,6 +168,29 @@ protected:
      * Get a writable view of the neuron at |neuron_index|.
      */
     Neuron& GetNeuron(size_t neuron_index);
+
+    /**
+     * Get a writable view of the input neuron at index |input_neuron_index|.
+     * Note: |input_neuron_index| is not a global index into |neurons_| but must be in the range [0, GetInputNeuronCount()).
+     */
+    Neuron& GetInputNeuron(size_t input_neuron_index);
+
+    /**
+     * Get a writable view of the output neuron at index |output_neuron_index|.
+     * Note: |output_neuron_index| is not a global index into |neurons_| but must be in the range [0, GetOutputNeuronCount()).
+     */
+    Neuron& GetOutputNeuron(size_t output_neuron_index);
+
+    /**
+     * Get a read-only view of the neuron at |neuron_index|.
+     */
+    const Neuron& GetNeuron(size_t neuron_index) const;
+
+    /**
+     * Get a read-only view of the output neuron at index |output_neuron_index|.
+     * Note: |output_neuron_index| is not a global index into |neurons_| but must be in the range [0, GetOutputNeuronCount()).
+     */
+    const Neuron& GetOutputNeuron(size_t output_neuron_index) const;
 
 private:
     std::vector<Neuron> neurons_;

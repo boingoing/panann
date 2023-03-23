@@ -68,6 +68,8 @@ void NeuronContainer::AddBiasNeurons(size_t count) {
 }
 
 void NeuronContainer::AllocateNeurons() {
+    assert(!AreNeuronsAllocated());
+
     // Total count of neurons is all the input, output, hidden, and bias neurons.
     const size_t neuron_count =
         GetInputNeuronCount() +
@@ -85,6 +87,26 @@ bool NeuronContainer::AreNeuronsAllocated() const {
 NeuronContainer::Neuron& NeuronContainer::GetNeuron(size_t neuron_index) {
     assert(neuron_index < neurons_.size());
     return neurons_[neuron_index];
+}
+
+NeuronContainer::Neuron& NeuronContainer::GetInputNeuron(size_t input_neuron_index) {
+    assert(input_neuron_index < input_neuron_count_);
+    return GetNeuron(GetInputNeuronStartIndex() + input_neuron_index);
+}
+
+NeuronContainer::Neuron& NeuronContainer::GetOutputNeuron(size_t output_neuron_index) {
+    assert(output_neuron_index < output_neuron_count_);
+    return GetNeuron(GetOutputNeuronStartIndex() + output_neuron_index);
+}
+
+const NeuronContainer::Neuron& NeuronContainer::GetNeuron(size_t neuron_index) const {
+    assert(neuron_index < neurons_.size());
+    return neurons_[neuron_index];
+}
+
+const NeuronContainer::Neuron& NeuronContainer::GetOutputNeuron(size_t output_neuron_index) const {
+    assert(output_neuron_index < output_neuron_count_);
+    return GetNeuron(GetOutputNeuronStartIndex() + output_neuron_index);
 }
 
 }  // namespace panann

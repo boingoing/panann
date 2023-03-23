@@ -251,6 +251,7 @@ void NeuralNetwork::SetErrorCostFunction(ErrorCostFunction mode) {
 NeuralNetwork::ErrorCostFunction NeuralNetwork::GetErrorCostFunction() const {
     return error_cost_function_;
 }
+
 void NeuralNetwork::AddHiddenLayer(size_t neuron_count) {
     assert(!IsConstructed());
 
@@ -287,13 +288,14 @@ void NeuralNetwork::Allocate() {
     }
 
     // Set the output connection indices into the input neurons.
-    std::for_each(neurons_.begin() + GetInputNeuronStartIndex(), neurons_.begin() + GetInputNeuronStartIndex() + GetInputNeuronCount(), [&](auto& neuron){
+    for (size_t i = 0; i < GetInputNeuronCount(); i++) {
+        auto& neuron = GetInputNeuron(i);
         // |neuron| has |current_layer_output_connection_count| output connections beginning at |output_connection_index|.
         neuron.output_connection_start_index = output_connection_index;
         // The next free output connection begins where the set of output connections for the current neuron end.
         // Increment our index by that count.
         output_connection_index += current_layer_output_connection_count;
-    });
+    }
 
     // The first bias neuron is the one for the input layer.
     // It has output connections to each hidden neuron.
@@ -313,12 +315,13 @@ void NeuralNetwork::Allocate() {
     }
 
     // Set the input connection indices into the output neurons.
-    std::for_each(neurons_.begin() + GetOutputNeuronStartIndex(), neurons_.begin() + GetOutputNeuronStartIndex() + GetOutputNeuronCount(), [&](auto& neuron){
+    for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
+        auto& neuron = GetOutputNeuron(i);
         neuron.input_connection_start_index = input_connection_index;
         // TODO(boingoing): Should we set the activation function type elsewhere?
         neuron.activation_function_type = output_neuron_activation_function_type_;
         input_connection_index += current_layer_input_connection_count;
-    });
+    }
 
     size_t neuron_index = GetHiddenNeuronStartIndex();
 
@@ -795,11 +798,10 @@ void NeuralNetwork::RunForward(const std::vector<double>& input) {
     assert(input.size() == GetInputNeuronCount());
 
     // Feed each input into the corresponding input neuron.
-    // TODO(boingoing): Use assign or something more performant?
-    size_t input_index = 0;
-    std::for_each(neurons_.begin() + GetInputNeuronStartIndex(), neurons_.begin() + GetInputNeuronStartIndex() + GetInputNeuronCount(), [&](auto& neuron) {
-        neuron.value = input[input_index++];
-    });
+    for (size_t i = 0; i < GetInputNeuronCount(); i++) {
+        auto& neuron = GetInputNeuron(i);
+        neuron.value = input[i];
+    }
 
     // Pull the values from the input layer through the hidden layer neurons.
     ComputeNeuronValueRange(GetHiddenNeuronStartIndex(), GetHiddenNeuronCount());
@@ -920,10 +922,10 @@ void NeuralNetwork::SetWeights(const std::vector<double>& weights) {
 
 void NeuralNetwork::GetOutput(std::vector<double>* output) const {
     output->resize(GetOutputNeuronCount());
-    size_t index = 0;
-    std::for_each(neurons_.cbegin() + GetOutputNeuronStartIndex(), neurons_.cbegin() + GetOutputNeuronStartIndex() + GetOutputNeuronCount(), [&](const auto& neuron) {
-        output->at(index++) = neuron.value;
-    });
+    for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
+        const auto& neuron = GetOutputNeuron(i);
+        output->at(i) = neuron.value;
+    }
 }
 
 size_t NeuralNetwork::GetHiddenLayerCount() const {

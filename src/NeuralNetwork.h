@@ -99,7 +99,7 @@ public:
     NeuralNetwork() = default;
     NeuralNetwork(const NeuralNetwork&) = delete;
     NeuralNetwork& operator=(const NeuralNetwork&) = delete;
-    virtual ~NeuralNetwork() = default;
+    ~NeuralNetwork() override = default;
 
     /**
      * Append a hidden layer to the end of the list of existing hidden layers.<br/>
