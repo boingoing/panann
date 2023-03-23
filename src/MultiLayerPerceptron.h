@@ -87,6 +87,8 @@ protected:
     size_t GetHiddenLayerCount() const;
     Layer& GetHiddenLayer(size_t layer_index);
 
+    size_t GetInputConnectionCount() const;
+
     virtual void Allocate();
     virtual void ConnectFully();
 

@@ -13,6 +13,7 @@ include_directories (${PROJECT_SOURCE_DIR}/src)
 
 set (LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/src/ActivationFunction.cc
+  ${PROJECT_SOURCE_DIR}/src/MultiLayerPerceptron.cc
   ${PROJECT_SOURCE_DIR}/src/NeuralNetwork.cc
   ${PROJECT_SOURCE_DIR}/src/NeuronContainer.cc
   ${PROJECT_SOURCE_DIR}/src/RandomWrapper.cc
