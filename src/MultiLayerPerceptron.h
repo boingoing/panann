@@ -86,8 +86,16 @@ public:
 protected:
     size_t GetHiddenLayerCount() const;
     Layer& GetHiddenLayer(size_t layer_index);
+    const Layer& GetHiddenLayer(size_t layer_index) const;
 
+    /**
+     * Get the count of all input connections
+     */
     size_t GetInputConnectionCount() const;
+    size_t GetOutputConnectionCount() const;
+
+    void AllocateConnections();
+    bool AreConnectionsAllocated();
 
     virtual void Allocate();
     virtual void ConnectFully();
@@ -110,6 +118,7 @@ private:
 
     bool enable_shortcut_connections_ = false;
     bool is_constructed_ = false;
+    bool is_allocated_ = false;
 };
 
 } // namespace panann
