@@ -89,13 +89,13 @@ protected:
     const Layer& GetHiddenLayer(size_t layer_index) const;
 
     /**
-     * Get the count of all input connections
+     * Get the count of all input connections in the network topology.
      */
     size_t GetInputConnectionCount() const;
     size_t GetOutputConnectionCount() const;
 
     void AllocateConnections();
-    bool AreConnectionsAllocated();
+    bool AreConnectionsAllocated() const;
 
     virtual void Allocate();
     virtual void ConnectFully();

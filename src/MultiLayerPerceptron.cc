@@ -321,7 +321,7 @@ void MultiLayerPerceptron::AllocateConnections() {
     output_connections_.resize(GetOutputConnectionCount());
 }
 
-bool MultiLayerPerceptron::AreConnectionsAllocated() {
+bool MultiLayerPerceptron::AreConnectionsAllocated() const {
     return is_allocated_;
 }
 
