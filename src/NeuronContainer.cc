@@ -85,6 +85,7 @@ bool NeuronContainer::AreNeuronsAllocated() const {
 }
 
 NeuronContainer::Neuron& NeuronContainer::GetNeuron(size_t neuron_index) {
+    assert(AreNeuronsAllocated());
     assert(neuron_index < neurons_.size());
     return neurons_[neuron_index];
 }
@@ -97,6 +98,16 @@ NeuronContainer::Neuron& NeuronContainer::GetInputNeuron(size_t input_neuron_ind
 NeuronContainer::Neuron& NeuronContainer::GetOutputNeuron(size_t output_neuron_index) {
     assert(output_neuron_index < output_neuron_count_);
     return GetNeuron(GetOutputNeuronStartIndex() + output_neuron_index);
+}
+
+NeuronContainer::Neuron& NeuronContainer::GetBiasNeuron(size_t bias_neuron_index) {
+    assert(bias_neuron_index < bias_neuron_count_);
+    return GetNeuron(GetBiasNeuronStartIndex() + bias_neuron_index);
+}
+
+NeuronContainer::Neuron& NeuronContainer::GetHiddenNeuron(size_t hidden_neuron_index) {
+    assert(hidden_neuron_index < hidden_neuron_count_);
+    return GetNeuron(GetHiddenNeuronStartIndex() + hidden_neuron_index);
 }
 
 const NeuronContainer::Neuron& NeuronContainer::GetNeuron(size_t neuron_index) const {

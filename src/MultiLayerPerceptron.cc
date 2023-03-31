@@ -181,6 +181,144 @@ size_t MultiLayerPerceptron::GetOutputConnectionCount() const {
     return output_connection_count;
 }
 
+size_t MultiLayerPerceptron::TakeInputConnections(size_t count) {
+    assert(input_connection_index_ + count <= input_connections_.size());
+
+    const size_t index = input_connection_index_;
+    input_connection_index_ += count;
+    return index;
+}
+
+size_t MultiLayerPerceptron::TakeOutputConnections(size_t count) {
+    assert(output_connection_index_ + count <= output_connections_.size());
+
+    const size_t index = output_connection_index_;
+    output_connection_index_ += count;
+    return index;
+}
+
+void MultiLayerPerceptron::FixNeuronConnectionIndices() {
+    assert(GetHiddenLayerCount() > 0);
+    assert(!IsConstructed());
+    assert(AreNeuronsAllocated());
+    assert(AreConnectionsAllocated());
+
+    const auto& first_layer = GetHiddenLayer(0);
+    const auto& last_layer = GetHiddenLayer(GetHiddenLayerCount() - 1);
+
+    // Count of output connections from each of the input neurons.
+    const size_t input_layer_output_connection_count = enable_shortcut_connections_ ? GetHiddenNeuronCount() + GetOutputNeuronCount() : first_layer.neuron_count;
+
+    // Set the output connection start indices into the input neurons.
+    for (size_t i = 0; i < GetInputNeuronCount(); i++) {
+        auto& neuron = GetInputNeuron(i);
+        neuron.output_connection_start_index = TakeOutputConnections(input_layer_output_connection_count);
+    }
+
+    // Count of input connections into each of the output neurons (+1 is for the bias connection).
+    const size_t output_layer_input_connection_count = 1 + (enable_shortcut_connections_ ? GetInputNeuronCount() + GetHiddenNeuronCount() : last_layer.neuron_count);
+
+    // Set the input connection start indices into the output neurons.
+    for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
+        auto& neuron = GetOutputNeuron(i);
+        neuron.input_connection_start_index = TakeInputConnections(output_layer_input_connection_count);
+    }
+
+    // Set the input and output connection start indices into all the hidden neurons.
+    for (size_t layer_index = 0; layer_index < GetHiddenLayerCount(); layer_index++) {
+        // Each hidden neuron in the current layer is connected to the bias neuron in either the previous hidden layer or the input layer.
+        size_t input_connection_count = 1;
+        size_t output_connection_count = 0;
+
+        if (enable_shortcut_connections_) {
+            // All hidden layer neurons connect to the input layer when shortcuts are enabled.
+            input_connection_count += GetInputNeuronCount();
+
+            // Each neuron in this layer connects to the neurons in all previous hidden layers when shortcuts are enabled.
+            for (size_t previous_layer_index = 0; previous_layer_index < layer_index; previous_layer_index++) {
+                const auto& previous_layer = GetHiddenLayer(previous_layer_index);
+                input_connection_count += previous_layer.neuron_count;
+            }
+
+            // All hidden layer neruons connect directly to the output layer when shortcuts are enabled.
+            output_connection_count += GetOutputNeuronCount();
+
+            // Each neuron in this layer connects to all neurons in subsequent hidden layers when shortcuts are enabled.
+            for (size_t next_layer_index = layer_index + 1; next_layer_index < GetHiddenLayerCount(); next_layer_index++) {
+                const auto& next_layer = GetHiddenLayer(next_layer_index);
+                output_connection_count += next_layer.neuron_count;
+            }
+        } else {
+            if (layer_index == 0) {
+                // First hidden layer only connects to the input layer.
+                input_connection_count += GetInputNeuronCount();
+            } else {
+                // Subsequent hidden layers connect directly the previous one.
+                const auto& previous_layer = GetHiddenLayer(layer_index - 1);
+                input_connection_count += previous_layer.neuron_count;
+            }
+
+            if (layer_index == GetHiddenLayerCount() - 1) {
+                // Last hidden layer connects to the output layer.
+                output_connection_count += GetOutputNeuronCount();
+            } else {
+                // This is not the last hidden layer, so there must be at least one more hidden layer after it.
+                assert(layer_index + 1 < GetHiddenLayerCount());
+                const auto& next_layer = GetHiddenLayer(layer_index + 1);
+
+                // This hidden layer connects directly to the next one.
+                output_connection_count += next_layer.neuron_count;
+            }
+        }
+
+        // Save the start connection indices into the hidden neurons in the current layer.
+        const auto& current_layer = GetHiddenLayer(layer_index);
+        for (size_t i = 0; i < current_layer.neuron_count; i++) {
+            auto& neuron = GetNeuron(current_layer.neuron_start_index + i);
+            neuron.input_connection_start_index = TakeInputConnections(input_connection_count);
+            neuron.output_connection_start_index = TakeOutputConnections(output_connection_count);
+        }
+    }
+
+    // The first bias neuron connects to hidden neurons in the first layer.
+    auto& first_bias_neuron = GetBiasNeuron(0);
+    first_bias_neuron.output_connection_start_index = TakeOutputConnections(first_layer.neuron_count);
+
+    // Set the output connection start indices into all but the last bias neuron - one per hidden layer.
+    for (size_t layer_index = 0; layer_index < GetHiddenLayerCount() - 1; layer_index++) {
+        // We're not walking to the last hidden layer so there always must be a next layer after current.
+        assert(layer_index + 1 < GetHiddenLayerCount());
+        const auto& next_layer = GetHiddenLayer(layer_index + 1);
+
+        // The bias neuron for |layer_index| connects to each hidden neuron in the next hidden layer.
+        // Bias neurons do not have incoming connections.
+        auto& bias_neuron = GetBiasNeuron(1 + layer_index);
+        bias_neuron.output_connection_start_index = TakeOutputConnections(next_layer.neuron_count);
+    }
+
+    // The last bias neuron connects to the output layer neurons.
+    auto& last_bias_neuron = GetBiasNeuron(GetHiddenLayerCount());
+    last_bias_neuron.output_connection_count = TakeOutputConnections(GetOutputNeuronCount());
+}
+
+void MultiLayerPerceptron::InitializeNeurons() {
+    // Bias neurons have a fixed value of 1.0 which we set here.
+    for (size_t i = 0; i < GetBiasNeuronCount(); i++) {
+        auto& neuron = GetBiasNeuron(i);
+        neuron.value = 1;
+    }
+
+    // Set the default activation function for hidden and output neurons.
+    for (size_t i = 0; i < GetHiddenNeuronCount(); i++) {
+        auto& neuron = GetHiddenNeuron(i);
+        neuron.activation_function_type = hidden_neuron_activation_function_type_;
+    }
+    for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
+        auto& neuron = GetOutputNeuron(i);
+        neuron.activation_function_type = output_neuron_activation_function_type_;
+    }
+}
+
 void MultiLayerPerceptron::Allocate() {
     assert(!IsConstructed());
     // Do not support networks with no hidden layers, no input neurons, or no output neurons.
@@ -190,128 +328,6 @@ void MultiLayerPerceptron::Allocate() {
 
     AllocateNeurons();
     AllocateConnections();
-
-    size_t bias_neuron_index = GetBiasNeuronStartIndex();
-    size_t input_connection_index = 0;
-    size_t output_connection_index = 0;
-    size_t current_layer_input_connection_count = 0;
-    size_t current_layer_output_connection_count = 0;
-
-    // Calculate the connections outgoing from the input layer.
-    if (enable_shortcut_connections_) {
-        // The input layer connects to all hidden layers and the output layer.
-        current_layer_output_connection_count = GetHiddenNeuronCount() + GetOutputNeuronCount();
-    } else {
-        // The input layer connects only to the first hidden layer.
-        current_layer_output_connection_count = hidden_layers_.front().neuron_count;
-    }
-
-    // Set the output connection indices into the input neurons.
-    for (size_t i = 0; i < GetInputNeuronCount(); i++) {
-        auto& neuron = GetInputNeuron(i);
-        // |neuron| has |current_layer_output_connection_count| output connections beginning at |output_connection_index|.
-        neuron.output_connection_start_index = output_connection_index;
-        // The next free output connection begins where the set of output connections for the current neuron end.
-        // Increment our index by that count.
-        output_connection_index += current_layer_output_connection_count;
-    }
-
-    // The first bias neuron is the one for the input layer.
-    // It has output connections to each hidden neuron.
-    auto& bias_neuron_input = GetNeuron(bias_neuron_index++);
-    bias_neuron_input.output_connection_start_index = output_connection_index;
-    // TODO(boingoing): Should we set the bias neuron values someplace else?
-    bias_neuron_input.value = 1.0;
-    output_connection_index += hidden_layers_.front().neuron_count;
-
-    // Calculate the connections incoming to the output layer.
-    if (enable_shortcut_connections_) {
-        // All input and hidden neurons are connected to each output neuron.
-        current_layer_input_connection_count = GetInputNeuronCount() + GetHiddenNeuronCount() + 1;
-    } else {
-        // Output neurons are connected only to the last hidden layer.
-        current_layer_input_connection_count = hidden_layers_.back().neuron_count + 1;
-    }
-
-    // Set the input connection indices into the output neurons.
-    for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
-        auto& neuron = GetOutputNeuron(i);
-        neuron.input_connection_start_index = input_connection_index;
-        // TODO(boingoing): Should we set the activation function type elsewhere?
-        neuron.activation_function_type = output_neuron_activation_function_type_;
-        input_connection_index += current_layer_input_connection_count;
-    }
-
-    size_t neuron_index = GetHiddenNeuronStartIndex();
-
-    // Calculate the connections to and from all hidden layers.
-    for (size_t layer_index = 0; layer_index < hidden_layers_.size(); layer_index++) {
-        current_layer_input_connection_count = 0;
-        current_layer_output_connection_count = 0;
-
-        if (enable_shortcut_connections_) {
-            // All hidden layers connect to the input layer when shortcuts are enabled.
-            current_layer_input_connection_count += GetInputNeuronCount() + 1;
-
-            // Each neuron in this layer connects to the neurons in all previous hidden layers.
-            for (size_t previous_layer_index = 0; previous_layer_index < layer_index; previous_layer_index++) {
-                current_layer_input_connection_count += hidden_layers_[previous_layer_index].neuron_count + 1;
-            }
-
-            // All hidden layers connect directly to the output layer when shortcuts are enabled.
-            current_layer_output_connection_count += GetOutputNeuronCount();
-
-            // This layer connects to all neurons in subsequent hidden layers.
-            for (size_t next_layer_index = layer_index + 1; next_layer_index < hidden_layers_.size(); next_layer_index++) {
-                current_layer_output_connection_count += hidden_layers_[next_layer_index].neuron_count;
-            }
-        } else {
-            if (layer_index == 0) {
-                // First hidden layer connects to the input layer.
-                current_layer_input_connection_count += GetInputNeuronCount() + 1;
-            } else {
-                // This hidden layer connects directly the previous one.
-                current_layer_input_connection_count += hidden_layers_[layer_index - 1].neuron_count + 1;
-            }
-
-            if (layer_index == hidden_layers_.size() - 1) {
-                // Last hidden layer connects to the output layer.
-                current_layer_output_connection_count += GetOutputNeuronCount();
-            } else {
-                assert(layer_index + 1 < hidden_layers_.size());
-
-                // This hidden layer connects directly to the next one.
-                current_layer_output_connection_count += hidden_layers_[layer_index + 1].neuron_count;
-            }
-        }
-
-        const auto& current_layer = hidden_layers_[layer_index];
-        for (size_t i = 0; i < current_layer.neuron_count; i++) {
-            auto& neuron = GetNeuron(neuron_index++);
-            neuron.input_connection_start_index = input_connection_index;
-            neuron.output_connection_start_index = output_connection_index;
-            neuron.activation_function_type = hidden_neuron_activation_function_type_;
-
-            input_connection_index += current_layer_input_connection_count;
-            output_connection_index += current_layer_output_connection_count;
-        }
-
-        // Bias neurons cannot have shortcut connections.
-        size_t bias_output_connection_count = 0;
-        if (layer_index == hidden_layers_.size() - 1) {
-            // Bias neuron in the last hidden layer connects to the output layer.
-            bias_output_connection_count = GetOutputNeuronCount();
-        } else {
-            // Bias neuron in this hidden layer connects to the next hidden layer.
-            bias_output_connection_count = hidden_layers_[layer_index + 1].neuron_count;
-        }
-
-        // Bias neurons do not have incoming connections.
-        Neuron& bias_neuron = GetNeuron(bias_neuron_index++);
-        bias_neuron.output_connection_start_index = output_connection_index;
-        bias_neuron.value = 1.0;
-        output_connection_index += bias_output_connection_count;
-    }
 }
 
 void MultiLayerPerceptron::AllocateConnections() {
@@ -327,19 +343,44 @@ bool MultiLayerPerceptron::AreConnectionsAllocated() const {
     return is_allocated_;
 }
 
+MultiLayerPerceptron::InputConnection& MultiLayerPerceptron::GetInputConnection(size_t index) {
+    assert(index < input_connections_.size());
+    return input_connections_[index];
+}
+
+MultiLayerPerceptron::OutputConnection& MultiLayerPerceptron::GetOutputConnection(size_t index) {
+    assert(index < output_connections_.size());
+    return output_connections_[index];
+}
+
 void MultiLayerPerceptron::ConnectNeurons(size_t from_neuron_index, size_t to_neuron_index) {
     auto& from_neuron = GetNeuron(from_neuron_index);
     auto& to_neuron = GetNeuron(to_neuron_index);
 
+    // Each neuron has |input_connection_start_index| which is the index into the input connections where the connections for this neuron are stored.
+    // All the input connections for each neuron are stored sequentially starting at this index.
+    // The neuron |to_neuron| has field |input_connection_count| which contains the current count of input connections we've made to |to_neuron|.
+    // |input_connection_index| is going to give us the next unassigned input connection which was allocated for |to_neuron|.
     const size_t input_connection_index = to_neuron.input_connection_start_index + to_neuron.input_connection_count;
-    auto& input_connection = input_connections_[input_connection_index];
+    auto& input_connection = GetInputConnection(input_connection_index);
+    // The input connection we pulled from the end of the set for |to_neuron| should be uninitialized.
+    assert(input_connection.from_neuron_index == 0);
+    assert(input_connection.to_neuron_index == 0);
     input_connection.from_neuron_index = from_neuron_index;
     input_connection.to_neuron_index = to_neuron_index;
+    // We've assigned the above input connection, increment the counter stored in the neuron so we can assign the next input connection next time we connect to |to_neuron|.
     to_neuron.input_connection_count++;
 
+    // Output connections work similarly to input connections. Each neuron has |output_connection_start_index| which is the index into the output connections array where the connections for this neuron are stored.
+    // All the output connections for each neuron are stored sequentially starting at this index.
+    // The neuron |from_neuron| has field |output_connection_count| which contains the current count of output connections we've made from |from_neuron|.
+    // |output_connection_index| is going to give us the next unassigned output connection which was allocated for |from_neuron|.
     const size_t output_connection_index = from_neuron.output_connection_start_index + from_neuron.output_connection_count;
-    auto& output_connection = output_connections_[output_connection_index];
+    auto& output_connection = GetOutputConnection(output_connection_index);
+    // The output connection we pulled from the end of the set for |from_neuron| should be uninitialized.
+    assert(output_connection.input_connection_index == 0);
     output_connection.input_connection_index = input_connection_index;
+    // We've assigned the above output connection, increment the counter stored in the neuron so we can assign the next output connection next time we connect from |from_neuron|.
     from_neuron.output_connection_count++;
 }
 
@@ -360,8 +401,8 @@ void MultiLayerPerceptron::ConnectBiasNeuron(size_t bias_neuron_index, size_t to
 }
 
 void MultiLayerPerceptron::ConnectFully() {
-    assert(!is_constructed_);
-    assert(!hidden_layers_.empty());
+    assert(!IsConstructed());
+    assert(GetHiddenLayerCount() > 0);
 
     const size_t input_neuron_start_index = GetInputNeuronStartIndex();
     size_t bias_neuron_index = GetBiasNeuronStartIndex();
@@ -438,6 +479,10 @@ void MultiLayerPerceptron::Construct() {
     assert(!is_constructed_);
 
     Allocate();
+
+    InitializeNeurons();
+    FixNeuronConnectionIndices();
+
     ConnectFully();
 
     is_constructed_ = true;

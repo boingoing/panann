@@ -182,6 +182,18 @@ protected:
     Neuron& GetOutputNeuron(size_t output_neuron_index);
 
     /**
+     * Get a writable view of the bias neuron at index |bias_neuron_index|.
+     * Note: |bias_neuron_index| is not a global index into |neurons_| but must be in the range [0, GetBiasNeuronCount()).
+     */
+    Neuron& GetBiasNeuron(size_t bias_neuron_index);
+
+    /**
+     * Get a writable view of the hidden neuron at index |hidden_neuron_index|.
+     * Note: |hidden_neuron_index| is not a global index into |neurons_| but must be in the range [0, GetHiddenNeuronCount()).
+     */
+    Neuron& GetHiddenNeuron(size_t hidden_neuron_index);
+
+    /**
      * Get a read-only view of the neuron at |neuron_index|.
      */
     const Neuron& GetNeuron(size_t neuron_index) const;

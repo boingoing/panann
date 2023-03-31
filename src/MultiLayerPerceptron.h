@@ -94,6 +94,15 @@ protected:
     size_t GetInputConnectionCount() const;
     size_t GetOutputConnectionCount() const;
 
+    InputConnection& GetInputConnection(size_t index);
+    OutputConnection& GetOutputConnection(size_t index);
+
+    size_t TakeInputConnections(size_t count);
+    size_t TakeOutputConnections(size_t count);
+
+    void FixNeuronConnectionIndices();
+    void InitializeNeurons();
+
     void AllocateConnections();
     bool AreConnectionsAllocated() const;
 
@@ -111,7 +120,9 @@ protected:
 private:
     std::vector<Layer> hidden_layers_;
     std::vector<InputConnection> input_connections_;
+    size_t input_connection_index_ = 0;
     std::vector<OutputConnection> output_connections_;
+    size_t output_connection_index_ = 0;
 
     ActivationFunctionType hidden_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
     ActivationFunctionType output_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
