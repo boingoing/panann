@@ -13,7 +13,7 @@
 namespace panann {
 
 /**
- * Simple multi-layer perceptron.
+ * Supports building multi-layer
  */
 class MultiLayerPerceptron : public NeuronContainer {
 protected:
@@ -100,7 +100,14 @@ protected:
     size_t TakeInputConnections(size_t count);
     size_t TakeOutputConnections(size_t count);
 
+    /**
+     * Set the input and output connection indices assigned to each neuron into the neurons themselves
+    */
     void FixNeuronConnectionIndices();
+
+    /**
+     * Set the initial value, activation function, etc for all neurons in the topology.
+    */
     void InitializeNeurons();
 
     void AllocateConnections();
@@ -113,9 +120,6 @@ protected:
     void ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count);
     void ConnectBiasNeuron(size_t bias_neuron_index, size_t to_neuron_index, size_t to_neuron_count);
     void ConnectNeurons(size_t from_neuron_index, size_t to_neuron_index);
-
-    void ComputeNeuronValue(size_t neuron_index);
-    void ComputeNeuronValueRange(size_t neuron_start_index, size_t neuron_count);
 
 private:
     std::vector<Layer> hidden_layers_;

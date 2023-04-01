@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "ActivationFunction.h"
+#include "MultiLayerPerceptron.h"
 #include "NeuronContainer.h"
 #include "RandomWrapper.h"
 
@@ -19,7 +20,7 @@ class TrainingData;
 /**
  * Simple feed-forward, multi-layer perceptron.
  */
-class NeuralNetwork : public NeuronContainer {
+class NeuralNetwork : public MultiLayerPerceptron {
 public:
     enum class ErrorCostFunction : uint8_t {
         MeanSquareError = 1,
@@ -80,34 +81,11 @@ public:
         SimulatedAnnealingResilientBackpropagation
     };
 
-protected:
-    struct Layer {
-        size_t neuron_start_index;
-        size_t neuron_count;
-    };
-
-    struct InputConnection {
-        size_t from_neuron_index;
-        size_t to_neuron_index;
-    };
-
-    struct OutputConnection {
-        size_t input_connection_index;
-    };
-
 public:
     NeuralNetwork() = default;
     NeuralNetwork(const NeuralNetwork&) = delete;
     NeuralNetwork& operator=(const NeuralNetwork&) = delete;
     ~NeuralNetwork() override = default;
-
-    /**
-     * Append a hidden layer to the end of the list of existing hidden layers.<br/>
-     * Hidden layers are located after the input layer and before the output layer.<br/>
-     * Once added, hidden layers may not be removed.<br/>
-     * Hidden layers may not be added after the network has been constructed.
-     */
-    void AddHiddenLayer(size_t neuron_count);
 
     /**
      * Set the learning rate parameter used by backprop, batch, and qprop.<br/>
@@ -243,44 +221,6 @@ public:
     ErrorCostFunction GetErrorCostFunction() const;
 
     /**
-     * Shortcut connections are feed-forward connections between two
-     * non-adjacent layers.<br/>
-     * Note: Changing this setting after the network has been constructed
-     * will have no impact on the network topology.<br/>
-     * Default: disabled
-     */
-    void EnableShortcutConnections();
-    void DisableShortcutConnections();
-
-    /**
-     * Set the default activation function we will use for hidden layer neurons.<br/>
-     * Default: Sigmoid
-     */
-    void SetHiddenNeuronActivationFunctionType(ActivationFunctionType type);
-    ActivationFunctionType GetHiddenNeuronActivationFunctionType() const;
-
-    /**
-     * Set the default activation function we will use for output layer neurons.<br/>
-     * Default: Sigmoid
-     */
-    void SetOutputNeuronActivationFunctionType(ActivationFunctionType type);
-    ActivationFunctionType GetOutputNeuronActivationFunctionType() const;
-
-    /**
-     * Build the network topology.<br/>
-     * After construction, the number of input and output neurons, number of
-     * hidden layers, use of shortcut connections, and some other settings may
-     * not be modified.
-     */
-    virtual void Construct();
-
-    /**
-     * Returns true if the network topology has been constructed and false otherwise.<br/>
-     * Note: Once constructed, the network topology is fixed and cannot be changed.
-     */
-    bool IsConstructed() const;
-
-    /**
      * Reset every weight in the network to a random value between min and max.
      */
     void InitializeWeightsRandom(double min = -1.0, double max = 1.0);
@@ -379,11 +319,6 @@ protected:
     virtual void Allocate();
     virtual void ConnectFully();
 
-    void ConnectLayerToNeuron(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index);
-    void ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count);
-    void ConnectBiasNeuron(size_t bias_neuron_index, size_t to_neuron_index, size_t to_neuron_count);
-    void ConnectNeurons(size_t from_neuron_index, size_t to_neuron_index);
-
     void ComputeNeuronValue(size_t neuron_index);
     void ComputeNeuronValueRange(size_t neuron_start_index, size_t neuron_count);
 
@@ -407,9 +342,6 @@ protected:
 
     double GetError() const;
 
-    size_t GetHiddenLayerCount() const;
-    Layer& GetHiddenLayer(size_t layer_index);
-
 private:
   static constexpr double DefaultLearningRate = 0.7;
   static constexpr double DefaultMomentum = 0.1;
@@ -425,9 +357,6 @@ private:
   static constexpr double DefaultSarpropStepShift = 3;
   static constexpr double DefaultSarpropTemperature = 0.015;
 
-    std::vector<Layer> hidden_layers_;
-    std::vector<InputConnection> input_connections_;
-    std::vector<OutputConnection> output_connections_;
     std::vector<double> weights_;
     std::vector<double> previous_weight_steps_;
     std::vector<double> slopes_;
@@ -452,13 +381,10 @@ private:
     double sarprop_step_shift_ = DefaultSarpropStepShift;
     double sarprop_temperature_ = DefaultSarpropTemperature;
 
-    ActivationFunctionType hidden_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
-    ActivationFunctionType output_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
     ErrorCostFunction error_cost_function_ = ErrorCostFunction::MeanSquareError;
     TrainingAlgorithmType training_algorithm_type_ = TrainingAlgorithmType::ResilientBackpropagation;
 
     bool should_shape_error_curve_ = true;
-    bool enable_shortcut_connections_ = false;
     bool is_constructed_ = false;
 };
 
