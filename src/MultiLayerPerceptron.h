@@ -14,8 +14,10 @@ namespace panann {
 
 /**
  * Supports building multi-layer topologies made up of neurons.<br/>
+ * This class is intended only to facilitate building the structure of networks built from neurons and organized into layers.<br/>
+ * To that end, it knows how to allocate and assign connections between all the neurons in each layer.<br/>
  * 
- * Primarily useful to group hidden neurons into layers and track input and output connections to and from each neuron in the topology.
+ * Primarily useful to group hidden neurons into layers and track input and output connections to and from each neuron in the topology.<br/>
  */
 class MultiLayerPerceptron : public NeuronContainer {
 protected:
@@ -43,39 +45,21 @@ public:
      * Append a hidden layer to the end of the list of existing hidden layers.<br/>
      * Hidden layers are located after the input layer and before the output layer.<br/>
      * Once added, hidden layers may not be removed.<br/>
-     * Hidden layers may not be added after the network has been constructed.
+     * Hidden layers may not be added after the network topology has been constructed.
      */
     void AddHiddenLayer(size_t neuron_count);
 
     /**
-     * Shortcut connections are feed-forward connections between two
-     * non-adjacent layers.<br/>
-     * Note: Changing this setting after the network has been constructed
-     * will have no impact on the network topology.<br/>
+     * Shortcut connections are feed-forward connections between two non-adjacent layers.<br/>
+     * Note: Changing this setting after the network topology has been constructed will have no impact on the network topology.<br/>
      * Default: disabled
      */
     void EnableShortcutConnections();
     void DisableShortcutConnections();
 
     /**
-     * Set the default activation function we will use for hidden layer neurons.<br/>
-     * Default: Sigmoid
-     */
-    void SetHiddenNeuronActivationFunctionType(ActivationFunctionType type);
-    ActivationFunctionType GetHiddenNeuronActivationFunctionType() const;
-
-    /**
-     * Set the default activation function we will use for output layer neurons.<br/>
-     * Default: Sigmoid
-     */
-    void SetOutputNeuronActivationFunctionType(ActivationFunctionType type);
-    ActivationFunctionType GetOutputNeuronActivationFunctionType() const;
-
-    /**
      * Build the network topology.<br/>
-     * After construction, the number of input and output neurons, number of
-     * hidden layers, use of shortcut connections, and some other settings may
-     * not be modified.
+     * After construction, the number of input and output neurons, number of hidden layers, use of shortcut connections, and some other settings may not be modified.
      */
     void ConstructTopology();
 
@@ -111,35 +95,42 @@ protected:
      */
     size_t GetOutputConnectionCount() const;
 
+    /**
+     * Get a writable view of a single input connection at |index| in the |input_connections_| vector.
+     */
     InputConnection& GetInputConnection(size_t index);
+
+    /**
+     * Get a writable view of a single output connection at |index| in the |output_connections_| vector.
+     */
     OutputConnection& GetOutputConnection(size_t index);
 
     /**
-     * Assign the next |count| input connections and returns the index at which these connections begin.
+     * Assign the next |count| input connections and return the index at which these connections begin.
      */
     size_t TakeInputConnections(size_t count);
 
     /**
-     * Assign the next |count| output connections and returns the index at which these connections begin.
+     * Assign the next |count| output connections and return the index at which these connections begin.
      */
     size_t TakeOutputConnections(size_t count);
 
     /**
-     * Set the input and output connection indices assigned to each neuron into the neurons themselves
+     * Set the input and output connection indices assigned to each neuron into the neurons themselves.
     */
     void FixNeuronConnectionIndices();
 
     /**
-     * Set the initial value, activation function, etc for all neurons in the topology.
-    */
-    void InitializeNeurons();
-
+     * Allocate storage for all the connections this topology will require.
+     */
     void AllocateConnections();
+
+    /**
+     * Indicates if the connections for the topology have been allocated.
+     */
     bool AreConnectionsAllocated() const;
 
-    virtual void Allocate();
-
-    virtual void ConnectFully();
+    void ConnectFully();
     void ConnectLayerToNeuron(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index);
     void ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count);
     void ConnectBiasNeuron(size_t bias_neuron_index, size_t to_neuron_index, size_t to_neuron_count);
@@ -151,9 +142,6 @@ private:
     size_t input_connection_index_ = 0;
     std::vector<OutputConnection> output_connections_;
     size_t output_connection_index_ = 0;
-
-    ActivationFunctionType hidden_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
-    ActivationFunctionType output_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
 
     bool enable_shortcut_connections_ = false;
     bool is_constructed_ = false;

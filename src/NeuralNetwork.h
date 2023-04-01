@@ -220,6 +220,20 @@ public:
     ErrorCostFunction GetErrorCostFunction() const;
 
     /**
+     * Set the default activation function we will use for hidden layer neurons.<br/>
+     * Default: Sigmoid
+     */
+    void SetHiddenNeuronActivationFunctionType(ActivationFunctionType type);
+    ActivationFunctionType GetHiddenNeuronActivationFunctionType() const;
+
+    /**
+     * Set the default activation function we will use for output layer neurons.<br/>
+     * Default: Sigmoid
+     */
+    void SetOutputNeuronActivationFunctionType(ActivationFunctionType type);
+    ActivationFunctionType GetOutputNeuronActivationFunctionType() const;
+
+    /**
      * Reset every weight in the network to a random value between min and max.
      */
     void InitializeWeightsRandom(double min = -1.0, double max = 1.0);
@@ -314,9 +328,29 @@ public:
      */
     void GetOutput(std::vector<double>* output) const;
 
+    /**
+     * Build the neural network.<br/>
+     * After construction, the network topology may not be modified.
+     */
+    void Construct();
+
+    /**
+     * Returns true if the network has been constructed and false otherwise.<br/>
+     * Note: Once constructed, the network topology is fixed and cannot be changed.
+     */
+    bool IsConstructed() const;
+
 protected:
     virtual void Allocate();
     virtual void ConnectFully();
+
+    void AllocateWeights();
+    bool AreWeightsAllocated() const;
+
+    /**
+     * Set the initial value, activation function, etc for all neurons in the network.
+    */
+    void InitializeNeurons();
 
     void ComputeNeuronValue(size_t neuron_index);
     void ComputeNeuronValueRange(size_t neuron_start_index, size_t neuron_count);
@@ -382,9 +416,12 @@ private:
 
     ErrorCostFunction error_cost_function_ = ErrorCostFunction::MeanSquareError;
     TrainingAlgorithmType training_algorithm_type_ = TrainingAlgorithmType::ResilientBackpropagation;
+    ActivationFunctionType hidden_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
+    ActivationFunctionType output_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
 
     bool should_shape_error_curve_ = true;
     bool is_constructed_ = false;
+    bool is_allocated_ = false;
 };
 
 } // namespace panann

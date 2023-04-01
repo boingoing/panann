@@ -637,4 +637,74 @@ void NeuralNetwork::GetOutput(std::vector<double>* output) const {
     }
 }
 
+void NeuralNetwork::InitializeNeurons() {
+    // Bias neurons have a fixed value of 1.0 which we set here.
+    for (size_t i = 0; i < GetBiasNeuronCount(); i++) {
+        auto& neuron = GetBiasNeuron(i);
+        neuron.value = 1;
+    }
+
+    // Set the default activation function for hidden and output neurons.
+    for (size_t i = 0; i < GetHiddenNeuronCount(); i++) {
+        auto& neuron = GetHiddenNeuron(i);
+        neuron.activation_function_type = hidden_neuron_activation_function_type_;
+    }
+    for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
+        auto& neuron = GetOutputNeuron(i);
+        neuron.activation_function_type = output_neuron_activation_function_type_;
+    }
+}
+
+void NeuralNetwork::SetHiddenNeuronActivationFunctionType(ActivationFunctionType type) {
+    assert(!IsTopologyConstructed());
+    hidden_neuron_activation_function_type_ = type;
+}
+
+ActivationFunctionType NeuralNetwork::GetHiddenNeuronActivationFunctionType() const {
+    return hidden_neuron_activation_function_type_;
+}
+
+void NeuralNetwork::SetOutputNeuronActivationFunctionType(ActivationFunctionType type) {
+    assert(!IsTopologyConstructed());
+    output_neuron_activation_function_type_ = type;
+}
+
+ActivationFunctionType NeuralNetwork::GetOutputNeuronActivationFunctionType() const {
+    return output_neuron_activation_function_type_;
+}
+
+void NeuralNetwork::Construct() {
+    assert(!IsTopologyConstructed());
+    assert(!IsConstructed());
+    // Do not support networks with no hidden layers, no input neurons, or no output neurons.
+    assert(GetHiddenLayerCount() > 0);
+    assert(GetInputNeuronCount() > 0);
+    assert(GetOutputNeuronCount() > 0);
+
+    AllocateNeurons();
+    AllocateConnections();
+    AllocateWeights();
+
+    ConstructTopology();
+    InitializeNeurons();
+
+    is_constructed_ = true;
+}
+
+bool NeuralNetwork::IsConstructed() const {
+    return is_constructed_;
+}
+
+void NeuralNetwork::AllocateWeights() {
+    assert(!AreWeightsAllocated());
+
+    weights_.resize(GetInputConnectionCount());
+
+    is_allocated_ = true;
+}
+
+bool NeuralNetwork::AreWeightsAllocated() const {
+    return is_allocated_;
+}
+
 }  // namespace panann

@@ -35,24 +35,6 @@ void MultiLayerPerceptron::DisableShortcutConnections() {
     enable_shortcut_connections_ = false;
 }
 
-void MultiLayerPerceptron::SetHiddenNeuronActivationFunctionType(ActivationFunctionType type) {
-    assert(!IsTopologyConstructed());
-    hidden_neuron_activation_function_type_ = type;
-}
-
-ActivationFunctionType MultiLayerPerceptron::GetHiddenNeuronActivationFunctionType() const {
-    return hidden_neuron_activation_function_type_;
-}
-
-void MultiLayerPerceptron::SetOutputNeuronActivationFunctionType(ActivationFunctionType type) {
-    assert(!IsTopologyConstructed());
-    output_neuron_activation_function_type_ = type;
-}
-
-ActivationFunctionType MultiLayerPerceptron::GetOutputNeuronActivationFunctionType() const {
-    return output_neuron_activation_function_type_;
-}
-
 void MultiLayerPerceptron::AddHiddenLayer(size_t neuron_count) {
     assert(!IsTopologyConstructed());
 
@@ -383,6 +365,7 @@ void MultiLayerPerceptron::ConnectBiasNeuron(size_t bias_neuron_index, size_t to
 
 void MultiLayerPerceptron::ConnectFully() {
     assert(!IsTopologyConstructed());
+    assert(AreNeuronsAllocated());
     assert(GetHiddenLayerCount() > 0);
 
     const size_t input_neuron_start_index = GetInputNeuronStartIndex();
@@ -456,22 +439,10 @@ void MultiLayerPerceptron::ConnectFully() {
     ConnectBiasNeuron(bias_neuron_index, output_neuron_start_index, GetOutputNeuronCount());
 }
 
-void MultiLayerPerceptron::Allocate() {
-    assert(!IsTopologyConstructed());
-    // Do not support networks with no hidden layers, no input neurons, or no output neurons.
-    assert(GetHiddenLayerCount() > 0);
-    assert(GetInputNeuronCount() > 0);
-    assert(GetOutputNeuronCount() > 0);
-
-    AllocateNeurons();
-    AllocateConnections();
-}
-
 void MultiLayerPerceptron::ConstructTopology() {
-    assert(!is_constructed_);
+    assert(!IsTopologyConstructed());
+    assert(AreConnectionsAllocated());
 
-    Allocate();
-    InitializeNeurons();
     FixNeuronConnectionIndices();
     ConnectFully();
 
@@ -480,24 +451,6 @@ void MultiLayerPerceptron::ConstructTopology() {
 
 bool MultiLayerPerceptron::IsTopologyConstructed() const {
     return is_constructed_;
-}
-
-void MultiLayerPerceptron::InitializeNeurons() {
-    // Bias neurons have a fixed value of 1.0 which we set here.
-    for (size_t i = 0; i < GetBiasNeuronCount(); i++) {
-        auto& neuron = GetBiasNeuron(i);
-        neuron.value = 1;
-    }
-
-    // Set the default activation function for hidden and output neurons.
-    for (size_t i = 0; i < GetHiddenNeuronCount(); i++) {
-        auto& neuron = GetHiddenNeuron(i);
-        neuron.activation_function_type = hidden_neuron_activation_function_type_;
-    }
-    for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
-        auto& neuron = GetOutputNeuron(i);
-        neuron.activation_function_type = output_neuron_activation_function_type_;
-    }
 }
 
 }  // namespace panann
