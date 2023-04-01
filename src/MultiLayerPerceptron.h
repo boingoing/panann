@@ -13,7 +13,7 @@
 namespace panann {
 
 /**
- * Supports building multi-layer
+ * Supports building multi-layer topologies made up of neurons.
  */
 class MultiLayerPerceptron : public NeuronContainer {
 protected:

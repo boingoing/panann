@@ -78,6 +78,7 @@ void NeuronContainer::AllocateNeurons() {
         GetBiasNeuronCount();
 
     neurons_.resize(neuron_count);
+    is_allocated_ = true;
 }
 
 bool NeuronContainer::AreNeuronsAllocated() const {
