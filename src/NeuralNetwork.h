@@ -81,7 +81,6 @@ public:
         SimulatedAnnealingResilientBackpropagation
     };
 
-public:
     NeuralNetwork() = default;
     NeuralNetwork(const NeuralNetwork&) = delete;
     NeuralNetwork& operator=(const NeuralNetwork&) = delete;

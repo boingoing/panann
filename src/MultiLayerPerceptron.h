@@ -13,7 +13,9 @@
 namespace panann {
 
 /**
- * Supports building multi-layer topologies made up of neurons.
+ * Supports building multi-layer topologies made up of neurons.<br/>
+ * 
+ * Primarily useful to group hidden neurons into layers and track input and output connections to and from each neuron in the topology.
  */
 class MultiLayerPerceptron : public NeuronContainer {
 protected:
@@ -75,29 +77,51 @@ public:
      * hidden layers, use of shortcut connections, and some other settings may
      * not be modified.
      */
-    virtual void Construct();
+    void ConstructTopology();
 
     /**
      * Returns true if the network topology has been constructed and false otherwise.<br/>
      * Note: Once constructed, the network topology is fixed and cannot be changed.
      */
-    bool IsConstructed() const;
+    bool IsTopologyConstructed() const;
 
 protected:
+    /**
+     * Get the count of hidden layers in the topology.
+     */
     size_t GetHiddenLayerCount() const;
+
+    /**
+     * Get a writable view of the hidden layer at |layer_index|.
+     */
     Layer& GetHiddenLayer(size_t layer_index);
+
+    /**
+     * Get a read-only view of the hidden layer at |layer_index|.
+     */
     const Layer& GetHiddenLayer(size_t layer_index) const;
 
     /**
      * Get the count of all input connections in the network topology.
      */
     size_t GetInputConnectionCount() const;
+
+    /**
+     * Get the count of all output connections in the network topology.
+     */
     size_t GetOutputConnectionCount() const;
 
     InputConnection& GetInputConnection(size_t index);
     OutputConnection& GetOutputConnection(size_t index);
 
+    /**
+     * Assign the next |count| input connections and returns the index at which these connections begin.
+     */
     size_t TakeInputConnections(size_t count);
+
+    /**
+     * Assign the next |count| output connections and returns the index at which these connections begin.
+     */
     size_t TakeOutputConnections(size_t count);
 
     /**
@@ -114,8 +138,8 @@ protected:
     bool AreConnectionsAllocated() const;
 
     virtual void Allocate();
-    virtual void ConnectFully();
 
+    virtual void ConnectFully();
     void ConnectLayerToNeuron(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index);
     void ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count);
     void ConnectBiasNeuron(size_t bias_neuron_index, size_t to_neuron_index, size_t to_neuron_count);

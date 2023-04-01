@@ -243,14 +243,13 @@ void NeuralNetwork::ResetPreviousSlopes() {
 }
 
 void NeuralNetwork::UpdateWeightsOnline() {
-    size_t weight_index = 0;
-    for (const auto& connection : input_connections_) {
+    for (size_t i = 0; i < GetInputConnectionCount(); i++) {
+        const auto& connection = GetInputConnection(i);
         const auto& from_neuron = GetNeuron(connection.from_neuron_index);
         const auto& to_neuron = GetNeuron(connection.to_neuron_index);
-        const double delta = -1.0 * learning_rate_ * to_neuron.error * from_neuron.value + momentum_ * previous_weight_steps_[weight_index];
-        previous_weight_steps_[weight_index] = delta;
-        weights_[weight_index] += delta;
-        weight_index++;
+        const double delta = -1.0 * learning_rate_ * to_neuron.error * from_neuron.value + momentum_ * previous_weight_steps_[i];
+        previous_weight_steps_[i] = delta;
+        weights_[i] += delta;
     }
 }
 
@@ -386,12 +385,13 @@ void NeuralNetwork::UpdateWeightsSimulatedAnnealingResilientBackpropagation(size
 }
 
 void NeuralNetwork::UpdateSlopes() {
-    size_t connection_index = 0;
-    for (const auto& connection : input_connections_) {
+    for (size_t i = 0; i < GetInputConnectionCount(); i++) {
+        const auto& connection = GetInputConnection(i);
         const auto& from_neuron = GetNeuron(connection.from_neuron_index);
         const auto& to_neuron = GetNeuron(connection.to_neuron_index);
 
-        slopes_[connection_index++] += -1.0 * from_neuron.value * to_neuron.error;
+        // Index into |slopes_| via the input connection index.
+        slopes_[i] += -1.0 * from_neuron.value * to_neuron.error;
     }
 }
 
@@ -476,7 +476,7 @@ void NeuralNetwork::ComputeNeuronValue(size_t neuron_index) {
     // Sum incoming values.
     for (size_t i = 0; i < neuron.input_connection_count; i++) {
         const size_t input_connection_index = neuron.input_connection_start_index + i;
-        const auto& connection = input_connections_[input_connection_index];
+        const auto& connection = GetInputConnection(input_connection_index);
         const auto& from_neuron = GetNeuron(connection.from_neuron_index);
 
         neuron.field += from_neuron.value * weights_[input_connection_index];
@@ -492,8 +492,8 @@ void NeuralNetwork::ComputeNeuronError(size_t neuron_index) {
     // Sum outgoing errors.
     for (size_t i = 0; i < neuron.output_connection_count; i++) {
         const size_t output_connection_index = neuron.output_connection_start_index + i;
-        const auto& output_connection = output_connections_[output_connection_index];
-        const auto& input_connection = input_connections_[output_connection.input_connection_index];
+        const auto& output_connection = GetOutputConnection(output_connection_index);
+        const auto& input_connection = GetInputConnection(output_connection.input_connection_index);
         const auto& to_neuron = GetNeuron(input_connection.to_neuron_index);
 
         sum += weights_[output_connection.input_connection_index] * to_neuron.error;

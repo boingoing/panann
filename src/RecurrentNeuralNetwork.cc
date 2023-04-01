@@ -19,7 +19,7 @@ size_t RecurrentNeuralNetwork::GetCellMemorySize() const {
 }
 
 void RecurrentNeuralNetwork::SetHiddenLayerCount(size_t layer_count) {
-    assert(!IsConstructed());
+    assert(!IsTopologyConstructed());
     // TODO(boingoing): Support resetting the count of hidden layers.
     assert(GetHiddenLayerCount() == 0);
 
@@ -29,7 +29,7 @@ void RecurrentNeuralNetwork::SetHiddenLayerCount(size_t layer_count) {
 }
 
 void RecurrentNeuralNetwork::Allocate() {
-    assert(!IsConstructed());
+    assert(!IsTopologyConstructed());
     assert(GetHiddenLayerCount() > 0);
 
     // Allocate the neurons and memory cells
@@ -195,7 +195,7 @@ void RecurrentNeuralNetwork::Allocate() {
 }
 
 void RecurrentNeuralNetwork::ConnectFully() {
-    assert(!IsConstructed());
+    assert(!IsTopologyConstructed());
     assert(GetHiddenLayerCount() > 0);
     assert(!cells_.empty());
 
@@ -300,7 +300,7 @@ void RecurrentNeuralNetwork::UpdateCellState(LongShortTermMemoryCell& cell) {
 }
 
 void RecurrentNeuralNetwork::RunForward(const std::vector<double>& input) {
-    assert(IsConstructed());
+    assert(IsTopologyConstructed());
     assert(input.size() == GetInputNeuronCount());
 
     // Feed each input into the corresponding input neuron.
@@ -319,7 +319,7 @@ void RecurrentNeuralNetwork::RunForward(const std::vector<double>& input) {
 }
 
 std::vector<double>& RecurrentNeuralNetwork::GetCellStates() {
-    assert(IsConstructed());
+    assert(IsTopologyConstructed());
     return cell_states_;
 }
 

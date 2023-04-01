@@ -26,17 +26,17 @@ const MultiLayerPerceptron::Layer& MultiLayerPerceptron::GetHiddenLayer(size_t l
 }
 
 void MultiLayerPerceptron::EnableShortcutConnections() {
-    assert(!is_constructed_);
+    assert(!IsTopologyConstructed());
     enable_shortcut_connections_ = true;
 }
 
 void MultiLayerPerceptron::DisableShortcutConnections() {
-    assert(!is_constructed_);
+    assert(!IsTopologyConstructed());
     enable_shortcut_connections_ = false;
 }
 
 void MultiLayerPerceptron::SetHiddenNeuronActivationFunctionType(ActivationFunctionType type) {
-    assert(!is_constructed_);
+    assert(!IsTopologyConstructed());
     hidden_neuron_activation_function_type_ = type;
 }
 
@@ -45,7 +45,7 @@ ActivationFunctionType MultiLayerPerceptron::GetHiddenNeuronActivationFunctionTy
 }
 
 void MultiLayerPerceptron::SetOutputNeuronActivationFunctionType(ActivationFunctionType type) {
-    assert(!is_constructed_);
+    assert(!IsTopologyConstructed());
     output_neuron_activation_function_type_ = type;
 }
 
@@ -54,7 +54,7 @@ ActivationFunctionType MultiLayerPerceptron::GetOutputNeuronActivationFunctionTy
 }
 
 void MultiLayerPerceptron::AddHiddenLayer(size_t neuron_count) {
-    assert(!IsConstructed());
+    assert(!IsTopologyConstructed());
 
     // Add a new hidden layer beginning at the current hidden neuron count and continuing for |neuron_count| neurons.
     size_t current_neuron_index = GetHiddenNeuronStartIndex() + GetHiddenNeuronCount();
@@ -69,6 +69,11 @@ void MultiLayerPerceptron::AddHiddenLayer(size_t neuron_count) {
 
 size_t MultiLayerPerceptron::GetInputConnectionCount() const {
     assert(GetHiddenLayerCount() > 0);
+
+    // If we already allocated the connections, don't go through the process of counting them again.
+    if (AreConnectionsAllocated()) {
+        return input_connections_.size();
+    }
 
     // Calculate the input connections to the output layer.
     // Each output neuron is connected to the bias neuron in the last hidden layer.
@@ -121,6 +126,11 @@ size_t MultiLayerPerceptron::GetInputConnectionCount() const {
 
 size_t MultiLayerPerceptron::GetOutputConnectionCount() const {
     assert(GetHiddenLayerCount() > 0);
+
+    // If we already allocated the connections, don't go through the process of counting them again.
+    if (AreConnectionsAllocated()) {
+        return output_connections_.size();
+    }
 
     // The first bias neuron has output connections to each hidden neuron in the first hidden layer.
     const auto& first_layer = GetHiddenLayer(0);
@@ -199,7 +209,7 @@ size_t MultiLayerPerceptron::TakeOutputConnections(size_t count) {
 
 void MultiLayerPerceptron::FixNeuronConnectionIndices() {
     assert(GetHiddenLayerCount() > 0);
-    assert(!IsConstructed());
+    assert(!IsTopologyConstructed());
     assert(AreNeuronsAllocated());
     assert(AreConnectionsAllocated());
 
@@ -301,35 +311,6 @@ void MultiLayerPerceptron::FixNeuronConnectionIndices() {
     last_bias_neuron.output_connection_count = TakeOutputConnections(GetOutputNeuronCount());
 }
 
-void MultiLayerPerceptron::InitializeNeurons() {
-    // Bias neurons have a fixed value of 1.0 which we set here.
-    for (size_t i = 0; i < GetBiasNeuronCount(); i++) {
-        auto& neuron = GetBiasNeuron(i);
-        neuron.value = 1;
-    }
-
-    // Set the default activation function for hidden and output neurons.
-    for (size_t i = 0; i < GetHiddenNeuronCount(); i++) {
-        auto& neuron = GetHiddenNeuron(i);
-        neuron.activation_function_type = hidden_neuron_activation_function_type_;
-    }
-    for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
-        auto& neuron = GetOutputNeuron(i);
-        neuron.activation_function_type = output_neuron_activation_function_type_;
-    }
-}
-
-void MultiLayerPerceptron::Allocate() {
-    assert(!IsConstructed());
-    // Do not support networks with no hidden layers, no input neurons, or no output neurons.
-    assert(GetHiddenLayerCount() > 0);
-    assert(GetInputNeuronCount() > 0);
-    assert(GetOutputNeuronCount() > 0);
-
-    AllocateNeurons();
-    AllocateConnections();
-}
-
 void MultiLayerPerceptron::AllocateConnections() {
     assert(!AreConnectionsAllocated());
 
@@ -401,7 +382,7 @@ void MultiLayerPerceptron::ConnectBiasNeuron(size_t bias_neuron_index, size_t to
 }
 
 void MultiLayerPerceptron::ConnectFully() {
-    assert(!IsConstructed());
+    assert(!IsTopologyConstructed());
     assert(GetHiddenLayerCount() > 0);
 
     const size_t input_neuron_start_index = GetInputNeuronStartIndex();
@@ -475,17 +456,48 @@ void MultiLayerPerceptron::ConnectFully() {
     ConnectBiasNeuron(bias_neuron_index, output_neuron_start_index, GetOutputNeuronCount());
 }
 
-void MultiLayerPerceptron::Construct() {
+void MultiLayerPerceptron::Allocate() {
+    assert(!IsTopologyConstructed());
+    // Do not support networks with no hidden layers, no input neurons, or no output neurons.
+    assert(GetHiddenLayerCount() > 0);
+    assert(GetInputNeuronCount() > 0);
+    assert(GetOutputNeuronCount() > 0);
+
+    AllocateNeurons();
+    AllocateConnections();
+}
+
+void MultiLayerPerceptron::ConstructTopology() {
     assert(!is_constructed_);
 
     Allocate();
-
     InitializeNeurons();
     FixNeuronConnectionIndices();
-
     ConnectFully();
 
     is_constructed_ = true;
+}
+
+bool MultiLayerPerceptron::IsTopologyConstructed() const {
+    return is_constructed_;
+}
+
+void MultiLayerPerceptron::InitializeNeurons() {
+    // Bias neurons have a fixed value of 1.0 which we set here.
+    for (size_t i = 0; i < GetBiasNeuronCount(); i++) {
+        auto& neuron = GetBiasNeuron(i);
+        neuron.value = 1;
+    }
+
+    // Set the default activation function for hidden and output neurons.
+    for (size_t i = 0; i < GetHiddenNeuronCount(); i++) {
+        auto& neuron = GetHiddenNeuron(i);
+        neuron.activation_function_type = hidden_neuron_activation_function_type_;
+    }
+    for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
+        auto& neuron = GetOutputNeuron(i);
+        neuron.activation_function_type = output_neuron_activation_function_type_;
+    }
 }
 
 }  // namespace panann
