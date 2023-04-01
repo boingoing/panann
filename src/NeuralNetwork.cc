@@ -417,10 +417,6 @@ void NeuralNetwork::TrainOffline(TrainingData* training_data, size_t epoch_count
             UpdateSlopes();
         }
 
-        
-        for (size_t j = 0; j < training_data->size(); j++) {
-        }
-
         // Update weights.
         UpdateWeightsOffline(i, training_data->size());
     }
