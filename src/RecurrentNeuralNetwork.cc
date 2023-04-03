@@ -18,18 +18,32 @@ size_t RecurrentNeuralNetwork::GetCellMemorySize() const {
     return cell_memory_size_;
 }
 
-void RecurrentNeuralNetwork::SetHiddenLayerCount(size_t layer_count) {
-    assert(!IsTopologyConstructed());
-    // TODO(boingoing): Support resetting the count of hidden layers.
-    assert(GetHiddenLayerCount() == 0);
+void RecurrentNeuralNetwork::AddHiddenLayer(size_t cell_count, const std::vector<size_t>& cell_memory_sizes) {
+    const size_t cell_index = cells_.size();
+    layers_.emplace_back(cell_index, cell_count);
 
-    for (size_t i = 0; i < layer_count; i++) {
-        AddHiddenLayer(0);
+    for (size_t i = 0; i < cell_count; i++) {
+        const size_t cell_hidden_neuron_start_index = GetHiddenNeuronStartIndex() + GetHiddenNeuronCount();
+        const size_t cell_memory_size = cell_memory_sizes.size() <= i || cell_memory_sizes[i] == 0 ? GetCellMemorySize() : cell_memory_sizes[i];
+        const size_t cell_states_index = cell_states_count_;
+        const size_t neurons_per_gate = cell_memory_size;
+        // Forget gate, input gate, output gate, candidate cell state layer, hidden state layer.
+        const size_t neurons_per_cell = neurons_per_gate * 5;
+
+        cells_.emplace_back(cell_hidden_neuron_start_index,neurons_per_cell,cell_states_index,cell_memory_size);
+
+        cell_states_count_ += cell_memory_size;
+        AddHiddenNeurons(neurons_per_cell);
     }
 }
 
 void RecurrentNeuralNetwork::Allocate() {
     assert(!IsTopologyConstructed());
+
+    cell_states_.resize(cell_states_count_);
+
+    NeuralNetwork::Allocate();
+
     assert(GetHiddenLayerCount() > 0);
 
     // Allocate the neurons and memory cells
@@ -269,7 +283,7 @@ void RecurrentNeuralNetwork::ConnectFully() {
     ConnectBiasNeuron(bias_neuron_index, GetOutputNeuronStartIndex(), GetOutputNeuronCount());
 }
 
-void RecurrentNeuralNetwork::UpdateCellState(LongShortTermMemoryCell& cell) {
+void RecurrentNeuralNetwork::UpdateCellState(const LongShortTermMemoryCell& cell) {
     const size_t forget_gate_neuron_start_index = cell.neuron_start_index;
     const size_t input_gate_neuron_start_index = forget_gate_neuron_start_index + cell.cell_state_count;
     const size_t candidate_cell_state_gate_neuron_start_index = input_gate_neuron_start_index + cell.cell_state_count;
@@ -305,10 +319,11 @@ void RecurrentNeuralNetwork::RunForward(const std::vector<double>& input) {
 
     // Feed each input into the corresponding input neuron.
     for (size_t i = 0; i < GetInputNeuronCount(); i++) {
-        auto& neuron = GetNeuron(GetInputNeuronStartIndex() + i);
+        auto& neuron = GetInputNeuron(i);
         neuron.value = input[i];
     }
 
+    // Update cell states.
     for (auto& cell : cells_) {
         UpdateCellState(cell);
     }

@@ -11,7 +11,9 @@
 namespace panann {
 
 /**
+ * A recurrent artificial neural network made out of long short term memory cells.<br/>
  * 
+ * This network doesn't contain ordinary hidden neurons organized into layers. Instead, each layer contains a set of recurrent cells which are each made of a number of hidden units grouped into gates.
  */
 class RecurrentNeuralNetwork : public NeuralNetwork {
 protected:
@@ -32,10 +34,14 @@ protected:
         size_t cell_state_start_index;
 
         /**
-         * Count of cell states belonging to the cell.<br/>
-         * Note: All cells currently have the same count of cell states and that count equals |cell_memory_size_|.
+         * Count of cell states belonging to the cell.
          */
         size_t cell_state_count;
+    };
+
+    struct CellLayer {
+        size_t cell_start_index;
+        size_t cell_count;
     };
 
 public:
@@ -52,8 +58,6 @@ public:
     void SetCellMemorySize(size_t memory_size);
     size_t GetCellMemorySize() const;
 
-    void SetHiddenLayerCount(size_t layer_count);
-
     void RunForward(const std::vector<double>& input) override;
 
     /**
@@ -61,17 +65,28 @@ public:
      */
     std::vector<double>& GetCellStates();
 
+    void AddHiddenLayer(size_t neuron_count) = delete;
+
+    /**
+     * Add a hidden layer of LSTM cells.<br/>
+     * Each cell may have a different cell memory size passed via |cell_memory_sizes|. If the vector doesn't contain an element for a cell or if that element is 0, the cell memory size for that cell will be the default returned via GetCellMemorySize().
+     * @see GetCellMemorySize()
+    */
+    void AddHiddenLayer(size_t cell_count, const std::vector<size_t>& cell_memory_sizes);
+
 protected:
     void Allocate() override;
     void ConnectFully() override;
 
-    void UpdateCellState(LongShortTermMemoryCell& cell);
+    void UpdateCellState(const LongShortTermMemoryCell& cell);
 
 private:
     static constexpr size_t DefaultCellMemorySize = 200;
 
+    std::vector<CellLayer> layers_;
     std::vector<LongShortTermMemoryCell> cells_;
     std::vector<double> cell_states_;
+    size_t cell_states_count_ = 0;
     size_t cell_memory_size_ = DefaultCellMemorySize;
 };
 
