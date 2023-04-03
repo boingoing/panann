@@ -6,7 +6,7 @@
 #ifndef RECURRENTNEURALNETWORK_H__
 #define RECURRENTNEURALNETWORK_H__
 
-#include "NeuralNetwork.h"
+#include "FeedForwardNeuralNetwork.h"
 
 namespace panann {
 
@@ -15,7 +15,7 @@ namespace panann {
  * 
  * This network doesn't contain ordinary hidden neurons organized into layers. Instead, each layer contains a set of recurrent cells which are each made of a number of hidden units grouped into gates.
  */
-class RecurrentNeuralNetwork : public NeuralNetwork {
+class RecurrentNeuralNetwork : public FeedForwardNeuralNetwork {
 protected:
     struct LongShortTermMemoryCell {
         /**
@@ -51,8 +51,8 @@ public:
     ~RecurrentNeuralNetwork() override = default;
 
     /**
-     * Set the number of memory states which each cell will contain.<br/>
-     * This value has a quadratic effect on the size of the network topology. Increasing the number of cell memory states increases the number of neurons in each cell gate - effectively, increasing this value by one increases the number of neurons in the network topology by 5 per LSTM cell.
+     * Set the number of memory states which each cell will contain by default.<br/>
+     * This value has a quadratic effect on the size of the network topology. Increasing the number of cell memory states increases the number of neurons in each cell gate - effectively, increasing this value by one increases the number of hidden neurons in the network topology by 5 per LSTM cell.
      * Default: 200
      */
     void SetCellMemorySize(size_t memory_size);

@@ -49,7 +49,7 @@ void MakeSineTrainingData(TrainingData* trainingData, size_t steps) {
     trainingData->FromSequentialData(&sineData, steps);
 }
 
-void MakeTestNetwork(NeuralNetwork* nn, TrainingData* trainingData) {
+void MakeTestNetwork(FeedForwardNeuralNetwork* nn, TrainingData* trainingData) {
     nn->DisableShortcutConnections();
     nn->SetInputNeuronCount(trainingData->at(0).input.size());
     nn->SetOutputNeuronCount(trainingData->at(0).output.size());
@@ -66,7 +66,7 @@ void MakeTestNetwork(RecurrentNeuralNetwork* rnn, TrainingData* trainingData) {
     rnn->Construct();
 }
 
-void TrainAndTestNetwork(NeuralNetwork* nn, TrainingData* trainingData, NeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
+void TrainAndTestNetwork(FeedForwardNeuralNetwork* nn, TrainingData* trainingData, FeedForwardNeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
     std::cout << "Testing training with " << TrainingAlgorithmNames[(int)algorithm] << "..." << std::endl;
     nn->SetTrainingAlgorithmType(algorithm);
 
@@ -83,12 +83,12 @@ void TrainAndTestNetwork(NeuralNetwork* nn, TrainingData* trainingData, NeuralNe
     std::cout << "\t\tError after training for " << epochs << " epochs: " << nn->GetError(trainingData) << std::endl;
 }
 
-void TrainAndTest(NeuralNetwork* nn, TrainingData* trainingData, size_t epochs) {
-    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::Backpropagation, epochs);
-    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::BatchingBackpropagation, epochs);
-    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::QuickBackpropagation, epochs);
-    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::ResilientBackpropagation, epochs);
-    TrainAndTestNetwork(nn, trainingData, NeuralNetwork::TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation, epochs);
+void TrainAndTest(FeedForwardNeuralNetwork* nn, TrainingData* trainingData, size_t epochs) {
+    TrainAndTestNetwork(nn, trainingData, FeedForwardNeuralNetwork::TrainingAlgorithmType::Backpropagation, epochs);
+    TrainAndTestNetwork(nn, trainingData, FeedForwardNeuralNetwork::TrainingAlgorithmType::BatchingBackpropagation, epochs);
+    TrainAndTestNetwork(nn, trainingData, FeedForwardNeuralNetwork::TrainingAlgorithmType::QuickBackpropagation, epochs);
+    TrainAndTestNetwork(nn, trainingData, FeedForwardNeuralNetwork::TrainingAlgorithmType::ResilientBackpropagation, epochs);
+    TrainAndTestNetwork(nn, trainingData, FeedForwardNeuralNetwork::TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation, epochs);
 }
 
 int main(int argc, const char** argv) {
@@ -112,7 +112,7 @@ int main(int argc, const char** argv) {
 
     MakeXorTwoBitTrainingData(&trainingData);
 
-    NeuralNetwork nn;
+    FeedForwardNeuralNetwork nn;
     MakeTestNetwork(&nn, &trainingData);
 
     TrainAndTest(&nn, &trainingData, 1000);

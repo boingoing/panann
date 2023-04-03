@@ -3,8 +3,8 @@
 // Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
 //-------------------------------------------------------------------------------------------------------
 
-#ifndef MULTILAYERPERCEPTRON_H__
-#define MULTILAYERPERCEPTRON_H__
+#ifndef MULTILAYERTOPOLOGY_H__
+#define MULTILAYERTOPOLOGY_H__
 
 #include <vector>
 
@@ -19,7 +19,7 @@ namespace panann {
  * 
  * Primarily useful to group hidden neurons into layers and track input and output connections to and from each neuron in the topology.<br/>
  */
-class MultiLayerPerceptron : public NeuronContainer {
+class MultiLayerNeuralTopology : public NeuronContainer {
 protected:
     struct Layer {
         /**
@@ -43,10 +43,10 @@ protected:
     };
 
 public:
-    MultiLayerPerceptron() = default;
-    MultiLayerPerceptron(const MultiLayerPerceptron&) = delete;
-    MultiLayerPerceptron& operator=(const MultiLayerPerceptron&) = delete;
-    ~MultiLayerPerceptron() override = default;
+    MultiLayerNeuralTopology() = default;
+    MultiLayerNeuralTopology(const MultiLayerNeuralTopology&) = delete;
+    MultiLayerNeuralTopology& operator=(const MultiLayerNeuralTopology&) = delete;
+    ~MultiLayerNeuralTopology() override = default;
 
     /**
      * Append a hidden layer to the end of the list of existing hidden layers.<br/>
@@ -157,4 +157,4 @@ private:
 
 } // namespace panann
 
-#endif  // MULTILAYERPERCEPTRON_H__
+#endif  // MULTILAYERTOPOLOGY_H__

@@ -7,35 +7,35 @@
 #include <cassert>
 
 #include "ActivationFunction.h"
-#include "MultiLayerPerceptron.h"
+#include "MultiLayerNeuralTopology.h"
 
 namespace panann {
 
-size_t MultiLayerPerceptron::GetHiddenLayerCount() const {
+size_t MultiLayerNeuralTopology::GetHiddenLayerCount() const {
     return hidden_layers_.size();
 }
 
-MultiLayerPerceptron::Layer& MultiLayerPerceptron::GetHiddenLayer(size_t layer_index) {
+MultiLayerNeuralTopology::Layer& MultiLayerNeuralTopology::GetHiddenLayer(size_t layer_index) {
     assert(layer_index < hidden_layers_.size());
     return hidden_layers_[layer_index];
 }
 
-const MultiLayerPerceptron::Layer& MultiLayerPerceptron::GetHiddenLayer(size_t layer_index) const {
+const MultiLayerNeuralTopology::Layer& MultiLayerNeuralTopology::GetHiddenLayer(size_t layer_index) const {
     assert(layer_index < hidden_layers_.size());
     return hidden_layers_[layer_index];
 }
 
-void MultiLayerPerceptron::EnableShortcutConnections() {
+void MultiLayerNeuralTopology::EnableShortcutConnections() {
     assert(!IsTopologyConstructed());
     enable_shortcut_connections_ = true;
 }
 
-void MultiLayerPerceptron::DisableShortcutConnections() {
+void MultiLayerNeuralTopology::DisableShortcutConnections() {
     assert(!IsTopologyConstructed());
     enable_shortcut_connections_ = false;
 }
 
-void MultiLayerPerceptron::AddHiddenLayer(size_t neuron_count) {
+void MultiLayerNeuralTopology::AddHiddenLayer(size_t neuron_count) {
     assert(!IsTopologyConstructed());
 
     // Update hidden neuron count to include the neurons newly added in this layer. This returns the index where those neurons were added.
@@ -48,7 +48,7 @@ void MultiLayerPerceptron::AddHiddenLayer(size_t neuron_count) {
     AddBiasNeurons(1);
 }
 
-size_t MultiLayerPerceptron::GetInputConnectionCount() const {
+size_t MultiLayerNeuralTopology::GetInputConnectionCount() const {
     assert(GetHiddenLayerCount() > 0);
 
     // If we already allocated the connections, don't go through the process of counting them again.
@@ -105,7 +105,7 @@ size_t MultiLayerPerceptron::GetInputConnectionCount() const {
     return input_connection_count;
 }
 
-size_t MultiLayerPerceptron::GetOutputConnectionCount() const {
+size_t MultiLayerNeuralTopology::GetOutputConnectionCount() const {
     assert(GetHiddenLayerCount() > 0);
 
     // If we already allocated the connections, don't go through the process of counting them again.
@@ -172,7 +172,7 @@ size_t MultiLayerPerceptron::GetOutputConnectionCount() const {
     return output_connection_count;
 }
 
-size_t MultiLayerPerceptron::TakeInputConnections(size_t count) {
+size_t MultiLayerNeuralTopology::TakeInputConnections(size_t count) {
     assert(input_connection_index_ + count <= input_connections_.size());
 
     const size_t index = input_connection_index_;
@@ -180,7 +180,7 @@ size_t MultiLayerPerceptron::TakeInputConnections(size_t count) {
     return index;
 }
 
-size_t MultiLayerPerceptron::TakeOutputConnections(size_t count) {
+size_t MultiLayerNeuralTopology::TakeOutputConnections(size_t count) {
     assert(output_connection_index_ + count <= output_connections_.size());
 
     const size_t index = output_connection_index_;
@@ -188,7 +188,7 @@ size_t MultiLayerPerceptron::TakeOutputConnections(size_t count) {
     return index;
 }
 
-void MultiLayerPerceptron::FixNeuronConnectionIndices() {
+void MultiLayerNeuralTopology::FixNeuronConnectionIndices() {
     assert(GetHiddenLayerCount() > 0);
     assert(!IsTopologyConstructed());
     assert(AreNeuronsAllocated());
@@ -292,7 +292,7 @@ void MultiLayerPerceptron::FixNeuronConnectionIndices() {
     last_bias_neuron.output_connection_count = TakeOutputConnections(GetOutputNeuronCount());
 }
 
-void MultiLayerPerceptron::AllocateConnections() {
+void MultiLayerNeuralTopology::AllocateConnections() {
     assert(!AreConnectionsAllocated());
 
     input_connections_.resize(GetInputConnectionCount());
@@ -301,21 +301,21 @@ void MultiLayerPerceptron::AllocateConnections() {
     is_allocated_ = true;
 }
 
-bool MultiLayerPerceptron::AreConnectionsAllocated() const {
+bool MultiLayerNeuralTopology::AreConnectionsAllocated() const {
     return is_allocated_;
 }
 
-MultiLayerPerceptron::InputConnection& MultiLayerPerceptron::GetInputConnection(size_t index) {
+MultiLayerNeuralTopology::InputConnection& MultiLayerNeuralTopology::GetInputConnection(size_t index) {
     assert(index < input_connections_.size());
     return input_connections_[index];
 }
 
-MultiLayerPerceptron::OutputConnection& MultiLayerPerceptron::GetOutputConnection(size_t index) {
+MultiLayerNeuralTopology::OutputConnection& MultiLayerNeuralTopology::GetOutputConnection(size_t index) {
     assert(index < output_connections_.size());
     return output_connections_[index];
 }
 
-void MultiLayerPerceptron::ConnectNeurons(size_t from_neuron_index, size_t to_neuron_index) {
+void MultiLayerNeuralTopology::ConnectNeurons(size_t from_neuron_index, size_t to_neuron_index) {
     auto& from_neuron = GetNeuron(from_neuron_index);
     auto& to_neuron = GetNeuron(to_neuron_index);
 
@@ -346,23 +346,23 @@ void MultiLayerPerceptron::ConnectNeurons(size_t from_neuron_index, size_t to_ne
     from_neuron.output_connection_count++;
 }
 
-void MultiLayerPerceptron::ConnectLayerToNeuron(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index) {
+void MultiLayerNeuralTopology::ConnectLayerToNeuron(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index) {
     for (size_t i = 0; i < from_neuron_count; i++) {
         ConnectNeurons(from_neuron_index + i, to_neuron_index);
     }
 }
 
-void MultiLayerPerceptron::ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count) {
+void MultiLayerNeuralTopology::ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count) {
     for (size_t i = 0; i < to_neuron_count; i++) {
         ConnectLayerToNeuron(from_neuron_index, from_neuron_count, to_neuron_index + i);
     }
 }
 
-void MultiLayerPerceptron::ConnectBiasNeuron(size_t bias_neuron_index, size_t to_neuron_index, size_t to_neuron_count) {
+void MultiLayerNeuralTopology::ConnectBiasNeuron(size_t bias_neuron_index, size_t to_neuron_index, size_t to_neuron_count) {
     ConnectLayers(bias_neuron_index, 1, to_neuron_index, to_neuron_count);
 }
 
-void MultiLayerPerceptron::ConnectFully() {
+void MultiLayerNeuralTopology::ConnectFully() {
     assert(!IsTopologyConstructed());
     assert(AreNeuronsAllocated());
     assert(GetHiddenLayerCount() > 0);
@@ -438,7 +438,7 @@ void MultiLayerPerceptron::ConnectFully() {
     ConnectBiasNeuron(bias_neuron_index, output_neuron_start_index, GetOutputNeuronCount());
 }
 
-void MultiLayerPerceptron::ConstructTopology() {
+void MultiLayerNeuralTopology::ConstructTopology() {
     assert(!IsTopologyConstructed());
     assert(AreConnectionsAllocated());
 
@@ -448,7 +448,7 @@ void MultiLayerPerceptron::ConstructTopology() {
     is_constructed_ = true;
 }
 
-bool MultiLayerPerceptron::IsTopologyConstructed() const {
+bool MultiLayerNeuralTopology::IsTopologyConstructed() const {
     return is_constructed_;
 }
 

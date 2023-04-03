@@ -52,7 +52,7 @@ void RecurrentNeuralNetwork::Allocate() {
 
     cell_states_.resize(cell_states_count_);
 
-    NeuralNetwork::Allocate();
+    FeedForwardNeuralNetwork::Allocate();
 
     assert(GetHiddenLayerCount() > 0);
 
