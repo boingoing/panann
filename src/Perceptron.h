@@ -143,6 +143,13 @@ public:
      */
     bool IsConstructed() const;
 
+    /**
+     * Enable to perform shaping of the error curve.
+     * Default: Disabled
+     */
+    void EnableErrorShaping();
+    void DisableErrorShaping();
+
 protected:
     void AllocateWeights();
     bool AreWeightsAllocated() const;
@@ -177,7 +184,7 @@ private:
     ActivationFunctionType hidden_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
     ActivationFunctionType output_neuron_activation_function_type_ = ActivationFunctionType::Sigmoid;
 
-    bool should_shape_error_curve_ = true;
+    bool should_shape_error_curve_ = false;
     bool is_constructed_ = false;
     bool is_allocated_ = false;
 };

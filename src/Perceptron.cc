@@ -152,7 +152,7 @@ void Perceptron::ComputeNeuronError(size_t neuron_index) {
 }
 
 void Perceptron::RunForward(const std::vector<double>& input) {
-    assert(is_constructed_);
+    assert(IsConstructed());
     assert(input.size() == GetInputNeuronCount());
 
     // Feed each input into the corresponding input neuron.
@@ -169,7 +169,7 @@ void Perceptron::RunForward(const std::vector<double>& input) {
 }
 
 void Perceptron::RunBackward(const std::vector<double>& output) {
-    assert(is_constructed_);
+    assert(IsConstructed());
     assert(output.size() == GetOutputNeuronCount());
 
     ResetOutputLayerError();
@@ -183,7 +183,7 @@ void Perceptron::RunBackward(const std::vector<double>& output) {
 }
 
 void Perceptron::InitializeWeightsRandom(double min, double max) {
-    assert(is_constructed_);
+    assert(IsConstructed());
 
     for (auto& weight : weights_) {
         weight = random_.RandomFloat(min, max);
@@ -191,7 +191,7 @@ void Perceptron::InitializeWeightsRandom(double min, double max) {
 }
 
 void Perceptron::InitializeWeights(const TrainingData& training_data) {
-    assert(is_constructed_);
+    assert(IsConstructed());
     assert(!training_data.empty());
 
     double min_input = std::numeric_limits<double>::max();
@@ -212,7 +212,6 @@ void Perceptron::InitializeWeights(const TrainingData& training_data) {
 
 double Perceptron::GetError() const {
     assert(error_count_ != 0);
-
     return error_sum_ / error_count_;
 }
 
@@ -243,28 +242,26 @@ void Perceptron::CalculateOutputLayerError(const std::vector<double>& output) {
     const size_t output_neuron_start_index = GetOutputNeuronStartIndex();
     for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
         auto& neuron = GetNeuron(output_neuron_start_index + i);
-        const double delta = neuron.value - output[i];
+        double delta = neuron.value - output[i];
 
-        switch (this->error_cost_function_) {
+        switch (error_cost_function_) {
         case ErrorCostFunction::MeanSquareError:
-            this->error_sum_ += (delta * delta) / 2;
+            error_sum_ += (delta * delta) / 2;
             break;
         case ErrorCostFunction::MeanAbsoluteError:
-            this->error_sum_ += std::fabs(delta);
+            error_sum_ += std::fabs(delta);
             break;
         }
-        this->error_count_++;
-
+        if (should_shape_error_curve_) {
+            delta = ApplyErrorShaping(delta);
+        }
         /*
         if (IsActivationFunctionSymmetric(neuron.activation_function_type)) {
             delta /= 2;
         }
-
-        if (this->should_shape_error_curve_) {
-            delta = ApplyErrorShaping(delta);
-        }
         */
 
+        error_count_++;
         neuron.error = ExecuteActivationFunctionDerivative(neuron.activation_function_type, neuron.value, neuron.field) * delta;
     }
 }
@@ -305,7 +302,7 @@ void Perceptron::InitializeNeurons() {
 }
 
 void Perceptron::SetHiddenNeuronActivationFunctionType(ActivationFunctionType type) {
-    assert(!IsTopologyConstructed());
+    assert(!IsConstructed());
     hidden_neuron_activation_function_type_ = type;
 }
 
@@ -314,7 +311,7 @@ ActivationFunctionType Perceptron::GetHiddenNeuronActivationFunctionType() const
 }
 
 void Perceptron::SetOutputNeuronActivationFunctionType(ActivationFunctionType type) {
-    assert(!IsTopologyConstructed());
+    assert(!IsConstructed());
     output_neuron_activation_function_type_ = type;
 }
 
@@ -369,6 +366,14 @@ double& Perceptron::GetWeight(size_t index) {
     assert(AreWeightsAllocated());
     assert(index < weights_.size());
     return weights_[index];
+}
+
+void Perceptron::EnableErrorShaping() {
+    should_shape_error_curve_ = true;
+}
+
+void Perceptron::DisableErrorShaping() {
+    should_shape_error_curve_ = false;
 }
 
 }  // namespace panann
