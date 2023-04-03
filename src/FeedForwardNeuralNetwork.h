@@ -15,7 +15,7 @@ namespace panann {
 class TrainingData;
 
 /**
- * Simple feed-forward, multi-layer perceptron.
+ * A feed-forward neural network supporting training via multiple algorithms.
  */
 class FeedForwardNeuralNetwork : public Perceptron {
 public:

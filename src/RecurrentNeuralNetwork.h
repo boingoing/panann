@@ -6,16 +6,18 @@
 #ifndef RECURRENTNEURALNETWORK_H__
 #define RECURRENTNEURALNETWORK_H__
 
-#include "FeedForwardNeuralNetwork.h"
+#include "Perceptron.h"
 
 namespace panann {
 
 /**
  * A recurrent artificial neural network made out of long short term memory cells.<br/>
- * 
- * This network doesn't contain ordinary hidden neurons organized into layers. Instead, each layer contains a set of recurrent cells which are each made of a number of hidden units grouped into gates.
+ *
+ * This network doesn't contain ordinary hidden neurons organized into layers. Instead, each layer contains a set of recurrent cells which are each made of a number of hidden units grouped into gates.<br/>
+ *
+ * Note: RecurrentNeuralNetwork does not support any training algorithms, currently.
  */
-class RecurrentNeuralNetwork : public FeedForwardNeuralNetwork {
+class RecurrentNeuralNetwork : public Perceptron {
 protected:
     struct LongShortTermMemoryCell {
         /**
@@ -24,7 +26,8 @@ protected:
         size_t neuron_start_index;
 
         /**
-         * Count of neurons belonging to the cell.
+         * Count of neurons belonging to the cell.<br/>
+         * Includes neurons in all layers of the cell.
          */
         size_t neuron_count;
 
@@ -34,13 +37,21 @@ protected:
         size_t cell_state_start_index;
 
         /**
-         * Count of cell states belonging to the cell.
+         * Count of cell states belonging to the cell.<br/>
+         * This is also known as the cell memory size.
          */
         size_t cell_state_count;
     };
 
     struct CellLayer {
+        /**
+         * Index into the |cells_| vector of the first cell belonging to this layer.
+         */
         size_t cell_start_index;
+
+        /**
+         * Count of cells belonging to this layer.
+         */
         size_t cell_count;
     };
 
