@@ -18,22 +18,32 @@ size_t RecurrentNeuralNetwork::GetCellMemorySize() const {
     return cell_memory_size_;
 }
 
-void RecurrentNeuralNetwork::AddHiddenLayer(size_t cell_count, const std::vector<size_t>& cell_memory_sizes) {
+size_t RecurrentNeuralNetwork::AddCellMemoryStates(size_t count) {
+    assert(!IsTopologyConstructed());
+
+    const size_t index = cell_states_count_;
+    cell_states_count_ += count;
+    return index;
+}
+
+void RecurrentNeuralNetwork::AddHiddenLayer(size_t cell_count, const std::vector<size_t>& cell_memory_sizes /* = {} */) {
     const size_t cell_index = cells_.size();
     layers_.emplace_back(cell_index, cell_count);
 
+    // Each LSTM cell may have a different number of memory states so we can't just track how many cells there are in the network - we need to remember how many memory states each of those cells is holding.
     for (size_t i = 0; i < cell_count; i++) {
-        const size_t cell_hidden_neuron_start_index = GetHiddenNeuronStartIndex() + GetHiddenNeuronCount();
+        // If |cell_memory_sizes| doesn't contain an entry for |i| or that entry is zero, use the default value provided by GetCellMemorySize().
         const size_t cell_memory_size = cell_memory_sizes.size() <= i || cell_memory_sizes[i] == 0 ? GetCellMemorySize() : cell_memory_sizes[i];
-        const size_t cell_states_index = cell_states_count_;
+        // Just another name for the above. There are |cell_memory_size| neurons in each gate.
         const size_t neurons_per_gate = cell_memory_size;
-        // Forget gate, input gate, output gate, candidate cell state layer, hidden state layer.
+        // Total count of neurons making up the cell: forget gate, input gate, output gate, candidate cell state layer, hidden state layer.
         const size_t neurons_per_cell = neurons_per_gate * 5;
+        // Add hidden neurons needed for the structure of the cell. This returns the index at which those new neurons begin.
+        const size_t cell_hidden_neuron_start_index = AddHiddenNeurons(neurons_per_cell);
+        // Add cell memory states needed for the cell. This also returns the index at which those new memory states begin.
+        const size_t cell_states_index = AddCellMemoryStates(cell_memory_size);
 
         cells_.emplace_back(cell_hidden_neuron_start_index,neurons_per_cell,cell_states_index,cell_memory_size);
-
-        cell_states_count_ += cell_memory_size;
-        AddHiddenNeurons(neurons_per_cell);
     }
 }
 

@@ -72,13 +72,15 @@ public:
      * Each cell may have a different cell memory size passed via |cell_memory_sizes|. If the vector doesn't contain an element for a cell or if that element is 0, the cell memory size for that cell will be the default returned via GetCellMemorySize().
      * @see GetCellMemorySize()
     */
-    void AddHiddenLayer(size_t cell_count, const std::vector<size_t>& cell_memory_sizes);
+    void AddHiddenLayer(size_t cell_count, const std::vector<size_t>& cell_memory_sizes = {});
 
 protected:
     void Allocate() override;
     void ConnectFully() override;
 
     void UpdateCellState(const LongShortTermMemoryCell& cell);
+
+    size_t AddCellMemoryStates(size_t count);
 
 private:
     static constexpr size_t DefaultCellMemorySize = 200;

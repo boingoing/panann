@@ -139,8 +139,9 @@ protected:
     /**
      * Adds |count| hidden neurons to the container.<br/>
      * Note: There isn't a way to remove neurons once they're added.
+     * @return Index at which the new neurons begin.
     */
-    void AddHiddenNeurons(size_t count);
+    size_t AddHiddenNeurons(size_t count);
 
     /**
      * Adds |count| bias neurons to the container.<br/>

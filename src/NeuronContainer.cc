@@ -57,9 +57,13 @@ size_t NeuronContainer::GetBiasNeuronCount() const {
     return bias_neuron_count_;
 }
 
-void NeuronContainer::AddHiddenNeurons(size_t count) {
+size_t NeuronContainer::AddHiddenNeurons(size_t count) {
     assert(!AreNeuronsAllocated());
+
+    // Remember what the index was when the new neurons were added. Note: This should technically be a hidden neuron index (not an absolute index into |neurons_|) but since the hidden neurons are located at the beginning of that vector, the two indices would be equivalent. If the layout of hidden neurons ever changes, fix this here too.
+    const size_t index = hidden_neuron_count_;
     hidden_neuron_count_ += count;
+    return index;
 }
 
 void NeuronContainer::AddBiasNeurons(size_t count) {

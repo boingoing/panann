@@ -38,12 +38,11 @@ void MultiLayerPerceptron::DisableShortcutConnections() {
 void MultiLayerPerceptron::AddHiddenLayer(size_t neuron_count) {
     assert(!IsTopologyConstructed());
 
-    // Add a new hidden layer beginning at the current hidden neuron count and continuing for |neuron_count| neurons.
-    size_t current_neuron_index = GetHiddenNeuronStartIndex() + GetHiddenNeuronCount();
-    hidden_layers_.emplace_back() = {current_neuron_index, neuron_count};
+    // Update hidden neuron count to include the neurons newly added in this layer. This returns the index where those neurons were added.
+    const size_t starting_index = AddHiddenNeurons(neuron_count);
 
-    // Update hidden neuron count to include the neurons newly added in this layer.
-    AddHiddenNeurons(neuron_count);
+    // Add a new hidden layer beginning at the above hidden neuron index and continuing for |neuron_count| neurons.
+    hidden_layers_.emplace_back() = {starting_index, neuron_count};
 
     // Each hidden layer hooks-up to one bias neuron, keep track of the number of bias neurons we need.
     AddBiasNeurons(1);

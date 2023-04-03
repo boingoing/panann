@@ -22,7 +22,14 @@ namespace panann {
 class MultiLayerPerceptron : public NeuronContainer {
 protected:
     struct Layer {
+        /**
+         * Index at which the neurons comprising this layer begin.
+        */
         size_t neuron_start_index;
+
+        /**
+         * Count of hidden neurons in this layer.
+        */
         size_t neuron_count;
     };
 
