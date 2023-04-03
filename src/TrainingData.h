@@ -21,7 +21,7 @@ struct Example {
 };
 
 /**
- * The TrainingData is just a set of Examples with some utility functions for scaling that data.<br/>
+ * The TrainingData is just a vector of Examples with some utility functions for scaling that data.<br/>
  * @see Example
  */
 class TrainingData : public std::vector<Example> {
@@ -149,7 +149,7 @@ public:
     void DescaleInput(std::vector<double>* vec) const;
 
     /**
-     * Descale one vector of input.<br/>
+     * Descale one vector of output.<br/>
      * Uses the scaling parameters calculated during a previous call to Scale.
      * @see Scale
      */
@@ -158,9 +158,8 @@ public:
     /**
      * Convert sequential data into examples.<br/>
      * Use this to create examples from time series data or other sets of sequential data.<br/>
-     * Each example will have input_length input samples and one output sample - which will be the
-     * value from data immediately following those input samples.<br/>
-     * We will create as many examples as possible from the data.
+     * Each example will have |input_length| input samples and one output sample - which will be the value from |data| immediately following those input samples.<br/>
+     * We will create as many examples as possible from |data|.
      * @param input_length The number of input samples to put into each example.
      * @param data An ordered set of samples. Must have at least input_length elements.
      */
@@ -181,8 +180,8 @@ protected:
     void DescaleUniformNorm();
 
 private:
-static constexpr double DefaultSimpleScalingNewMin = -1.0;
-static constexpr double DefaultSimpleScalingNewMax = 1.0;
+    static constexpr double DefaultSimpleScalingNewMin = -1.0;
+    static constexpr double DefaultSimpleScalingNewMax = 1.0;
     static constexpr double DefaultStandardDeviationMultiplier = 2.5;
     static constexpr double DefaultUniformNormMultiplier = 1.0;
 
