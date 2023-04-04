@@ -88,10 +88,15 @@ public:
 protected:
     void Allocate() override;
     void ConnectFully() override;
+    void FixNeuronConnectionIndices() override;
 
     void UpdateCellState(const LongShortTermMemoryCell& cell);
 
     size_t AddCellMemoryStates(size_t count);
+
+    LongShortTermMemoryCell& GetCell(size_t index);
+    size_t GetCellLayerCount() const;
+    CellLayer& GetCellLayer(size_t index);
 
 private:
     static constexpr size_t DefaultCellMemorySize = 200;

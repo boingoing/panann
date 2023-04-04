@@ -426,7 +426,7 @@ void MultiLayerNeuralTopology::ConnectFully() {
                           GetOutputNeuronCount());
         }
     } else {
-        const Layer& previous_layer = hidden_layers_.back();
+        const auto& previous_layer = hidden_layers_.back();
         // Connect output layer to the last hidden layer.
         ConnectLayers(previous_layer.neuron_start_index,
                       previous_layer.neuron_count,

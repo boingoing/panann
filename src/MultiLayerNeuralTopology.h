@@ -125,7 +125,7 @@ protected:
     /**
      * Set the input and output connection indices assigned to each neuron into the neurons themselves.
     */
-    void FixNeuronConnectionIndices();
+    virtual void FixNeuronConnectionIndices();
 
     /**
      * Allocate storage for all the connections this topology will require.
