@@ -58,7 +58,6 @@ size_t MultiLayerNeuralTopology::GetOutputConnectionCount() const {
 
 size_t MultiLayerNeuralTopology::AddInputConnections(size_t count) {
     assert(!AreConnectionsAllocated());
-    assert(input_connection_count_ + count <= input_connections_.size());
 
     if (count == 0) {
         return 0;
@@ -71,7 +70,6 @@ size_t MultiLayerNeuralTopology::AddInputConnections(size_t count) {
 
 size_t MultiLayerNeuralTopology::AddOutputConnections(size_t count) {
     assert(!AreConnectionsAllocated());
-    assert(output_connection_count_ + count <= output_connections_.size());
 
     if (count == 0) {
         return 0;
