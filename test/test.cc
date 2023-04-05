@@ -62,11 +62,12 @@ void MakeTestNetwork(FeedForwardNeuralNetwork* nn, TrainingData* training_data) 
 
 void MakeTestNetwork(RecurrentNeuralNetwork* rnn, TrainingData* training_data) {
     constexpr size_t cells_per_layer = 5;
-    constexpr size_t cell_memory_size = 10;
+    constexpr size_t cell_memory_size = 3;
 
     rnn->SetInputNeuronCount(training_data->at(0).input.size());
     rnn->SetOutputNeuronCount(training_data->at(0).output.size());
     rnn->SetCellMemorySize(cell_memory_size);
+    rnn->AddHiddenLayer(cells_per_layer, {});
     rnn->AddHiddenLayer(cells_per_layer, {});
     rnn->Construct();
 }
@@ -85,7 +86,7 @@ void TrainAndTestNetwork(FeedForwardNeuralNetwork* nn, TrainingData* training_da
     nn->InitializeWeights(*training_data);
     std::cout << "\t\tError before training: " << nn->GetError(*training_data) << std::endl;
     nn->Train(training_data, epochs);
-    std::cout << "\t\tError after training for " << epochs << " epochs: " << nn->GetError(*training_data) << std::endl;
+    std::cout << "\t\tError after training for " << epochs << " epochs: " << nn->GetError(*training_data) << std::endl << std::endl;
 }
 
 void TrainAndTest(FeedForwardNeuralNetwork* nn, TrainingData* training_data, size_t epochs) {
@@ -96,35 +97,41 @@ void TrainAndTest(FeedForwardNeuralNetwork* nn, TrainingData* training_data, siz
     TrainAndTestNetwork(nn, training_data, FeedForwardNeuralNetwork::TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation, epochs);
 }
 
+void TestNetwork(RecurrentNeuralNetwork* rnn, TrainingData* training_data, size_t run_steps) {
+    std::cout << "Testing recurrent neural network..." << std::endl;
+
+    std::cout << "\tInitializing weight values to random (-1, 1)..." << std::endl;
+    rnn->InitializeWeightsRandom();
+
+    std::cout << "\t\tError before running: " << rnn->GetError(*training_data) << std::endl;
+
+    for (size_t i = 0; i < run_steps; i++) {
+        // Just run the network forward on each example input.
+        for (const auto& example : *training_data) {
+            rnn->RunForward(example.input);
+        }
+
+        std::cout << "\t\tError after run #" << i+1 << ": " << rnn->GetError(*training_data) << std::endl;
+    }
+
+    std::cout << std::endl;
+}
+
 int DoTests() {
-    constexpr size_t sine_data_steps = 200;
-
     TrainingData training_data;
-    MakeSineTrainingData(&training_data, sine_data_steps);
-
-    RecurrentNeuralNetwork rnn;
-    MakeTestNetwork(&rnn, &training_data);
-    rnn.InitializeWeightsRandom(-1.0, 1.0);
-
-    rnn.RunForward(training_data[0].input);
-    rnn.GetError(training_data[0].output);
-    rnn.RunForward(training_data[0].input);
-    rnn.GetError(training_data[0].output);
-    rnn.RunForward(training_data[0].input);
-    rnn.GetError(training_data[0].output);
-    rnn.RunForward(training_data[0].input);
-    rnn.GetError(training_data[0].output);
-    rnn.RunForward(training_data[0].input);
-    rnn.GetError(training_data[0].output);
 
     MakeXorTwoBitTrainingData(&training_data);
-
     FeedForwardNeuralNetwork nn;
     MakeTestNetwork(&nn, &training_data);
-
     constexpr size_t test_epochs = 1000;
-
     TrainAndTest(&nn, &training_data, test_epochs);
+
+    constexpr size_t sine_data_steps = 200;
+    MakeSineTrainingData(&training_data, sine_data_steps);
+    RecurrentNeuralNetwork rnn;
+    MakeTestNetwork(&rnn, &training_data);
+    constexpr size_t rnn_run_steps = 10;
+    TestNetwork(&rnn, &training_data, rnn_run_steps);
 
     return 0;
 }
