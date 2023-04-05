@@ -135,7 +135,7 @@ public:
      * Build the neural network.<br/>
      * After construction, the network topology may not be modified.
      */
-    void Construct();
+    virtual void Construct();
 
     /**
      * Returns true if the network has been constructed and false otherwise.<br/>
@@ -158,6 +158,11 @@ protected:
      * Set the initial value, activation function, etc for all neurons in the network.
     */
     void InitializeNeurons();
+
+    /**
+     * Set the default activation function etc for all hidden neurons in the network.
+     */
+    virtual void InitializeHiddenNeurons();
 
     void ComputeNeuronValue(size_t neuron_index);
     void ComputeNeuronValueRange(size_t neuron_start_index, size_t neuron_count);

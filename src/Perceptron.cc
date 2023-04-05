@@ -284,22 +284,25 @@ void Perceptron::GetOutput(std::vector<double>* output) const {
     }
 }
 
+void Perceptron::InitializeHiddenNeurons() {
+    // Set the default activation function for hidden and output neurons.
+    for (size_t i = 0; i < GetHiddenNeuronCount(); i++) {
+        auto& neuron = GetHiddenNeuron(i);
+        neuron.activation_function_type = hidden_neuron_activation_function_type_;
+    }
+}
+
 void Perceptron::InitializeNeurons() {
     // Bias neurons have a fixed value of 1.0 which we set here.
     for (size_t i = 0; i < GetBiasNeuronCount(); i++) {
         auto& neuron = GetBiasNeuron(i);
         neuron.value = 1;
     }
-
-    // Set the default activation function for hidden and output neurons.
-    for (size_t i = 0; i < GetHiddenNeuronCount(); i++) {
-        auto& neuron = GetHiddenNeuron(i);
-        neuron.activation_function_type = hidden_neuron_activation_function_type_;
-    }
     for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
         auto& neuron = GetOutputNeuron(i);
         neuron.activation_function_type = output_neuron_activation_function_type_;
     }
+    InitializeHiddenNeurons();
 }
 
 void Perceptron::SetHiddenNeuronActivationFunctionType(ActivationFunctionType type) {
@@ -323,17 +326,15 @@ ActivationFunctionType Perceptron::GetOutputNeuronActivationFunctionType() const
 void Perceptron::Construct() {
     assert(!IsTopologyConstructed());
     assert(!IsConstructed());
-    // Do not support networks with no hidden layers, no input neurons, or no output neurons.
-    assert(GetHiddenLayerCount() > 0);
+    // Do not support networks with no input neurons, no output neurons, or no hidden neurons.
     assert(GetInputNeuronCount() > 0);
     assert(GetOutputNeuronCount() > 0);
+    assert(GetHiddenNeuronCount() > 0);
 
     AllocateNeurons();
-    AllocateConnections();
-    AllocateWeights();
-
     ConstructTopology();
     InitializeNeurons();
+    AllocateWeights();
 
     is_constructed_ = true;
 }

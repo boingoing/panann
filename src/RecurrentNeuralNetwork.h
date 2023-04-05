@@ -92,9 +92,12 @@ public:
     */
     void AddHiddenLayer(size_t cell_count, const std::vector<size_t>& cell_memory_sizes = {});
 
+    void Construct() override;
+
 protected:
     void ConnectFully() override;
     void FixNeuronConnectionIndices() override;
+    void InitializeHiddenNeurons() override;
 
     void AllocateCellStates();
     bool AreCellStatesAllocated() const;

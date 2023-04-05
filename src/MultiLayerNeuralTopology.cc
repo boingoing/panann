@@ -49,150 +49,36 @@ void MultiLayerNeuralTopology::AddHiddenLayer(size_t neuron_count) {
 }
 
 size_t MultiLayerNeuralTopology::GetInputConnectionCount() const {
-    assert(GetHiddenLayerCount() > 0);
-
-    // If we already allocated the connections, don't go through the process of counting them again.
-    if (AreConnectionsAllocated()) {
-        return input_connections_.size();
-    }
-
-    // Calculate the input connections to the output layer.
-    // Each output neuron is connected to the bias neuron in the last hidden layer.
-    size_t input_connection_count = GetOutputNeuronCount();
-
-    // Calculate the non-bias connections incoming to the output layer.
-    if (enable_shortcut_connections_) {
-        // All input and hidden neurons are connected to each output neuron.
-        input_connection_count += (GetInputNeuronCount() + GetHiddenNeuronCount()) * GetOutputNeuronCount();
-    } else {
-        // Output neurons are connected only to the last hidden layer.
-        const auto& last_layer = GetHiddenLayer(GetHiddenLayerCount() - 1);
-        input_connection_count += last_layer.neuron_count * GetOutputNeuronCount();
-    }
-
-    // Calculate the input connections between all hidden layers.
-    for (size_t layer_index = 0; layer_index < GetHiddenLayerCount(); layer_index++) {
-        const auto& current_layer = GetHiddenLayer(layer_index);
-
-        // Each hidden neuron in the current layer is connected to the bias neuron in either the previous hidden layer or the input layer.
-        input_connection_count += current_layer.neuron_count;
-
-        if (enable_shortcut_connections_) {
-            // All hidden layers connect to the input layer when shortcuts are enabled.
-            size_t current_layer_input_connection_count = GetInputNeuronCount();
-
-            // Each neuron in this layer connects to the neurons in all previous hidden layers when shortcuts are enabled.
-            for (size_t previous_layer_index = 0; previous_layer_index < layer_index; previous_layer_index++) {
-                const auto& previous_layer = GetHiddenLayer(previous_layer_index);
-                current_layer_input_connection_count += previous_layer.neuron_count;
-            }
-
-            input_connection_count += current_layer_input_connection_count * current_layer.neuron_count;
-        } else {
-            if (layer_index == 0) {
-                // First hidden layer only connects to the input layer.
-                input_connection_count += GetInputNeuronCount() * current_layer.neuron_count;
-            } else {
-                // Subsequent hidden layers connect directly the previous one.
-                const auto& previous_layer = GetHiddenLayer(layer_index - 1);
-                input_connection_count += previous_layer.neuron_count * current_layer.neuron_count;
-            }
-        }
-
-        // Bias neurons do not have incoming connections so there's no need to calculate them.
-    }
-
-    return input_connection_count;
+    return input_connection_count_;
 }
 
 size_t MultiLayerNeuralTopology::GetOutputConnectionCount() const {
-    assert(GetHiddenLayerCount() > 0);
-
-    // If we already allocated the connections, don't go through the process of counting them again.
-    if (AreConnectionsAllocated()) {
-        return output_connections_.size();
-    }
-
-    // The first bias neuron has output connections to each hidden neuron in the first hidden layer.
-    const auto& first_layer = GetHiddenLayer(0);
-    size_t output_connection_count = first_layer.neuron_count;
-
-    // Calculate the connections outgoing from input layer neurons.
-    if (enable_shortcut_connections_) {
-        // The input layer connects to all hidden layers and the output layer.
-        output_connection_count += (GetHiddenNeuronCount() + GetOutputNeuronCount()) * GetInputNeuronCount();
-    } else {
-        // The input layer connects only to the first hidden layer.
-        output_connection_count += first_layer.neuron_count * GetInputNeuronCount();
-    }
-
-    // Calculate the output connections between all hidden layers.
-    for (size_t layer_index = 0; layer_index < GetHiddenLayerCount(); layer_index++) {
-        const auto& current_layer = GetHiddenLayer(layer_index);
-
-        if (enable_shortcut_connections_) {
-            // All hidden layers connect directly to the output layer when shortcuts are enabled.
-            size_t current_layer_output_connection_count = GetOutputNeuronCount();
-
-            // This layer connects to all neurons in subsequent hidden layers.
-            for (size_t next_layer_index = layer_index + 1; next_layer_index < GetHiddenLayerCount(); next_layer_index++) {
-                const auto& next_layer = GetHiddenLayer(next_layer_index);
-                current_layer_output_connection_count += next_layer.neuron_count;
-            }
-
-            output_connection_count += current_layer_output_connection_count * current_layer.neuron_count;
-        } else {
-            if (layer_index == GetHiddenLayerCount() - 1) {
-                // Last hidden layer connects to the output layer.
-                output_connection_count += GetOutputNeuronCount() * current_layer.neuron_count;
-            } else {
-                // This is not the last hidden layer, so there must be at least one more hidden layer after it.
-                assert(layer_index + 1 < GetHiddenLayerCount());
-                const auto& next_layer = GetHiddenLayer(layer_index + 1);
-
-                // This hidden layer connects directly to the next one.
-                output_connection_count += next_layer.neuron_count * current_layer.neuron_count;
-            }
-        }
-
-        // Bias neurons cannot have shortcut connections.
-        if (layer_index == GetHiddenLayerCount() - 1) {
-            // Bias neuron in the last hidden layer connects to the output layer.
-            output_connection_count += GetOutputNeuronCount();
-        } else {
-            // This is not the last hidden layer, so there must be at least one more hidden layer after it.
-            assert(layer_index + 1 < GetHiddenLayerCount());
-            const auto& next_layer = GetHiddenLayer(layer_index + 1);
-
-            // Bias neuron in this hidden layer connects to the next hidden layer neurons.
-            output_connection_count += next_layer.neuron_count;
-        }
-    }
-
-    return output_connection_count;
+    return output_connection_count_;
 }
 
-size_t MultiLayerNeuralTopology::TakeInputConnections(size_t count) {
-    assert(input_connection_index_ + count <= input_connections_.size());
+size_t MultiLayerNeuralTopology::AddInputConnections(size_t count) {
+    assert(!AreConnectionsAllocated());
+    assert(input_connection_count_ + count <= input_connections_.size());
 
     if (count == 0) {
         return 0;
     }
 
-    const size_t index = input_connection_index_;
-    input_connection_index_ += count;
+    const size_t index = input_connection_count_;
+    input_connection_count_ += count;
     return index;
 }
 
-size_t MultiLayerNeuralTopology::TakeOutputConnections(size_t count) {
-    assert(output_connection_index_ + count <= output_connections_.size());
+size_t MultiLayerNeuralTopology::AddOutputConnections(size_t count) {
+    assert(!AreConnectionsAllocated());
+    assert(output_connection_count_ + count <= output_connections_.size());
 
     if (count == 0) {
         return 0;
     }
 
-    const size_t index = output_connection_index_;
-    output_connection_index_ += count;
+    const size_t index = output_connection_count_;
+    output_connection_count_ += count;
     return index;
 }
 
@@ -200,7 +86,7 @@ void MultiLayerNeuralTopology::FixNeuronConnectionIndices() {
     assert(GetHiddenLayerCount() > 0);
     assert(!IsTopologyConstructed());
     assert(AreNeuronsAllocated());
-    assert(AreConnectionsAllocated());
+    assert(!AreConnectionsAllocated());
 
     const auto& first_layer = GetHiddenLayer(0);
     const auto& last_layer = GetHiddenLayer(GetHiddenLayerCount() - 1);
@@ -211,7 +97,7 @@ void MultiLayerNeuralTopology::FixNeuronConnectionIndices() {
     // Set the output connection start indices into the input neurons.
     for (size_t i = 0; i < GetInputNeuronCount(); i++) {
         auto& neuron = GetInputNeuron(i);
-        neuron.output_connection_start_index = TakeOutputConnections(input_layer_output_connection_count);
+        neuron.output_connection_start_index = AddOutputConnections(input_layer_output_connection_count);
     }
 
     // Count of input connections into each of the output neurons (+1 is for the bias connection).
@@ -220,12 +106,12 @@ void MultiLayerNeuralTopology::FixNeuronConnectionIndices() {
     // Set the input connection start indices into the output neurons.
     for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
         auto& neuron = GetOutputNeuron(i);
-        neuron.input_connection_start_index = TakeInputConnections(output_layer_input_connection_count);
+        neuron.input_connection_start_index = AddInputConnections(output_layer_input_connection_count);
     }
 
     // Set the input and output connection start indices into all the hidden neurons.
     for (size_t layer_index = 0; layer_index < GetHiddenLayerCount(); layer_index++) {
-        // Each hidden neuron in the current layer is connected to the bias neuron in either the previous hidden layer or the input layer.
+        // Each hidden neuron in the current layer is connected to a bias neuron.
         size_t input_connection_count = 1;
         size_t output_connection_count = 0;
 
@@ -274,14 +160,14 @@ void MultiLayerNeuralTopology::FixNeuronConnectionIndices() {
         const auto& current_layer = GetHiddenLayer(layer_index);
         for (size_t i = 0; i < current_layer.neuron_count; i++) {
             auto& neuron = GetNeuron(current_layer.neuron_start_index + i);
-            neuron.input_connection_start_index = TakeInputConnections(input_connection_count);
-            neuron.output_connection_start_index = TakeOutputConnections(output_connection_count);
+            neuron.input_connection_start_index = AddInputConnections(input_connection_count);
+            neuron.output_connection_start_index = AddOutputConnections(output_connection_count);
         }
     }
 
     // The first bias neuron connects to hidden neurons in the first layer.
     auto& first_bias_neuron = GetBiasNeuron(0);
-    first_bias_neuron.output_connection_start_index = TakeOutputConnections(first_layer.neuron_count);
+    first_bias_neuron.output_connection_start_index = AddOutputConnections(first_layer.neuron_count);
 
     // Set the output connection start indices into all but the last bias neuron - one per hidden layer.
     for (size_t layer_index = 0; layer_index < GetHiddenLayerCount() - 1; layer_index++) {
@@ -292,12 +178,12 @@ void MultiLayerNeuralTopology::FixNeuronConnectionIndices() {
         // The bias neuron for |layer_index| connects to each hidden neuron in the next hidden layer.
         // Bias neurons do not have incoming connections.
         auto& bias_neuron = GetBiasNeuron(1 + layer_index);
-        bias_neuron.output_connection_start_index = TakeOutputConnections(next_layer.neuron_count);
+        bias_neuron.output_connection_start_index = AddOutputConnections(next_layer.neuron_count);
     }
 
     // The last bias neuron connects to the output layer neurons.
     auto& last_bias_neuron = GetBiasNeuron(GetHiddenLayerCount());
-    last_bias_neuron.output_connection_count = TakeOutputConnections(GetOutputNeuronCount());
+    last_bias_neuron.output_connection_count = AddOutputConnections(GetOutputNeuronCount());
 }
 
 void MultiLayerNeuralTopology::AllocateConnections() {
@@ -314,11 +200,13 @@ bool MultiLayerNeuralTopology::AreConnectionsAllocated() const {
 }
 
 MultiLayerNeuralTopology::InputConnection& MultiLayerNeuralTopology::GetInputConnection(size_t index) {
+    assert(AreConnectionsAllocated());
     assert(index < input_connections_.size());
     return input_connections_[index];
 }
 
 MultiLayerNeuralTopology::OutputConnection& MultiLayerNeuralTopology::GetOutputConnection(size_t index) {
+    assert(AreConnectionsAllocated());
     assert(index < output_connections_.size());
     return output_connections_[index];
 }
@@ -373,6 +261,7 @@ void MultiLayerNeuralTopology::ConnectBiasNeuron(size_t bias_neuron_index, size_
 void MultiLayerNeuralTopology::ConnectFully() {
     assert(!IsTopologyConstructed());
     assert(AreNeuronsAllocated());
+    assert(AreConnectionsAllocated());
     assert(GetHiddenLayerCount() > 0);
 
     const size_t input_neuron_start_index = GetInputNeuronStartIndex();
@@ -448,9 +337,10 @@ void MultiLayerNeuralTopology::ConnectFully() {
 
 void MultiLayerNeuralTopology::ConstructTopology() {
     assert(!IsTopologyConstructed());
-    assert(AreConnectionsAllocated());
+    assert(!AreConnectionsAllocated());
 
     FixNeuronConnectionIndices();
+    AllocateConnections();
     ConnectFully();
 
     is_constructed_ = true;

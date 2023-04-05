@@ -100,8 +100,8 @@ void RecurrentNeuralNetwork::InitializeCellNeuronsOneGate(size_t neuron_start_in
         // The neuron must not have been already assigned.
         assert(neuron.input_connection_start_index == 0);
         assert(neuron.output_connection_start_index == 0);
-        neuron.input_connection_start_index = TakeInputConnections(input_connection_count);
-        neuron.output_connection_start_index = TakeOutputConnections(output_connection_count);
+        neuron.input_connection_start_index = AddInputConnections(input_connection_count);
+        neuron.output_connection_start_index = AddOutputConnections(output_connection_count);
         neuron.activation_function_type = activation_function;
         // TODO(boingoing): Is this still necessary?
         // The output units are recurrently connected to the gate neurons, we need to set a default value.
@@ -126,11 +126,14 @@ void RecurrentNeuralNetwork::InitializeCellNeurons(const LongShortTermMemoryCell
     InitializeCellNeuronsOneGate(cell.GetOutputUnitStartNeuronIndex(), cell.GetNeuronsPerGate(), ActivationFunctionType::SigmoidSymmetric, 0, output_connection_count);
 }
 
+void RecurrentNeuralNetwork::InitializeHiddenNeurons() {
+    // We set the activation function for each hidden neuron via RecurrentNeuralNetwork::InitializeCellNeurons so there's nothing for us to do now.
+}
+
 void RecurrentNeuralNetwork::FixNeuronConnectionIndices() {
     assert(GetCellLayerCount() > 0);
     assert(!IsTopologyConstructed());
     assert(AreNeuronsAllocated());
-    assert(AreConnectionsAllocated());
 
     const auto& first_layer = GetCellLayer(0);
     const auto& last_layer = GetCellLayer(GetCellLayerCount() - 1);
@@ -149,7 +152,7 @@ void RecurrentNeuralNetwork::FixNeuronConnectionIndices() {
     // Set the output connection start indices into the input layer neurons.
     for (size_t i = 0; i < GetInputNeuronCount(); i++) {
         auto& neuron = GetInputNeuron(i);
-        neuron.output_connection_start_index = TakeOutputConnections(input_layer_output_connection_count);
+        neuron.output_connection_start_index = AddOutputConnections(input_layer_output_connection_count);
     }
 
     // The output layer takes input from the output layer of each memory cell in the last hidden layer (+1 for the bias connection).
@@ -165,7 +168,7 @@ void RecurrentNeuralNetwork::FixNeuronConnectionIndices() {
     // Set the input connection start indices into the output neurons.
     for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
         auto& neuron = GetOutputNeuron(i);
-        neuron.input_connection_start_index = TakeInputConnections(output_layer_input_connection_count);
+        neuron.input_connection_start_index = AddInputConnections(output_layer_input_connection_count);
     }
 
     // Set the input and output connection start indices into all of the cell neurons.
@@ -219,12 +222,12 @@ void RecurrentNeuralNetwork::FixNeuronConnectionIndices() {
     for (size_t i = 0; i < GetCellCount(); i++) {
         auto& neuron = GetBiasNeuron(i);
         const auto& cell = GetCell(i);
-        neuron.output_connection_start_index = TakeOutputConnections(cell.neuron_count);
+        neuron.output_connection_start_index = AddOutputConnections(cell.neuron_count);
     }
 
     // The last bias neuron connects to the output layer neurons.
     auto& last_bias_neuron = GetBiasNeuron(GetCellCount());
-    last_bias_neuron.output_connection_start_index = TakeOutputConnections(GetOutputNeuronCount());
+    last_bias_neuron.output_connection_start_index = AddOutputConnections(GetOutputNeuronCount());
 }
 
 void RecurrentNeuralNetwork::AllocateCellStates() {
@@ -235,6 +238,13 @@ void RecurrentNeuralNetwork::AllocateCellStates() {
 
 bool RecurrentNeuralNetwork::AreCellStatesAllocated() const {
     return is_allocated_;
+}
+
+void RecurrentNeuralNetwork::Construct() {
+    assert(!AreCellStatesAllocated());
+
+    Perceptron::Construct();
+    AllocateCellStates();
 }
 
 void RecurrentNeuralNetwork::ConnectFully() {

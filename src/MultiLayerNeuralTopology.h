@@ -115,12 +115,12 @@ protected:
     /**
      * Assign the next |count| input connections and return the index at which these connections begin.
      */
-    size_t TakeInputConnections(size_t count);
+    size_t AddInputConnections(size_t count);
 
     /**
      * Assign the next |count| output connections and return the index at which these connections begin.
      */
-    size_t TakeOutputConnections(size_t count);
+    size_t AddOutputConnections(size_t count);
 
     /**
      * Set the input and output connection indices assigned to each neuron into the neurons themselves.
@@ -146,9 +146,9 @@ protected:
 private:
     std::vector<Layer> hidden_layers_;
     std::vector<InputConnection> input_connections_;
-    size_t input_connection_index_ = 0;
+    size_t input_connection_count_ = 0;
     std::vector<OutputConnection> output_connections_;
-    size_t output_connection_index_ = 0;
+    size_t output_connection_count_ = 0;
 
     bool enable_shortcut_connections_ = false;
     bool is_constructed_ = false;
