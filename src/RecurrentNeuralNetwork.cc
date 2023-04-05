@@ -311,23 +311,17 @@ void RecurrentNeuralNetwork::ConnectFully() {
 }
 
 void RecurrentNeuralNetwork::UpdateCellState(const LongShortTermMemoryCell& cell) {
-    const size_t forget_gate_neuron_start_index = cell.neuron_start_index;
-    const size_t input_gate_neuron_start_index = forget_gate_neuron_start_index + cell.cell_state_count;
-    const size_t candidate_cell_state_gate_neuron_start_index = input_gate_neuron_start_index + cell.cell_state_count;
-    const size_t output_gate_neuron_start_index = candidate_cell_state_gate_neuron_start_index + cell.cell_state_count;
-    const size_t cell_output_neuron_start = output_gate_neuron_start_index + cell.cell_state_count;
+    ComputeNeuronValueRange(cell.GetForgetGateStartNeuronIndex(), cell.GetNeuronsPerGate());
+    ComputeNeuronValueRange(cell.GetInputGateStartNeuronIndex(), cell.GetNeuronsPerGate());
+    ComputeNeuronValueRange(cell.GetCandidateCellStateStartNeuronIndex(), cell.GetNeuronsPerGate());
+    ComputeNeuronValueRange(cell.GetOutputGateStartNeuronIndex(), cell.GetNeuronsPerGate());
 
-    ComputeNeuronValueRange(forget_gate_neuron_start_index, cell.cell_state_count);
-    ComputeNeuronValueRange(input_gate_neuron_start_index, cell.cell_state_count);
-    ComputeNeuronValueRange(candidate_cell_state_gate_neuron_start_index, cell.cell_state_count);
-    ComputeNeuronValueRange(output_gate_neuron_start_index, cell.cell_state_count);
-
-    for (size_t i = 0; i < cell.cell_state_count; i++) {
-        const auto& forget_neuron = GetNeuron(forget_gate_neuron_start_index + i);
-        const auto& input_neuron = GetNeuron(input_gate_neuron_start_index + i);
-        const auto& candidate_state_neuron = GetNeuron(candidate_cell_state_gate_neuron_start_index + i);
-        const auto& output_gate_neuron = GetNeuron(output_gate_neuron_start_index + i);
-        auto& cell_output_neuron = GetNeuron(cell_output_neuron_start + i);
+    for (size_t i = 0; i < cell.GetNeuronsPerGate(); i++) {
+        const auto& forget_neuron = GetNeuron(cell.GetForgetGateStartNeuronIndex() + i);
+        const auto& input_neuron = GetNeuron(cell.GetInputGateStartNeuronIndex() + i);
+        const auto& candidate_state_neuron = GetNeuron(cell.GetCandidateCellStateStartNeuronIndex() + i);
+        const auto& output_gate_neuron = GetNeuron(cell.GetOutputGateStartNeuronIndex() + i);
+        auto& cell_output_neuron = GetNeuron(cell.GetOutputUnitStartNeuronIndex() + i);
         const size_t cell_state_index = cell.cell_state_start_index + i;
 
         // Modify cell state based on the gate and existing cell state values
@@ -351,7 +345,7 @@ void RecurrentNeuralNetwork::RunForward(const std::vector<double>& input) {
     }
 
     // Update cell states.
-    for (auto& cell : cells_) {
+    for (const auto& cell : cells_) {
         UpdateCellState(cell);
     }
 
