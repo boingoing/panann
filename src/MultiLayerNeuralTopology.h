@@ -137,7 +137,7 @@ protected:
      */
     bool AreConnectionsAllocated() const;
 
-    void ConnectFully();
+    virtual void ConnectFully();
     void ConnectLayerToNeuron(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index);
     void ConnectLayers(size_t from_neuron_index, size_t from_neuron_count, size_t to_neuron_index, size_t to_neuron_count);
     void ConnectBiasNeuron(size_t bias_neuron_index, size_t to_neuron_index, size_t to_neuron_count);

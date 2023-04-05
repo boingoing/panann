@@ -27,7 +27,7 @@ protected:
 
         /**
          * Count of neurons belonging to the cell.<br/>
-         * Includes neurons in all layers of the cell.
+         * Includes neurons in all layers of the cell (but does not include the bias neuron for this cell).
          */
         size_t neuron_count;
 
@@ -41,6 +41,13 @@ protected:
          * This is also known as the cell memory size.
          */
         size_t cell_state_count;
+
+        size_t GetNeuronsPerGate() const;
+        size_t GetForgetGateStartNeuronIndex() const;
+        size_t GetInputGateStartNeuronIndex() const;
+        size_t GetOutputGateStartNeuronIndex() const;
+        size_t GetCandidateCellStateStartNeuronIndex() const;
+        size_t GetOutputUnitStartNeuronIndex() const;
     };
 
     struct CellLayer {
@@ -94,9 +101,22 @@ protected:
 
     size_t AddCellMemoryStates(size_t count);
 
+    size_t GetCellCount() const;
     LongShortTermMemoryCell& GetCell(size_t index);
     size_t GetCellLayerCount() const;
     CellLayer& GetCellLayer(size_t index);
+
+    /**
+     * Initialize all the neurons making up |cell|.<br/>
+     * Each gate of the cell will be assigned |input_connection_count| input connections (and zero output connections).<br/>
+     * The output layer of the cell will be assigned |output_connection_count| output connections (and zero input connections).
+     */
+    void InitializeCellNeurons(const LongShortTermMemoryCell& cell, size_t input_connection_count, size_t output_connection_count);
+
+    /**
+     * Initialize the neurons in one gate of a cell.
+     */
+    void InitializeCellNeuronsOneGate(size_t neuron_start_index, size_t neurons_per_gate, ActivationFunctionType activation_function, size_t input_connection_count, size_t output_connection_count);
 
 private:
     static constexpr size_t DefaultCellMemorySize = 200;

@@ -175,6 +175,10 @@ size_t MultiLayerNeuralTopology::GetOutputConnectionCount() const {
 size_t MultiLayerNeuralTopology::TakeInputConnections(size_t count) {
     assert(input_connection_index_ + count <= input_connections_.size());
 
+    if (count == 0) {
+        return 0;
+    }
+
     const size_t index = input_connection_index_;
     input_connection_index_ += count;
     return index;
@@ -182,6 +186,10 @@ size_t MultiLayerNeuralTopology::TakeInputConnections(size_t count) {
 
 size_t MultiLayerNeuralTopology::TakeOutputConnections(size_t count) {
     assert(output_connection_index_ + count <= output_connections_.size());
+
+    if (count == 0) {
+        return 0;
+    }
 
     const size_t index = output_connection_index_;
     output_connection_index_ += count;
