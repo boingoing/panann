@@ -93,9 +93,11 @@ public:
     void AddHiddenLayer(size_t cell_count, const std::vector<size_t>& cell_memory_sizes = {});
 
 protected:
-    void Allocate() override;
     void ConnectFully() override;
     void FixNeuronConnectionIndices() override;
+
+    void AllocateCellStates();
+    bool AreCellStatesAllocated() const;
 
     void UpdateCellState(const LongShortTermMemoryCell& cell);
 
@@ -126,6 +128,7 @@ private:
     std::vector<double> cell_states_;
     size_t cell_states_count_ = 0;
     size_t cell_memory_size_ = DefaultCellMemorySize;
+    bool is_allocated_ = false;
 };
 
 } // namespace panann

@@ -4,6 +4,7 @@
 //-------------------------------------------------------------------------------------------------------
 
 #include <cassert>
+#include <cstdint>
 
 #include "ActivationFunction.h"
 #include "RecurrentNeuralNetwork.h"
@@ -54,7 +55,7 @@ size_t RecurrentNeuralNetwork::AddCellMemoryStates(size_t count) {
 
 void RecurrentNeuralNetwork::AddHiddenLayer(size_t cell_count, const std::vector<size_t>& cell_memory_sizes /* = {} */) {
     const size_t cell_index = cells_.size();
-    layers_.emplace_back(cell_index, cell_count);
+    layers_.emplace_back() = {cell_index, cell_count};
 
     // Each LSTM cell may have a different number of memory states so we can't just track how many cells there are in the network - we need to remember how many memory states each of those cells is holding.
     for (size_t i = 0; i < cell_count; i++) {
@@ -71,7 +72,7 @@ void RecurrentNeuralNetwork::AddHiddenLayer(size_t cell_count, const std::vector
         // Each cell contributes one bias neuron to the network.
         AddBiasNeurons(1);
 
-        cells_.emplace_back(cell_hidden_neuron_start_index,neurons_per_cell,cell_states_index,cell_memory_size);
+        cells_.emplace_back() = {cell_hidden_neuron_start_index,neurons_per_cell,cell_states_index,cell_memory_size};
     }
 }
 
@@ -210,7 +211,7 @@ void RecurrentNeuralNetwork::FixNeuronConnectionIndices() {
             const size_t cell_input_connection_count = input_connection_count + cell.GetNeuronsPerGate();
             // Cell output units also connect back to the gates of the cell.
             const size_t cell_output_connection_count = output_connection_count + cell.GetNeuronsPerGate() * 4;
-            InitializeCellNeurons(cell, cell_input_connection_count, output_connection_count);
+            InitializeCellNeurons(cell, cell_input_connection_count, cell_output_connection_count);
         }
     }
 
@@ -218,7 +219,7 @@ void RecurrentNeuralNetwork::FixNeuronConnectionIndices() {
     for (size_t i = 0; i < GetCellCount(); i++) {
         auto& neuron = GetBiasNeuron(i);
         const auto& cell = GetCell(i);
-        neuron.output_connection_start_index = TakeOutputConnections(cell.GetNeuronsPerGate() * 5);
+        neuron.output_connection_start_index = TakeOutputConnections(cell.neuron_count);
     }
 
     // The last bias neuron connects to the output layer neurons.
@@ -226,12 +227,14 @@ void RecurrentNeuralNetwork::FixNeuronConnectionIndices() {
     last_bias_neuron.output_connection_start_index = TakeOutputConnections(GetOutputNeuronCount());
 }
 
-void RecurrentNeuralNetwork::Allocate() {
-    assert(!IsTopologyConstructed());
-
+void RecurrentNeuralNetwork::AllocateCellStates() {
+    assert(!AreCellStatesAllocated());
     cell_states_.resize(cell_states_count_);
+    is_allocated_ = true;
+}
 
-    MultiLayerNeuralTopology::Allocate();
+bool RecurrentNeuralNetwork::AreCellStatesAllocated() const {
+    return is_allocated_;
 }
 
 void RecurrentNeuralNetwork::ConnectFully() {
@@ -355,7 +358,7 @@ void RecurrentNeuralNetwork::RunForward(const std::vector<double>& input) {
 }
 
 std::vector<double>& RecurrentNeuralNetwork::GetCellStates() {
-    assert(IsTopologyConstructed());
+    assert(AreCellStatesAllocated());
     return cell_states_;
 }
 

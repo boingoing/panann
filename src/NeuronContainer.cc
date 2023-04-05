@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 
 #include "ActivationFunction.h"
 #include "NeuronContainer.h"
