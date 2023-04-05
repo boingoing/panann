@@ -210,7 +210,9 @@ private:
     size_t input_neuron_count_ = 0;
     size_t output_neuron_count_ = 0;
     size_t hidden_neuron_count_ = 0;
-    size_t bias_neuron_count_ = 0;
+
+    // There is always a bias neuron which will be hooked-up to output layer neurons.
+    size_t bias_neuron_count_ = 1;
     bool is_allocated_ = false;
 };
 

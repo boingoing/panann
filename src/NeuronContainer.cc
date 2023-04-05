@@ -19,10 +19,6 @@ size_t NeuronContainer::GetInputNeuronCount() const {
 void NeuronContainer::SetInputNeuronCount(size_t input_neuron_count) {
     assert(!AreNeuronsAllocated());
     input_neuron_count_ = input_neuron_count;
-
-    // The input layer hooks-up to a bias neuron.
-    // TODO(boingoing): We don't really have any other place where we can initialize the input layer - if we don't set the count, it'll be zero which will assert when constructing - so increment the bias neuron count here. We should do this elsewhere if there become other ways to initialize the input layer.
-    AddBiasNeurons(1);
 }
 
 size_t NeuronContainer::GetOutputNeuronCount() const {
