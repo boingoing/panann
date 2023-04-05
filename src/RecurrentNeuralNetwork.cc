@@ -272,7 +272,7 @@ void RecurrentNeuralNetwork::ConnectFully() {
             cell.GetNeuronsPerGate() * 4);
 
         // Connect this cell bias neuron to all neurons in the cell.
-        ConnectBiasNeuron(cell_index, cell.neuron_start_index, cell.neuron_count);
+        ConnectBiasNeuron(GetBiasNeuronStartIndex() + cell_index, cell.neuron_start_index, cell.neuron_count);
     }
 
     // Connect all cells in the subsequent layers to each other.
@@ -301,7 +301,7 @@ void RecurrentNeuralNetwork::ConnectFully() {
                 current_cell.GetNeuronsPerGate() * 4);
 
             // Connect this cell bias neuron to all neurons in the cell.
-            ConnectBiasNeuron(cell_index, current_cell.neuron_start_index, current_cell.neuron_count);
+            ConnectBiasNeuron(GetBiasNeuronStartIndex() + cell_index, current_cell.neuron_start_index, current_cell.neuron_count);
         }
     }
 
@@ -320,7 +320,7 @@ void RecurrentNeuralNetwork::ConnectFully() {
     }
 
     // Connect the output layer to the last bias neuron.
-    ConnectBiasNeuron(GetCellLayerCount(), GetOutputNeuronStartIndex(), GetOutputNeuronCount());
+    ConnectBiasNeuron(GetBiasNeuronStartIndex() + GetCellLayerCount(), GetOutputNeuronStartIndex(), GetOutputNeuronCount());
 }
 
 void RecurrentNeuralNetwork::UpdateCellState(const LongShortTermMemoryCell& cell) {
