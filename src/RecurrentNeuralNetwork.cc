@@ -122,8 +122,8 @@ void RecurrentNeuralNetwork::InitializeCellNeurons(const LongShortTermMemoryCell
     InitializeCellNeuronsOneGate(cell.GetOutputGateStartNeuronIndex(), cell.GetNeuronsPerGate(), ActivationFunctionType::Sigmoid, input_connection_count, 0);
 
     // The cell output units are connected to the gates of cells in the next layer and recurrently connected to the gate neurons - which should be |output_connection_count| output connections.
-    // None of the output unit neurons have input connections.
-    InitializeCellNeuronsOneGate(cell.GetOutputUnitStartNeuronIndex(), cell.GetNeuronsPerGate(), ActivationFunctionType::SigmoidSymmetric, 0, output_connection_count);
+    // The output unit neurons only have incoming connections from the bias neuron.
+    InitializeCellNeuronsOneGate(cell.GetOutputUnitStartNeuronIndex(), cell.GetNeuronsPerGate(), ActivationFunctionType::SigmoidSymmetric, 1, output_connection_count);
 }
 
 void RecurrentNeuralNetwork::InitializeHiddenNeurons() {
@@ -320,7 +320,7 @@ void RecurrentNeuralNetwork::ConnectFully() {
     }
 
     // Connect the output layer to the last bias neuron.
-    ConnectBiasNeuron(GetBiasNeuronStartIndex() + GetCellLayerCount(), GetOutputNeuronStartIndex(), GetOutputNeuronCount());
+    ConnectBiasNeuron(GetBiasNeuronStartIndex() + GetCellCount(), GetOutputNeuronStartIndex(), GetOutputNeuronCount());
 }
 
 void RecurrentNeuralNetwork::UpdateCellState(const LongShortTermMemoryCell& cell) {
