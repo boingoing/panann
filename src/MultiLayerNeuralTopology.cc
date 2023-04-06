@@ -185,6 +185,9 @@ void MultiLayerNeuralTopology::FixNeuronConnectionIndices() {
     auto& last_bias_neuron = GetBiasNeuron(GetHiddenLayerCount());
     assert(last_bias_neuron.output_connection_start_index == 0);
     last_bias_neuron.output_connection_start_index = AddOutputConnections(GetOutputNeuronCount());
+
+    // Each input connection should have a matching output connection.
+    assert(GetInputConnectionCount() == GetOutputConnectionCount());
 }
 
 void MultiLayerNeuralTopology::AllocateConnections() {
