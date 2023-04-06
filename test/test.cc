@@ -13,7 +13,11 @@
 #include "RecurrentNeuralNetwork.h"
 #include "TrainingData.h"
 
-namespace panann {
+using panann::FeedForwardNeuralNetwork;
+using panann::RecurrentNeuralNetwork;
+using panann::TrainingData;
+
+namespace testing {
 
 const char* TrainingAlgorithmNames[] = {
     "Backpropagation",
@@ -73,7 +77,7 @@ void MakeTestNetwork(RecurrentNeuralNetwork* rnn, TrainingData* training_data) {
 }
 
 void TrainAndTestNetwork(FeedForwardNeuralNetwork* nn, TrainingData* training_data, FeedForwardNeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
-    std::cout << "Testing training with " << TrainingAlgorithmNames[static_cast<int>(algorithm)] << "..." << std::endl;
+    std::cout << "Testing feed-forward neural network training with " << TrainingAlgorithmNames[static_cast<int>(algorithm)] << "..." << std::endl;
     nn->SetTrainingAlgorithmType(algorithm);
 
     std::cout << "\tInitializing weight values to random (-1, 1)..." << std::endl;
@@ -136,8 +140,15 @@ int DoTests() {
     return 0;
 }
 
-}  // namespace panann
+}  // namespace testing
 
 int main() {
-    return panann::DoTests();
+  try {
+    testing::DoTests();
+  } catch (...) {
+    std::cout << "Caught exception running tests.";
+    return -1;
+  }
+
+  return 0;
 }
