@@ -127,12 +127,13 @@ void Perceptron::ComputeNeuronValue(size_t neuron_index) {
     for (size_t i = 0; i < neuron.input_connection_count; i++) {
         const size_t input_connection_index = neuron.input_connection_start_index + i;
         const auto& connection = GetInputConnection(input_connection_index);
+        assert(connection.to_neuron_index == neuron_index);
         const auto& from_neuron = GetNeuron(connection.from_neuron_index);
 
         neuron.field += from_neuron.value * weights_[input_connection_index];
     }
 
-    neuron.value = ExecuteActivationFunction(neuron.activation_function_type, neuron.value);
+    neuron.value = ExecuteActivationFunction(neuron.activation_function_type, neuron.field);
 }
 
 void Perceptron::ComputeNeuronError(size_t neuron_index) {
