@@ -3,9 +3,31 @@
 // Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
 //-------------------------------------------------------------------------------------------------------
 
-#pragma once
+#ifndef ACTIVATIONFUNCTION_H__
+#define ACTIVATIONFUNCTION_H__
 
 namespace panann {
+
+enum class ActivationFunctionType : uint8_t {
+    Linear = 1,
+    Sigmoid,
+    Gaussian,
+    Sine,
+    Cosine,
+    Elliot,
+    Threshold,
+    SigmoidSymmetric,
+    GaussianSymmetric,
+    SineSymmetric,
+    CosineSymmetric,
+    ElliotSymmetric,
+    ThresholdSymmetric,
+
+    // The symmetric activation functions are grouped at the end so we would
+    // know that an activation function is symmetric if it's at least the
+    // first one in this group.
+    FirstSymmetric = SigmoidSymmetric
+};
 
 class ActivationFunction
 {
@@ -49,3 +71,5 @@ public:
 };
 
 } // namespace panann
+
+#endif  // ACTIVATIONFUNCTION_H__
