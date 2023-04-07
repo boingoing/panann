@@ -76,16 +76,10 @@ public:
      */
     bool IsTopologyConstructed() const;
 
-protected:
     /**
      * Get the count of hidden layers in the topology.
      */
     size_t GetHiddenLayerCount() const;
-
-    /**
-     * Get a writable view of the hidden layer at |layer_index|.
-     */
-    Layer& GetHiddenLayer(size_t layer_index);
 
     /**
      * Get a read-only view of the hidden layer at |layer_index|.
@@ -101,6 +95,25 @@ protected:
      * Get the count of all output connections in the network topology.
      */
     size_t GetOutputConnectionCount() const;
+
+    /**
+     * Get a read-only view of a single input connection at |index|.
+     * Note: Connections must be allocated prior to calling this.
+     */
+    const InputConnection& GetInputConnection(size_t index) const;
+
+    /**
+     * Get a read-only view of a single output connection at |index|.
+     * Note: Connections must be allocated prior to calling this.
+     */
+    const OutputConnection& GetOutputConnection(size_t index) const;
+
+protected:
+
+    /**
+     * Get a writable view of the hidden layer at |layer_index|.
+     */
+    Layer& GetHiddenLayer(size_t layer_index);
 
     /**
      * Get a writable view of a single input connection at |index| in the |input_connections_| vector.

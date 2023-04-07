@@ -101,6 +101,17 @@ public:
      */
     size_t GetOutputNeuronCount() const;
 
+    /**
+     * Get the total count of neurons in the container.
+     * Note: The neurons must have been allocated.
+     */
+    size_t GetNeuronCount() const;
+
+    /**
+     * Get a read-only view of the neuron at |neuron_index|.
+     */
+    const Neuron& GetNeuron(size_t neuron_index) const;
+
 protected:
 /**
  * Get the index of the first hidden neuron. Following this index, there will be GetHiddenNeuronCount() more hidden neurons.
@@ -193,11 +204,6 @@ protected:
      * Note: |hidden_neuron_index| is not a global index into |neurons_| but must be in the range [0, GetHiddenNeuronCount()).
      */
     Neuron& GetHiddenNeuron(size_t hidden_neuron_index);
-
-    /**
-     * Get a read-only view of the neuron at |neuron_index|.
-     */
-    const Neuron& GetNeuron(size_t neuron_index) const;
 
     /**
      * Get a read-only view of the output neuron at index |output_neuron_index|.

@@ -122,4 +122,9 @@ const NeuronContainer::Neuron& NeuronContainer::GetOutputNeuron(size_t output_ne
     return GetNeuron(GetOutputNeuronStartIndex() + output_neuron_index);
 }
 
+size_t NeuronContainer::GetNeuronCount() const {
+    assert(AreNeuronsAllocated());
+    return neurons_.size();
+}
+
 }  // namespace panann

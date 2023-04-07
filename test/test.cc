@@ -10,10 +10,12 @@
 #include <vector>
 
 #include "FeedForwardNeuralNetwork.h"
+#include "Perceptron.h"
 #include "RecurrentNeuralNetwork.h"
 #include "TrainingData.h"
 
 using panann::FeedForwardNeuralNetwork;
+using panann::Perceptron;
 using panann::RecurrentNeuralNetwork;
 using panann::TrainingData;
 
@@ -26,6 +28,146 @@ const char* TrainingAlgorithmNames[] = {
     "ResilientBackpropagation",
     "SimulatedAnnealingResilientBackpropagation"
 };
+
+struct TestNeuron {
+    size_t input_connection_start_index;
+    size_t input_connection_count;
+    size_t output_connection_start_index;
+    size_t output_connection_count;
+//    FeedForwardNeuralNetwork::TrainingAlgorithmType activation_function_type;
+};
+
+struct TestInputConnection {
+    size_t from_neuron_index;
+    size_t to_neuron_index;
+};
+
+// Output connection is just the index of an input connection.
+using TestOutputConnection = size_t;
+
+struct TestLayer {
+    size_t neuron_start_index;
+    size_t neuron_count;
+};
+
+struct TestPerceptron {
+    std::vector<TestLayer> layers;
+    std::vector<TestNeuron> neurons;
+    std::vector<TestInputConnection> input_connections;
+    std::vector<TestOutputConnection> output_connections;
+};
+
+struct PerceptronTestCase {
+    bool enable_shortcuts;
+    size_t input_neurons;
+    size_t output_neurons;
+    TestPerceptron perceptron;
+};
+
+const PerceptronTestCase feedForwardTestCases[] = {{
+    // Enable shortcuts
+    false,
+    // Input neuron count
+    2,
+    // Output neuron count
+    1,
+    // Perceptron - what the network topology should look like.
+    {
+    // Layers: neuron_idx, neuron_cnt
+    {
+        {0, 3},
+    },
+    // Neurons: input_idx, input_cnt, output_idx, output_cnt
+    {
+        // Hidden neurons
+        {4,3,6,1},
+        {7,3,7,1},
+        {10,3,8,1},
+        // Input neurons
+        {0,0,0,3},
+        {0,0,3,3},
+        // Output neurons
+        {0,4,0,0},
+        // Bias neurons
+        {0,0,9,3},
+        {0,0,12,1},
+    },
+    // Input connections: from_idx, to_idx
+    {
+        {0,5},
+        {1,5},
+        {2,5},
+        {7,5},
+        {3,0},
+        {4,0},
+        {6,0},
+        {3,1},
+        {4,1},
+        {6,1},
+        {3,2},
+        {4,2},
+        {6,2},
+    },
+    // Output connections: input_idx
+    {
+        4, 7, 10, 5, 8, 11, 0, 1, 2, 6, 9, 12, 3,
+    }
+    }
+},{
+    // Enable shortcuts
+    false,
+    // Input neuron count
+    2,
+    // Output neuron count
+    1,
+    // Perceptron - what the network topology should look like.
+    {
+    // Layers: neuron_idx, neuron_cnt
+    {
+        {0, 2},
+        {2, 2},
+    },
+    // Neurons: input_idx, input_cnt, output_idx, output_cnt
+    {
+        // Hidden neurons
+        {3,3,4,2},
+        {6,3,6,2},
+        {9,3,8,1},
+        {12,3,9,1},
+        // Input neurons
+        {0,0,0,2},
+        {0,0,2,2},
+        // Output neurons
+        {0,3,0,0},
+        // Bias neurons
+        {0,0,10,2},
+        {0,0,12,2},
+        {0,0,14,1},
+    },
+    // Input connections: from_idx, to_idx
+    {
+        {2,6},
+        {3,6},
+        {9,6},
+        {4,0},
+        {5,0},
+        {7,0},
+        {4,1},
+        {5,1},
+        {7,1},
+        {0,2},
+        {1,2},
+        {8,2},
+        {0,3},
+        {1,3},
+        {8,3},
+    },
+    // Output connections: input_idx
+    {
+        3, 6, 4, 7, 9, 12, 10, 13, 0, 1, 5, 8, 11, 14, 2
+    }
+    }
+}};
 
 void MakeXorTwoBitTrainingData(TrainingData* training_data) {
     training_data->resize(4);
@@ -74,6 +216,66 @@ void MakeTestNetwork(RecurrentNeuralNetwork* rnn, TrainingData* training_data) {
     rnn->AddHiddenLayer(cells_per_layer, {});
     rnn->AddHiddenLayer(cells_per_layer, {});
     rnn->Construct();
+}
+
+void Compare(size_t left, size_t right, const char* msg) {
+    if (left != right) {
+        std::cout << "Fail! Expected: " << left << " Found: " << right << ". " << msg << std::endl;
+        exit(-1);
+    }
+}
+
+void ComparePerceptron(const TestPerceptron& test_perceptron, const Perceptron& perceptron) {
+  Compare(test_perceptron.layers.size(), perceptron.GetHiddenLayerCount(), "Hidden layer count");
+  for (size_t i = 0; i < test_perceptron.layers.size(); i++) {
+    const auto& expected_layer = test_perceptron.layers[i];
+    const auto& layer = perceptron.GetHiddenLayer(i);
+    Compare(expected_layer.neuron_start_index, layer.neuron_start_index, "Neuron start index in the hidden layer");
+    Compare(expected_layer.neuron_count, layer.neuron_count, "Neuron count in the hidden layer");
+  }
+
+  Compare(test_perceptron.neurons.size(), perceptron.GetNeuronCount(), "Neuron count");
+  for (size_t i = 0; i < test_perceptron.neurons.size(); i++) {
+    const auto& expected_neuron = test_perceptron.neurons[i];
+    const auto& neuron = perceptron.GetNeuron(i);
+    Compare(expected_neuron.input_connection_start_index, neuron.input_connection_start_index, "Neuron input connection start index");
+    Compare(expected_neuron.input_connection_count, neuron.input_connection_count, "Neuron input connection count");
+    Compare(expected_neuron.output_connection_start_index, neuron.output_connection_start_index, "Neuron output connection start index");
+    Compare(expected_neuron.output_connection_count, neuron.output_connection_count, "Neuron output connection count");
+  }
+
+  Compare(test_perceptron.input_connections.size(), perceptron.GetInputConnectionCount(), "Input connection count");
+  for (size_t i = 0; i < test_perceptron.input_connections.size(); i++) {
+    const auto& expected_input_connection = test_perceptron.input_connections[i];
+    const auto& input_connection = perceptron.GetInputConnection(i);
+    Compare(expected_input_connection.from_neuron_index, input_connection.from_neuron_index, "Input connection from neuron");
+    Compare(expected_input_connection.to_neuron_index, input_connection.to_neuron_index, "Input connection from neuron");
+  }
+
+  Compare(test_perceptron.output_connections.size(), perceptron.GetOutputConnectionCount(), "Output connection count");
+  for (size_t i = 0; i < test_perceptron.output_connections.size(); i++) {
+    const auto& expected_output_connection = test_perceptron.output_connections[i];
+    const auto& output_connection = perceptron.GetOutputConnection(i);
+    Compare(expected_output_connection, output_connection.input_connection_index, "Output connection input connection index");
+  }
+}
+
+void MakeTestNetwork(FeedForwardNeuralNetwork* nn, const PerceptronTestCase& test) {
+    if (test.enable_shortcuts) {
+        nn->EnableShortcutConnections();
+    }
+    nn->SetInputNeuronCount(test.input_neurons);
+    nn->SetOutputNeuronCount(test.output_neurons);
+    for (const auto& layer : test.perceptron.layers) {
+        nn->AddHiddenLayer(layer.neuron_count);
+    }
+    nn->Construct();
+}
+
+void TestConstruct(const PerceptronTestCase& test) {
+    FeedForwardNeuralNetwork nn;
+    MakeTestNetwork(&nn, test);
+    ComparePerceptron(test.perceptron, nn);
 }
 
 void TrainAndTestNetwork(FeedForwardNeuralNetwork* nn, TrainingData* training_data, FeedForwardNeuralNetwork::TrainingAlgorithmType algorithm, size_t epochs) {
@@ -136,6 +338,10 @@ int DoTests() {
     MakeTestNetwork(&rnn, &training_data);
     constexpr size_t rnn_run_steps = 10;
     TestNetwork(&rnn, &training_data, rnn_run_steps);
+
+    for (const auto& test : feedForwardTestCases) {
+        TestConstruct(test);
+    }
 
     return 0;
 }
