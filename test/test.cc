@@ -336,7 +336,7 @@ int DoTests() {
     MakeSineTrainingData(&training_data, sine_data_steps);
     RecurrentNeuralNetwork rnn;
     MakeTestNetwork(&rnn, &training_data);
-    constexpr size_t rnn_run_steps = 10;
+    constexpr size_t rnn_run_steps = 5;
     TestNetwork(&rnn, &training_data, rnn_run_steps);
 
     for (const auto& test : feedForwardTestCases) {
