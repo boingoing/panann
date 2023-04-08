@@ -1,8 +1,8 @@
-[![master build status](https://travis-ci.org/boingoing/panann.svg?branch=master)](https://travis-ci.org/boingoing/panann/builds#)
+[![main build status](https://app.travis-ci.com/boingoing/panann.svg?branch=main)](https://app.travis-ci.com/github/boingoing/panann/builds)
 
 # panann
 
-A library for building, running, and training feed-forward artificial neural networks.
+A zero-dependency, portable, and efficient library for building, running, and training feed-forward and recurrent artificial neural networks.
 
 ## Why panann
 
@@ -13,8 +13,6 @@ Panann is adapted from the neural network component of a hobby project named PAN
 Panann has a simple interface for constructing and running artificial neural networks.
 
 ```c++
-using namespace panann;
-
 // Make XOR 2-bit training set.
 TrainingData data;
 data.resize(4);
@@ -37,7 +35,7 @@ nn.Construct();
 nn.SetTrainingAlgorithmType(NeuralNetwork::TrainingAlgorithmType::SimulatedAnnealingResilientBackpropagation);
 
 nn.InitializeWeightsRandom();
-std::cout << "Error before training: " << nn.GetError(&data) << std::endl;
+std::cout << "Error before training: " << nn.GetError(data) << std::endl;
 
 nn.Train(&data, 100000);
 std::cout << "Error after training for 100000 epochs: " << nn.GetError(&data) << std::endl;
@@ -45,17 +43,17 @@ std::cout << "Error after training for 100000 epochs: " << nn.GetError(&data) <<
 
 ## Building panann
 
-You can build panann on any platform with a compiler which supports c++17 language standards mode. The library is designed to be portable and easy to add to your project. Add the panann source files in `panann/src` to your build definition and you should be ready to use panann.
+You can build panann on any platform with a compiler which supports c++17 language standards mode. The library is designed to be portable and easy to add to your project. We do not release binaries here, but panga compiles into a static library which can be added as a dependency. Add the panann cmake file to your build system and you should be ready to use panann.
 
 ### Tested build configurations
 
 Windows 10
-* CMake 3.13.0-rc3
-* Visual Studio 2017 15.8.9
+* CMake 3.17.0
+* Visual Studio 2019 16.11.23
 
 Ubuntu 18.04
-* CMake 3.10.2
-* Clang 6.0.0
+* CMake 3.16.3
+* Clang 10.0.0
 
 ## Testing panann
 
@@ -63,15 +61,12 @@ The library ships with a simple test program in the `panann/test` folder.
 
 ```console
 > git clone https://github.com/boingoing/panann/panann.git
-> cd panann/out
+> mkdir panann/build
+> cd panann/build
 > cmake ..
 > make
 > ./panann_test
 ```
-
-### Using Visual Studio on Windows
-
-Above `cmake` command generates a Visual Studio solution file (`panann/out/panann_test.sln`) on Windows platforms with Visual Studio. You can open this solution in Visual Studio and use it to build the test program.
 
 ## Documentation
 
