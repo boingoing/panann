@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['train',['Train',['../classpanann_1_1NeuralNetwork.html#ae948fafa25f0b42e1417fb2c6b08030a',1,'panann::NeuralNetwork']]],
-  ['trainingalgorithmtype',['TrainingAlgorithmType',['../classpanann_1_1NeuralNetwork.html#acf9657a06c4d2e4916e5497e1560cd5d',1,'panann::NeuralNetwork']]],
-  ['trainingdata',['TrainingData',['../classpanann_1_1TrainingData.html',1,'panann']]]
+  ['quickbackpropagation_72',['QuickBackpropagation',['../classpanann_1_1FeedForwardNeuralNetwork.html#a3decb69db6c90f44c8f8faf8d847d694a4c698525fd46523e37fe9644807492cb',1,'panann::FeedForwardNeuralNetwork']]]
 ];

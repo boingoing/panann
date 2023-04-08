@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['neuralnetwork',['NeuralNetwork',['../classpanann_1_1NeuralNetwork.html',1,'panann']]],
-  ['neuron',['Neuron',['../structpanann_1_1NeuralNetwork_1_1Neuron.html',1,'panann::NeuralNetwork']]]
+  ['inputconnection_124',['InputConnection',['../structpanann_1_1MultiLayerNeuralTopology_1_1InputConnection.html',1,'panann::MultiLayerNeuralTopology']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['trainingalgorithmtype',['TrainingAlgorithmType',['../classpanann_1_1NeuralNetwork.html#acf9657a06c4d2e4916e5497e1560cd5d',1,'panann::NeuralNetwork']]]
+  ['trainingalgorithmtype_230',['TrainingAlgorithmType',['../classpanann_1_1FeedForwardNeuralNetwork.html#a3decb69db6c90f44c8f8faf8d847d694',1,'panann::FeedForwardNeuralNetwork']]]
 ];

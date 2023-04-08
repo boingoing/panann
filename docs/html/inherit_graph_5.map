@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structpanann_1_1NeuralNetwork_1_1Neuron.html" title="panann::NeuralNetwork\l::Neuron" alt="" coords="5,5,181,47"/>
+<area shape="rect" id="node1" href="$classpanann_1_1NeuronContainer.html" title=" " alt="" coords="5,42,193,69"/>
+<area shape="rect" id="node2" href="$classpanann_1_1MultiLayerNeuralTopology.html" title=" " alt="" coords="241,35,432,76"/>
+<area shape="rect" id="node3" href="$classpanann_1_1Perceptron.html" title=" " alt="" coords="480,42,628,69"/>
+<area shape="rect" id="node4" href="$classpanann_1_1FeedForwardNeuralNetwork.html" title=" " alt="" coords="693,5,897,47"/>
+<area shape="rect" id="node5" href="$classpanann_1_1RecurrentNeuralNetwork.html" title=" " alt="" coords="676,71,915,98"/>
 </map>
