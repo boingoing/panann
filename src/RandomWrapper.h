@@ -57,13 +57,13 @@ class RandomWrapper {
    */
   std::byte RandomByte();
 
-    /**
-     * Shuffle the elements of |vec| into random positions.
-     */
-    template <typename T>
-    void ShuffleVector(std::vector<T>* vec) {
-        std::shuffle(vec->begin(), vec->end(), Engine());
-    }
+  /**
+   * Shuffle the elements of |vec| into random positions.
+   */
+  template <typename T>
+  void ShuffleVector(std::vector<T>* vec) {
+    std::shuffle(vec->begin(), vec->end(), Engine());
+  }
 
  protected:
   std::mt19937& Engine();
