@@ -34,7 +34,6 @@ struct TestNeuron {
     size_t input_connection_count;
     size_t output_connection_start_index;
     size_t output_connection_count;
-//    FeedForwardNeuralNetwork::TrainingAlgorithmType activation_function_type;
 };
 
 struct TestInputConnection {
@@ -165,6 +164,215 @@ const PerceptronTestCase feedForwardTestCases[] = {{
     // Output connections: input_idx
     {
         3, 6, 4, 7, 9, 12, 10, 13, 0, 1, 5, 8, 11, 14, 2
+    }
+    }
+},{
+    // Enable shortcuts
+    false,
+    // Input neuron count
+    2,
+    // Output neuron count
+    2,
+    // Perceptron - what the network topology should look like.
+    {
+    // Layers: neuron_idx, neuron_cnt
+    {
+        {0, 3},
+        {3, 2},
+    },
+    // Neurons: input_idx, input_cnt, output_idx, output_cnt
+    {
+        // Hidden neurons
+        {6,3,6,2},
+        {9,3,8,2},
+        {12,3,10,2},
+        {15,4,12,2},
+        {19,4,14,2},
+        // Input neurons
+        {0,0,0,3},
+        {0,0,3,3},
+        // Output neurons
+        {0,3,0,0},
+        {3,3,0,0},
+        // Bias neurons
+        {0,0,16,3},
+        {0,0,19,2},
+        {0,0,21,2},
+    },
+    // Input connections: from_idx, to_idx
+    {
+        {3,7},
+        {4,7},
+        {11,7},
+        {3,8},
+        {4,8},
+        {11,8},
+        {5,0},
+        {6,0},
+        {9,0},
+        {5,1},
+        {6,1},
+        {9,1},
+        {5,2},
+        {6,2},
+        {9,2},
+        {0,3},
+        {1,3},
+        {2,3},
+        {10,3},
+        {0,4},
+        {1,4},
+        {2,4},
+        {10,4},
+    },
+    // Output connections: input_idx
+    {
+        6, 9, 12, 7, 10, 13, 15, 19, 16, 20, 17, 21, 0, 3, 1, 4, 8, 11, 14, 18, 22, 2, 5
+    }
+    }
+},{
+    // Enable shortcuts
+    true,
+    // Input neuron count
+    2,
+    // Output neuron count
+    2,
+    // Perceptron - what the network topology should look like.
+    {
+    // Layers: neuron_idx, neuron_cnt
+    {
+        {0, 3},
+    },
+    // Neurons: input_idx, input_cnt, output_idx, output_cnt
+    {
+        // Hidden neurons
+        {12,3,10,2},
+        {15,3,12,2},
+        {18,3,14,2},
+        // Input neurons
+        {0,0,0,5},
+        {0,0,5,5},
+        // Output neurons
+        {0,6,0,0},
+        {6,6,0,0},
+        // Bias neurons
+        {0,0,16,3},
+        {0,0,19,2},
+    },
+    // Input connections: from_idx, to_idx
+    {
+        {3,5},
+        {4,5},
+        {0,5},
+        {1,5},
+        {2,5},
+        {8,5},
+        {3,6},
+        {4,6},
+        {0,6},
+        {1,6},
+        {2,6},
+        {8,6},
+        {3,0},
+        {4,0},
+        {7,0},
+        {3,1},
+        {4,1},
+        {7,1},
+        {3,2},
+        {4,2},
+        {7,2},
+    },
+    // Output connections: input_idx
+    {
+        12, 15, 18, 0, 6, 13, 16, 19, 1, 7, 2, 8, 3, 9, 4, 10, 14, 17, 20, 5, 11
+    }
+    }
+},{
+    // Enable shortcuts
+    true,
+    // Input neuron count
+    2,
+    // Output neuron count
+    2,
+    // Perceptron - what the network topology should look like.
+    {
+    // Layers: neuron_idx, neuron_cnt
+    {
+        {0,2},
+        {2,3},
+    },
+    // Neurons: input_idx, input_cnt, output_idx, output_cnt
+    {
+        // Hidden neurons
+        {16,3,14,5},
+        {19,3,19,5},
+        {22,5,24,2},
+        {27,5,26,2},
+        {32,5,28,2},
+        // Input neurons
+        {0,0,0,7},
+        {0,0,7,7},
+        // Output neurons
+        {0,8,0,0},
+        {8,8,0,0},
+        // Bias neurons
+        {0,0,30,2},
+        {0,0,32,3},
+        {0,0,35,2},
+    },
+    // Input connections: from_idx, to_idx
+    {
+        {5,7},
+        {6,7},
+        {0,7},
+        {1,7},
+        {2,7},
+        {3,7},
+        {4,7},
+        {11,7},
+        {5,8},
+        {6,8},
+        {0,8},
+        {1,8},
+        {2,8},
+        {3,8},
+        {4,8},
+        {11,8},
+        {5,0},
+        {6,0},
+        {9,0},
+        {5,1},
+        {6,1},
+        {9,1},
+        {5,2},
+        {6,2},
+        {0,2},
+        {1,2},
+        {10,2},
+        {5,3},
+        {6,3},
+        {0,3},
+        {1,3},
+        {10,3},
+        {5,4},
+        {6,4},
+        {0,4},
+        {1,4},
+        {10,4},
+    },
+    // Output connections: input_idx
+    {
+        16, 19, 22, 27, 32, 0, 8,
+        17, 20, 23, 28, 33, 1, 9,
+        24, 29, 34, 2, 10,
+        25, 30, 35, 3, 11,
+        4, 12,
+        5, 13,
+        6, 14,
+        18, 21,
+        26, 31, 36,
+        7, 15,
     }
     }
 }};
