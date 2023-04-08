@@ -1,6 +1,27 @@
 var searchData=
 [
-  ['initializeweights',['InitializeWeights',['../classpanann_1_1NeuralNetwork.html#a8482fdae173c31baa0135c28f7688e4a',1,'panann::NeuralNetwork']]],
-  ['initializeweightsrandom',['InitializeWeightsRandom',['../classpanann_1_1NeuralNetwork.html#a2e724e1b39f29d709e3ea712d5a99bf1',1,'panann::NeuralNetwork']]],
-  ['inputconnection',['InputConnection',['../structpanann_1_1NeuralNetwork_1_1InputConnection.html',1,'panann::NeuralNetwork']]]
+  ['getbiasneuron_29',['GetBiasNeuron',['../classpanann_1_1NeuronContainer.html#a099b47912b0071cac4d0ef18c98be14d',1,'panann::NeuronContainer']]],
+  ['getbiasneuroncount_30',['GetBiasNeuronCount',['../classpanann_1_1NeuronContainer.html#a4ac7066afbebea4073a285b5c3abf54c',1,'panann::NeuronContainer']]],
+  ['getbiasneuronstartindex_31',['GetBiasNeuronStartIndex',['../classpanann_1_1NeuronContainer.html#a0f3e9372ee1dc58d4ce1cbc47e5e2d69',1,'panann::NeuronContainer']]],
+  ['getcellstates_32',['GetCellStates',['../classpanann_1_1RecurrentNeuralNetwork.html#a6c698b5376312d9138bf32e14cf31428',1,'panann::RecurrentNeuralNetwork']]],
+  ['geterror_33',['GetError',['../classpanann_1_1Perceptron.html#a8d1161034aecfc58c53f1e1827346af1',1,'panann::Perceptron::GetError(const std::vector&lt; double &gt; &amp;output)'],['../classpanann_1_1Perceptron.html#a6384b14651de7f8f2d5c5a82580521ba',1,'panann::Perceptron::GetError(const TrainingData &amp;training_data)']]],
+  ['gethiddenlayer_34',['GetHiddenLayer',['../classpanann_1_1MultiLayerNeuralTopology.html#ae2e66bbb13120baafd1076347c703680',1,'panann::MultiLayerNeuralTopology::GetHiddenLayer(size_t layer_index) const'],['../classpanann_1_1MultiLayerNeuralTopology.html#a143de33b801d342ccc124fb7b92afd0d',1,'panann::MultiLayerNeuralTopology::GetHiddenLayer(size_t layer_index)']]],
+  ['gethiddenlayercount_35',['GetHiddenLayerCount',['../classpanann_1_1MultiLayerNeuralTopology.html#a6a7eebb4b26a6fb934f9b86227a53b92',1,'panann::MultiLayerNeuralTopology']]],
+  ['gethiddenneuron_36',['GetHiddenNeuron',['../classpanann_1_1NeuronContainer.html#a5570283925799d5c3f7a5e93b1bf54d9',1,'panann::NeuronContainer']]],
+  ['gethiddenneuroncount_37',['GetHiddenNeuronCount',['../classpanann_1_1NeuronContainer.html#a3df6011bae332a7f2a2314d1e0af6d9e',1,'panann::NeuronContainer']]],
+  ['gethiddenneuronstartindex_38',['GetHiddenNeuronStartIndex',['../classpanann_1_1NeuronContainer.html#a1a01a0868b56604546810ff09789bc5f',1,'panann::NeuronContainer']]],
+  ['getinputconnection_39',['GetInputConnection',['../classpanann_1_1MultiLayerNeuralTopology.html#a42d82b13489919ab9621cd179ba7902e',1,'panann::MultiLayerNeuralTopology::GetInputConnection(size_t index) const'],['../classpanann_1_1MultiLayerNeuralTopology.html#aa2140b8e0d32cd3af71ca83e03d60b7f',1,'panann::MultiLayerNeuralTopology::GetInputConnection(size_t index)']]],
+  ['getinputconnectioncount_40',['GetInputConnectionCount',['../classpanann_1_1MultiLayerNeuralTopology.html#a7fe228dee068c2e1be3b0a4a6d7fb210',1,'panann::MultiLayerNeuralTopology']]],
+  ['getinputneuron_41',['GetInputNeuron',['../classpanann_1_1NeuronContainer.html#a772d4dc53d6cf38178ccb748422b040f',1,'panann::NeuronContainer']]],
+  ['getinputneuroncount_42',['GetInputNeuronCount',['../classpanann_1_1NeuronContainer.html#a8ec09877773748325b930195a85eea8f',1,'panann::NeuronContainer']]],
+  ['getinputneuronstartindex_43',['GetInputNeuronStartIndex',['../classpanann_1_1NeuronContainer.html#aad3897f2693985fb22b041a8490f3c13',1,'panann::NeuronContainer']]],
+  ['getneuron_44',['GetNeuron',['../classpanann_1_1NeuronContainer.html#aeb552938315ee650ab7d6bfaccb01f79',1,'panann::NeuronContainer::GetNeuron(size_t neuron_index) const'],['../classpanann_1_1NeuronContainer.html#a1edf2f05e12fd5963f48c25e40e26797',1,'panann::NeuronContainer::GetNeuron(size_t neuron_index)']]],
+  ['getneuroncount_45',['GetNeuronCount',['../classpanann_1_1NeuronContainer.html#af337e147109a5d039d9e8a28ee90c538',1,'panann::NeuronContainer']]],
+  ['getoutput_46',['GetOutput',['../classpanann_1_1Perceptron.html#a2046ad9da33e8fa0469cf6c78e9352a1',1,'panann::Perceptron']]],
+  ['getoutputconnection_47',['GetOutputConnection',['../classpanann_1_1MultiLayerNeuralTopology.html#a8a925b173dc04f8d0a3cc3f3130a6d71',1,'panann::MultiLayerNeuralTopology::GetOutputConnection(size_t index) const'],['../classpanann_1_1MultiLayerNeuralTopology.html#a92433ba5be097285b4e9a78a0be427c9',1,'panann::MultiLayerNeuralTopology::GetOutputConnection(size_t index)']]],
+  ['getoutputconnectioncount_48',['GetOutputConnectionCount',['../classpanann_1_1MultiLayerNeuralTopology.html#a9be7b333ef93dfc8224eca30cf58a76f',1,'panann::MultiLayerNeuralTopology']]],
+  ['getoutputneuron_49',['GetOutputNeuron',['../classpanann_1_1NeuronContainer.html#aef42a44ce9b0de0d092b10bb7afc1ee2',1,'panann::NeuronContainer::GetOutputNeuron(size_t output_neuron_index)'],['../classpanann_1_1NeuronContainer.html#a62ce6492e411ffaf709fce40a50b6179',1,'panann::NeuronContainer::GetOutputNeuron(size_t output_neuron_index) const']]],
+  ['getoutputneuroncount_50',['GetOutputNeuronCount',['../classpanann_1_1NeuronContainer.html#a7483b4c9b00191614ff7cee78f940495',1,'panann::NeuronContainer']]],
+  ['getoutputneuronstartindex_51',['GetOutputNeuronStartIndex',['../classpanann_1_1NeuronContainer.html#ac8d3c47508cdf014bd36238dcba8b12a',1,'panann::NeuronContainer']]],
+  ['getweights_52',['GetWeights',['../classpanann_1_1Perceptron.html#a7985777387ca7552cebc11814dfa6e1c',1,'panann::Perceptron']]]
 ];
