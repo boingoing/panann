@@ -133,7 +133,7 @@ class Perceptron : public MultiLayerNeuralTopology {
    * Writes all of the output neuron values into |output|.<br/>
    * Existing values in |output| will be discarded.
    */
-  void GetOutput(std::vector<double>* output) const;
+  void GetOutput(std::vector<double>& output) const;
 
   /**
    * Build the neural network.<br/>

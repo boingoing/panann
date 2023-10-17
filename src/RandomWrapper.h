@@ -61,8 +61,8 @@ class RandomWrapper {
    * Shuffle the elements of |vec| into random positions.
    */
   template <typename T>
-  void ShuffleVector(std::vector<T>* vec) {
-    std::shuffle(vec->begin(), vec->end(), Engine());
+  void ShuffleVector(std::vector<T>& vec) {
+    std::shuffle(vec.begin(), vec.end(), Engine());
   }
 
  protected:

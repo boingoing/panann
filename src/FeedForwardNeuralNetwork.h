@@ -225,7 +225,7 @@ class FeedForwardNeuralNetwork : public Perceptron {
    * @see TrainingAlgorithmType
    * @see TrainingData
    */
-  void Train(TrainingData* training_data, size_t epoch_count);
+  void Train(TrainingData& training_data, size_t epoch_count);
 
  protected:
   void UpdateSlopes();
@@ -241,8 +241,8 @@ class FeedForwardNeuralNetwork : public Perceptron {
   void ResetSlopes();
   void ResetPreviousSlopes();
 
-  void TrainOffline(TrainingData* training_data, size_t epoch_count);
-  void TrainOnline(TrainingData* training_data, size_t epoch_count);
+  void TrainOffline(TrainingData& training_data, size_t epoch_count);
+  void TrainOnline(TrainingData& training_data, size_t epoch_count);
 
  private:
   static constexpr double DefaultLearningRate = 0.7;

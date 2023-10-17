@@ -315,7 +315,7 @@ void FeedForwardNeuralNetwork::UpdateSlopes() {
   }
 }
 
-void FeedForwardNeuralNetwork::TrainOffline(TrainingData* training_data,
+void FeedForwardNeuralNetwork::TrainOffline(TrainingData& training_data,
                                             size_t epoch_count) {
   ResetPreviousSlopes();
   ResetWeightSteps();
@@ -327,7 +327,7 @@ void FeedForwardNeuralNetwork::TrainOffline(TrainingData* training_data,
     GetRandom().ShuffleVector(training_data);
 
     // Train the network using offline weight updates - batching.
-    for (const auto& example : *training_data) {
+    for (const auto& example : training_data) {
       // Run the network forward to get values in the output neurons.
       RunForward(example.input);
 
@@ -339,11 +339,11 @@ void FeedForwardNeuralNetwork::TrainOffline(TrainingData* training_data,
     }
 
     // Update weights.
-    UpdateWeightsOffline(i, training_data->size());
+    UpdateWeightsOffline(i, training_data.size());
   }
 }
 
-void FeedForwardNeuralNetwork::TrainOnline(TrainingData* training_data,
+void FeedForwardNeuralNetwork::TrainOnline(TrainingData& training_data,
                                            size_t epoch_count) {
   ResetWeightSteps();
 
@@ -352,7 +352,7 @@ void FeedForwardNeuralNetwork::TrainOnline(TrainingData* training_data,
     GetRandom().ShuffleVector(training_data);
 
     // Train the network using online weight updates - no batching.
-    for (const auto& example : *training_data) {
+    for (const auto& example : training_data) {
       // Run the network forward to get values in the output neurons.
       RunForward(example.input);
 
@@ -365,7 +365,7 @@ void FeedForwardNeuralNetwork::TrainOnline(TrainingData* training_data,
   }
 }
 
-void FeedForwardNeuralNetwork::Train(TrainingData* training_data,
+void FeedForwardNeuralNetwork::Train(TrainingData& training_data,
                                      size_t epoch_count) {
   switch (training_algorithm_type_) {
     case TrainingAlgorithmType::Backpropagation:
