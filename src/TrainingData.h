@@ -135,28 +135,28 @@ class TrainingData : public std::vector<Example> {
    * Uses the scaling parameters calculated during a previous call to Scale.
    * @see Scale
    */
-  void ScaleInput(std::vector<double>* vec) const;
+  void ScaleInput(std::vector<double>& vec) const;
 
   /**
    * Scale one vector of output.<br/>
    * Uses the scaling parameters calculated during a previous call to Scale.
    * @see Scale
    */
-  void ScaleOutput(std::vector<double>* vec) const;
+  void ScaleOutput(std::vector<double>& vec) const;
 
   /**
    * Descale one vector of input.<br/>
    * Uses the scaling parameters calculated during a previous call to Scale.
    * @see Scale
    */
-  void DescaleInput(std::vector<double>* vec) const;
+  void DescaleInput(std::vector<double>& vec) const;
 
   /**
    * Descale one vector of output.<br/>
    * Uses the scaling parameters calculated during a previous call to Scale.
    * @see Scale
    */
-  void DescaleOutput(std::vector<double>* vec) const;
+  void DescaleOutput(std::vector<double>& vec) const;
 
   /**
    * Convert sequential data into examples.<br/>

@@ -295,11 +295,11 @@ void Perceptron::SetWeights(const std::vector<double>& weights) {
   weights_.assign(weights.cbegin(), weights.cend());
 }
 
-void Perceptron::GetOutput(std::vector<double>* output) const {
-  output->resize(GetOutputNeuronCount());
+void Perceptron::GetOutput(std::vector<double>& output) const {
+  output.resize(GetOutputNeuronCount());
   for (size_t i = 0; i < GetOutputNeuronCount(); i++) {
     const auto& neuron = GetOutputNeuron(i);
-    output->at(i) = neuron.value;
+    output[i] = neuron.value;
   }
 }
 
