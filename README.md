@@ -16,14 +16,14 @@ Panann has a simple interface for constructing and running artificial neural net
 // Make XOR 2-bit training set.
 TrainingData data;
 data.resize(4);
-data[0]._input = { 0, 0 };
-data[0]._output = { 0 };
-data[1]._input = { 1, 1 };
-data[1]._output = { 0 };
-data[2]._input = { 1, 0 };
-data[2]._output = { 1 };
-data[3]._input = { 0, 1 };
-data[3]._output = { 1 };
+data[0].input = { 0, 0 };
+data[0].output = { 0 };
+data[1].input = { 1, 1 };
+data[1].output = { 0 };
+data[2].input = { 1, 0 };
+data[2].output = { 1 };
+data[3].input = { 0, 1 };
+data[3].output = { 1 };
 
 // Build a simple, multi-layer feed-forward network.
 NeuralNetwork nn;
